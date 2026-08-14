@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+@theme {
+  /* Surface Layers */
+  --color-surface-dim: #0e1511;
+  --color-surface: #0e1511;
+  --color-surface-bright: #343b36;
+  --color-surface-container-lowest: #09100c;
+  --color-surface-container-low: #161d19;
+  --color-surface-container: #1a211d;
+  --color-surface-container-high: #242c27;
+  --color-surface-container-highest: #2f3632;
+  
+  /* Text / Content */
+  --color-on-surface: #dde4dd;
+  --color-on-surface-variant: #c6d4ca;
+  --color-muted: #9bb0a2;
+
+  /* Accent Colors */
+  --color-primary: #4edea3;
+  --color-primary-container: #10b981;
+  --color-on-primary: #003824;
+  --color-on-primary-container: #00422b;
+  
+  --color-secondary: #4cd7f6;
+  --color-secondary-container: #03b5d3;
+  --color-on-secondary: #003640;
+  
+  --color-tertiary: #ffb3af;
+  --color-tertiary-container: #fc7c78;
+  --color-on-tertiary: #650911;
+  
+  --color-error: #ffb4ab;
+  --color-error-container: #93000a;
+  
+  /* Borders */
+  --color-outline: #3c4a42;
+  --color-outline-variant: #242c27;
+  
+  /* Fonts */
+  --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+/* Custom Utilities for Hairline Elevation Borders & Soft Technical Style */
+.border-hairline {
+  border: 1px solid var(--color-outline-variant);
+}
+
+.border-hairline-subtle {
+  border: 1px solid var(--color-outline);
+}
+
+.bg-surface-elevated {
+  background-color: var(--color-surface-container);
+}
+
+/* Focus Visible Accessible Ring */
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Motion Sensitivity Compliance */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Scrollbar Customization */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--color-surface-container-lowest);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--color-surface-container-high);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-border);
+}

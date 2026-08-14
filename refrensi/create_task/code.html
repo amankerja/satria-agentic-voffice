@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SATRIA - Create Task</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#0e1511",
+                        "on-background": "#dde4dd",
+                        "primary-container": "#10b981",
+                        "secondary": "#4cd7f6",
+                        "on-tertiary": "#650911",
+                        "error-container": "#93000a",
+                        "inverse-surface": "#dde4dd",
+                        "surface-tint": "#4edea3",
+                        "on-secondary-fixed": "#001f26",
+                        "on-secondary": "#003640",
+                        "surface-bright": "#343b36",
+                        "surface-container-high": "#242c27",
+                        "tertiary-container": "#fc7c78",
+                        "on-secondary-container": "#00424e",
+                        "error": "#ffb4ab",
+                        "surface-container": "#1a211d",
+                        "outline-variant": "#3c4a42",
+                        "on-surface": "#dde4dd",
+                        "secondary-container": "#03b5d3",
+                        "surface-container-highest": "#2f3632",
+                        "surface-variant": "#2f3632",
+                        "outline": "#86948a",
+                        "on-error-container": "#ffdad6",
+                        "on-primary": "#003824",
+                        "tertiary-fixed": "#ffdad7",
+                        "on-primary-fixed-variant": "#005236",
+                        "on-error": "#690005",
+                        "inverse-primary": "#006c49",
+                        "primary-fixed-dim": "#4edea3",
+                        "on-primary-container": "#00422b",
+                        "tertiary": "#ffb3af",
+                        "on-surface-variant": "#bbcabf",
+                        "inverse-on-surface": "#2b322d",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "surface-container-low": "#161d19",
+                        "surface-container-lowest": "#09100c",
+                        "secondary-fixed": "#acedff",
+                        "primary-fixed": "#6ffbbe",
+                        "on-tertiary-container": "#711419",
+                        "on-tertiary-fixed": "#410005",
+                        "surface-dim": "#0e1511",
+                        "primary": "#4edea3",
+                        "background": "#0e1511",
+                        "tertiary-fixed-dim": "#ffb3af",
+                        "on-tertiary-fixed-variant": "#842225",
+                        "on-primary-fixed": "#002113"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xs": "4px",
+                        "md": "16px",
+                        "xxl": "48px",
+                        "xl": "32px",
+                        "sm": "8px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "h2": ["Geist"],
+                        "caption": ["Geist"],
+                        "h1-mobile": ["Geist"],
+                        "display": ["Geist"],
+                        "mono": ["JetBrains Mono"],
+                        "body-lg": ["Geist"],
+                        "h1": ["Geist"],
+                        "body-sm": ["Geist"],
+                        "h3": ["Geist"],
+                        "label": ["Geist"]
+                    },
+                    "fontSize": {
+                        "h2": ["22px", { "lineHeight": "1.4", "fontWeight": "500" }],
+                        "caption": ["12px", { "lineHeight": "1", "fontWeight": "400" }],
+                        "h1-mobile": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "display": ["38px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "mono": ["13px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "body-lg": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "h1": ["30px", { "lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "body-sm": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "h3": ["18px", { "lineHeight": "1.5", "fontWeight": "500" }],
+                        "label": ["13px", { "lineHeight": "1", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        body {
+            background-color: theme('colors.background');
+            color: theme('colors.on-background');
+        }
+        
+        /* High Density Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: theme('colors.surface-variant');
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: theme('colors.outline-variant');
+        }
+
+        /* Custom Input Styles */
+        .tech-input {
+            @apply w-full bg-surface-container-high border border-outline-variant rounded-DEFAULT px-md py-sm text-body-sm text-on-surface focus:outline-none focus:border-primary transition-colors;
+        }
+        
+        .tech-select {
+            @apply appearance-none w-full bg-surface-container-high border border-outline-variant rounded-DEFAULT px-md py-sm pr-lg text-body-sm text-on-surface focus:outline-none focus:border-primary transition-colors;
+        }
+        
+        .tech-label {
+            @apply font-label text-label text-on-surface-variant mb-xs block;
+        }
+
+        .radio-card:has(input:checked) {
+            @apply border-primary bg-primary-container/10;
+        }
+        .radio-card:has(input:checked) .radio-icon {
+            @apply text-primary;
+        }
+    </style>
+</head>
+<body class="flex h-screen overflow-hidden font-body-sm text-body-sm antialiased">
+<!-- Top Navigation Bar (Mobile Only via JSON intent, but SATRIA OPS is desktop-heavy) -->
+<!-- Assuming desktop-first view for this complex form -->
+<header class="flex justify-between items-center px-lg w-full h-16 fixed top-0 z-50 bg-surface dark:bg-surface border-b border-outline-variant md:hidden">
+<div class="font-h2 text-h2 font-bold text-primary dark:text-primary">SATRIA</div>
+<div class="flex items-center gap-md text-primary dark:text-primary">
+<span class="material-symbols-outlined cursor-pointer active:scale-95 hover:bg-surface-container-high transition-colors p-xs rounded-DEFAULT">notifications</span>
+<span class="material-symbols-outlined cursor-pointer active:scale-95 hover:bg-surface-container-high transition-colors p-xs rounded-DEFAULT">wifi_tethering</span>
+<span class="material-symbols-outlined cursor-pointer active:scale-95 hover:bg-surface-container-high transition-colors p-xs rounded-DEFAULT">account_circle</span>
+</div>
+</header>
+<!-- Side Navigation Bar -->
+<nav class="hidden md:flex flex-col h-full w-[240px] fixed left-0 top-0 z-40 bg-surface-container dark:bg-surface-container border-r border-outline-variant">
+<!-- Header -->
+<div class="p-lg border-b border-outline-variant">
+<div class="flex items-center gap-md mb-md">
+<img alt="User Profile" class="w-8 h-8 rounded-full border border-outline-variant object-cover" data-alt="A sleek, high-tech abstract geometric profile icon featuring a glowing emerald green wireframe structure against a dark obsidian background, embodying a modern technical command center aesthetic. Soft, precise studio lighting highlights the sharp edges of the geometry. High detail, 8k resolution, minimalist but complex." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCyTAjSYj5T2ix2c1zLJK2u2wANMCt6mCYtSajzRAWcj34H-pGSKhUuSqbXgLbrWi-0mjqha-pYrWvzvBjbXTusV0jlFG0I6F0cg_-5pWqCmolX6uUnjE1eG6ny01JC0pdsPeY52vbKPcCLHWT628zGMH7BNzAphWiFVWc6l_ZEq2Ea6waWMYaqb5rCwz5xGdIpI_GjK7kKnatSGz2wFRJL2I_SnuBoWcpwh5Eq6sHBrWrMV7pGmL1R"/>
+<div>
+<h1 class="text-h3 font-h3 font-black text-primary">SATRIA OPS</h1>
+<p class="font-caption text-caption text-on-surface-variant">Technical Command</p>
+</div>
+</div>
+<button class="w-full bg-primary text-on-primary py-sm px-md rounded-DEFAULT font-label text-label hover:bg-surface-tint transition-colors flex items-center justify-center gap-xs">
+<span class="material-symbols-outlined" style="font-size: 16px;">add</span>
+                New Project
+            </button>
+</div>
+<!-- Main Nav -->
+<div class="flex-1 overflow-y-auto py-md">
+<a class="text-on-surface-variant py-md px-lg flex items-center gap-md hover:bg-surface-container-highest hover:text-on-surface transition-all duration-200 ease-in-out font-label text-label" href="#">
+<span class="material-symbols-outlined">dashboard</span> Overview
+            </a>
+<a class="text-primary bg-primary-container/10 border-l-2 border-primary py-md px-lg flex items-center gap-md transition-all duration-200 ease-in-out font-label text-label" href="#">
+<span class="material-symbols-outlined">assignment</span> Tasks
+            </a>
+<a class="text-on-surface-variant py-md px-lg flex items-center gap-md hover:bg-surface-container-highest hover:text-on-surface transition-all duration-200 ease-in-out font-label text-label" href="#">
+<span class="material-symbols-outlined">account_tree</span> Projects
+            </a>
+<a class="text-on-surface-variant py-md px-lg flex items-center gap-md hover:bg-surface-container-highest hover:text-on-surface transition-all duration-200 ease-in-out font-label text-label" href="#">
+<span class="material-symbols-outlined">folder</span> Files
+            </a>
+<a class="text-on-surface-variant py-md px-lg flex items-center gap-md hover:bg-surface-container-highest hover:text-on-surface transition-all duration-200 ease-in-out font-label text-label" href="#">
+<span class="material-symbols-outlined">calendar_today</span> Calendar
+            </a>
+<a class="text-on-surface-variant py-md px-lg flex items-center gap-md hover:bg-surface-container-highest hover:text-on-surface transition-all duration-200 ease-in-out font-label text-label" href="#">
+<span class="material-symbols-outlined">analytics</span> Activity
+            </a>
+<a class="text-on-surface-variant py-md px-lg flex items-center gap-md hover:bg-surface-container-highest hover:text-on-surface transition-all duration-200 ease-in-out font-label text-label" href="#">
+<span class="material-symbols-outlined">bar_chart</span> Reports
+            </a>
+<a class="text-on-surface-variant py-md px-lg flex items-center gap-md hover:bg-surface-container-highest hover:text-on-surface transition-all duration-200 ease-in-out font-label text-label" href="#">
+<span class="material-symbols-outlined">notifications</span> Notifications
+            </a>
+<a class="text-on-surface-variant py-md px-lg flex items-center gap-md hover:bg-surface-container-highest hover:text-on-surface transition-all duration-200 ease-in-out font-label text-label" href="#">
+<span class="material-symbols-outlined">settings</span> Settings
+            </a>
+</div>
+<!-- Footer Nav -->
+<div class="border-t border-outline-variant p-sm">
+<a class="text-on-surface-variant py-md px-lg flex items-center gap-md hover:bg-surface-container-highest hover:text-on-surface transition-all duration-200 ease-in-out font-label text-label" href="#">
+<span class="material-symbols-outlined">help</span> Support
+            </a>
+<a class="text-on-surface-variant py-md px-lg flex items-center gap-md hover:bg-surface-container-highest hover:text-on-surface transition-all duration-200 ease-in-out font-label text-label" href="#">
+<span class="material-symbols-outlined">logout</span> Sign Out
+            </a>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-[240px] pt-16 md:pt-0 h-full overflow-y-auto bg-surface relative">
+<!-- Optional Ambient Background Shader (Very subtle) -->
+<div class="absolute inset-0 opacity-10 pointer-events-none">
+
+</div>
+<div class="relative z-10 max-w-5xl mx-auto p-lg md:p-xl">
+<!-- Header -->
+<div class="flex flex-col md:flex-row md:items-center justify-between gap-md mb-xl border-b border-outline-variant pb-md">
+<div>
+<div class="flex items-center gap-sm mb-xs">
+<a class="text-on-surface-variant hover:text-primary transition-colors font-mono text-mono" href="#">Tasks</a>
+<span class="text-outline-variant">/</span>
+<span class="text-on-surface font-mono text-mono">New</span>
+</div>
+<h2 class="font-h1 text-h1 text-on-surface font-semibold tracking-tight">Create Task</h2>
+</div>
+<div class="flex items-center gap-md">
+<button class="px-md py-sm border border-outline-variant rounded-DEFAULT text-on-surface hover:bg-surface-container-high transition-colors font-label text-label" type="button">
+                        Cancel
+                    </button>
+<button class="px-md py-sm bg-primary text-on-primary rounded-DEFAULT hover:bg-surface-tint transition-colors font-label text-label flex items-center gap-sm shadow-[0_0_15px_rgba(16,185,129,0.2)]" type="button">
+<span class="material-symbols-outlined" style="font-size: 18px;">add_task</span>
+                        Create Task
+                    </button>
+</div>
+</div>
+<!-- Bento Grid Layout for Form -->
+<form class="grid grid-cols-1 lg:grid-cols-12 gap-lg">
+<!-- Left Column: Primary Details (8 cols) -->
+<div class="lg:col-span-8 flex flex-col gap-lg">
+<!-- Core Info Card -->
+<div class="bg-surface-container border border-outline-variant rounded-lg p-lg">
+<div class="mb-md border-b border-outline-variant pb-sm">
+<h3 class="font-h3 text-h3 text-on-surface">Core Information</h3>
+</div>
+<div class="flex flex-col gap-md">
+<div>
+<label class="tech-label" for="task-title">Task Title</label>
+<input class="tech-input font-mono text-mono" id="task-title" placeholder="e.g., Implement secure WebSocket connection" type="text"/>
+</div>
+<div>
+<label class="tech-label" for="task-desc">Description</label>
+<textarea class="tech-input resize-y min-h-[120px]" id="task-desc" placeholder="Provide technical specifications or context..." rows="6"></textarea>
+</div>
+</div>
+</div>
+<!-- Checklist Card -->
+<div class="bg-surface-container border border-outline-variant rounded-lg p-lg">
+<div class="mb-md border-b border-outline-variant pb-sm flex justify-between items-center">
+<h3 class="font-h3 text-h3 text-on-surface">Sub-tasks / Checklist</h3>
+<button class="text-primary hover:text-primary-fixed transition-colors flex items-center gap-xs font-label text-label" type="button">
+<span class="material-symbols-outlined" style="font-size: 16px;">add</span> Add Item
+                            </button>
+</div>
+<div class="flex flex-col gap-sm" id="checklist-container">
+<!-- Checklist Item 1 -->
+<div class="flex items-center gap-md bg-surface-container-high p-sm border border-outline-variant rounded-DEFAULT group hover:border-outline transition-colors">
+<input class="w-4 h-4 rounded-sm bg-surface border-outline-variant text-primary focus:ring-primary focus:ring-offset-surface-container-high cursor-pointer" type="checkbox"/>
+<input class="flex-1 bg-transparent border-none p-0 text-body-sm text-on-surface focus:ring-0" placeholder="Checklist item description..." type="text" value="Review authentication handshake protocol"/>
+<button class="text-on-surface-variant hover:text-error transition-colors opacity-0 group-hover:opacity-100" type="button">
+<span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+</button>
+</div>
+<!-- Checklist Item 2 -->
+<div class="flex items-center gap-md bg-surface-container-high p-sm border border-outline-variant rounded-DEFAULT group hover:border-outline transition-colors">
+<input class="w-4 h-4 rounded-sm bg-surface border-outline-variant text-primary focus:ring-primary focus:ring-offset-surface-container-high cursor-pointer" type="checkbox"/>
+<input class="flex-1 bg-transparent border-none p-0 text-body-sm text-on-surface focus:ring-0" placeholder="Checklist item description..." type="text" value="Setup wss:// endpoint mapping"/>
+<button class="text-on-surface-variant hover:text-error transition-colors opacity-0 group-hover:opacity-100" type="button">
+<span class="material-symbols-outlined" style="font-size: 18px;">close</span>
+</button>
+</div>
+<!-- New Empty Item -->
+<div class="flex items-center gap-md bg-surface-container-high p-sm border border-outline-variant border-dashed rounded-DEFAULT opacity-60 focus-within:opacity-100 focus-within:border-solid focus-within:border-primary transition-all">
+<span class="material-symbols-outlined text-outline-variant" style="font-size: 18px;">drag_indicator</span>
+<input class="flex-1 bg-transparent border-none p-0 text-body-sm text-on-surface focus:ring-0" placeholder="Add new item..." type="text"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Meta Data (4 cols) -->
+<div class="lg:col-span-4 flex flex-col gap-lg">
+<!-- Meta Card -->
+<div class="bg-surface-container border border-outline-variant rounded-lg p-lg flex flex-col gap-md">
+<!-- Project -->
+<div>
+<label class="tech-label" for="project">Project</label>
+<div class="relative">
+<select class="tech-select" id="project">
+<option disabled="" selected="" value="">Select Project</option>
+<option value="satria-core">SATRIA Core OS</option>
+<option value="satria-ui">SATRIA UI Library</option>
+<option value="satria-sec">Security Module Alpha</option>
+</select>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+</div>
+<hr class="border-outline-variant border-t w-full my-xs"/>
+<!-- Assignee -->
+<div>
+<label class="tech-label" for="assignee">Assignee</label>
+<div class="relative">
+<select class="tech-select pl-[36px]" id="assignee">
+<option value="unassigned">Unassigned</option>
+<option selected="" value="eng-1">Alex Chen (Frontend)</option>
+<option value="eng-2">Sarah Jenkins (Backend)</option>
+<option value="eng-3">Marcus Cole (DevOps)</option>
+</select>
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" style="font-size: 18px;">person</span>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- Status -->
+<div>
+<label class="tech-label" for="status">Status</label>
+<div class="relative">
+<select class="tech-select" id="status">
+<option selected="" value="todo">To Do</option>
+<option value="in_progress">In Progress</option>
+<option value="review">In Review</option>
+<option value="blocked">Blocked</option>
+</select>
+<span class="material-symbols-outlined absolute right-sm top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none">expand_more</span>
+</div>
+</div>
+<!-- Deadline -->
+<div>
+<label class="tech-label" for="deadline">Deadline</label>
+<div class="relative">
+<input class="tech-input pl-[36px] [color-scheme:dark]" id="deadline" type="date"/>
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" style="font-size: 18px;">calendar_today</span>
+</div>
+</div>
+</div>
+<!-- Priority Card (Radio Group) -->
+<div class="bg-surface-container border border-outline-variant rounded-lg p-lg">
+<div class="mb-md border-b border-outline-variant pb-sm">
+<h3 class="font-h3 text-h3 text-on-surface">Priority Level</h3>
+</div>
+<div class="grid grid-cols-2 gap-sm">
+<label class="radio-card relative flex items-center p-sm border border-outline-variant rounded-DEFAULT cursor-pointer hover:border-outline transition-colors bg-surface-container-high">
+<input class="sr-only" name="priority" type="radio" value="low"/>
+<span class="material-symbols-outlined radio-icon text-on-surface-variant mr-sm" style="font-size: 18px;">arrow_downward</span>
+<span class="font-label text-label text-on-surface">Low</span>
+</label>
+<label class="radio-card relative flex items-center p-sm border border-outline-variant rounded-DEFAULT cursor-pointer hover:border-outline transition-colors bg-surface-container-high">
+<input checked="" class="sr-only" name="priority" type="radio" value="medium"/>
+<span class="material-symbols-outlined radio-icon text-secondary mr-sm" style="font-size: 18px;">remove</span>
+<span class="font-label text-label text-on-surface">Medium</span>
+</label>
+<label class="radio-card relative flex items-center p-sm border border-outline-variant rounded-DEFAULT cursor-pointer hover:border-outline transition-colors bg-surface-container-high">
+<input class="sr-only" name="priority" type="radio" value="high"/>
+<span class="material-symbols-outlined radio-icon text-tertiary-container mr-sm" style="font-size: 18px;">arrow_upward</span>
+<span class="font-label text-label text-on-surface">High</span>
+</label>
+<label class="radio-card relative flex items-center p-sm border border-error-container rounded-DEFAULT cursor-pointer hover:border-error transition-colors bg-error-container/20">
+<input class="sr-only" name="priority" type="radio" value="critical"/>
+<span class="material-symbols-outlined radio-icon text-error mr-sm" style="font-variation-settings: 'FILL' 1; font-size: 18px;">warning</span>
+<span class="font-label text-label text-error">Critical</span>
+</label>
+</div>
+</div>
+<!-- Tags / Labels Card -->
+<div class="bg-surface-container border border-outline-variant rounded-lg p-lg">
+<div class="mb-md border-b border-outline-variant pb-sm">
+<h3 class="font-h3 text-h3 text-on-surface">Tags</h3>
+</div>
+<div class="flex flex-wrap gap-xs mb-sm">
+<span class="inline-flex items-center gap-xs px-2 py-1 rounded-sm border border-outline-variant bg-surface-container-highest text-caption font-caption text-on-surface">
+                                frontend
+                                <button class="hover:text-error" type="button"><span class="material-symbols-outlined" style="font-size: 14px;">close</span></button>
+</span>
+<span class="inline-flex items-center gap-xs px-2 py-1 rounded-sm border border-outline-variant bg-surface-container-highest text-caption font-caption text-on-surface">
+                                security
+                                <button class="hover:text-error" type="button"><span class="material-symbols-outlined" style="font-size: 14px;">close</span></button>
+</span>
+</div>
+<div class="relative">
+<input class="tech-input text-caption h-8 pl-[28px]" placeholder="Add tag..." type="text"/>
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant pointer-events-none" style="font-size: 16px;">sell</span>
+</div>
+</div>
+</div>
+</form>
+</div>
+</main>
+</body></html>

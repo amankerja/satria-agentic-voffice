@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SATRIA AI WORKFORCE - Splash</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#842225",
+                        "inverse-primary": "#006c49",
+                        "on-tertiary-container": "#711419",
+                        "outline": "#86948a",
+                        "background": "#0e1511",
+                        "error-container": "#93000a",
+                        "on-primary-container": "#00422b",
+                        "tertiary-fixed": "#ffdad7",
+                        "on-error-container": "#ffdad6",
+                        "on-surface-variant": "#bbcabf",
+                        "on-error": "#690005",
+                        "on-tertiary-fixed": "#410005",
+                        "primary-container": "#10b981",
+                        "on-secondary": "#003640",
+                        "outline-variant": "#3c4a42",
+                        "surface": "#0e1511",
+                        "on-background": "#dde4dd",
+                        "inverse-on-surface": "#2b322d",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "on-primary": "#003824",
+                        "on-secondary-fixed": "#001f26",
+                        "tertiary-container": "#fc7c78",
+                        "secondary-container": "#03b5d3",
+                        "primary": "#4edea3",
+                        "surface-container-low": "#161d19",
+                        "primary-fixed-dim": "#4edea3",
+                        "surface-container-high": "#242c27",
+                        "tertiary": "#ffb3af",
+                        "tertiary-fixed-dim": "#ffb3af",
+                        "on-tertiary": "#650911",
+                        "surface-container-lowest": "#09100c",
+                        "on-secondary-container": "#00424e",
+                        "secondary": "#4cd7f6",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "inverse-surface": "#dde4dd",
+                        "surface-container-highest": "#2f3632",
+                        "primary-fixed": "#6ffbbe",
+                        "on-primary-fixed-variant": "#005236",
+                        "surface-tint": "#4edea3",
+                        "on-primary-fixed": "#002113",
+                        "surface-dim": "#0e1511",
+                        "on-surface": "#dde4dd",
+                        "surface-bright": "#343b36",
+                        "surface-container": "#1a211d",
+                        "error": "#ffb4ab",
+                        "surface-variant": "#2f3632",
+                        "secondary-fixed": "#acedff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "xl": "32px",
+                        "xs": "4px",
+                        "xxl": "48px",
+                        "sm": "8px",
+                        "md": "16px",
+                        "lg": "24px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Geist"],
+                        "caption": ["Geist"],
+                        "mono": ["JetBrains Mono"],
+                        "h1": ["Geist"],
+                        "label": ["Geist"],
+                        "display": ["Geist"],
+                        "h1-mobile": ["Geist"],
+                        "h3": ["Geist"],
+                        "body-sm": ["Geist"],
+                        "h2": ["Geist"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["16px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "caption": ["12px", { "lineHeight": "1", "fontWeight": "400" }],
+                        "mono": ["13px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "h1": ["30px", { "lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600" }],
+                        "label": ["13px", { "lineHeight": "1", "fontWeight": "500" }],
+                        "display": ["38px", { "lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600" }],
+                        "h1-mobile": ["24px", { "lineHeight": "1.3", "fontWeight": "600" }],
+                        "h3": ["18px", { "lineHeight": "1.5", "fontWeight": "500" }],
+                        "body-sm": ["14px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "h2": ["22px", { "lineHeight": "1.4", "fontWeight": "500" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .loading-bar {
+            width: 200px;
+            height: 2px;
+            background-color: theme('colors.surface-container-high');
+            position: relative;
+            overflow: hidden;
+            border-radius: theme('borderRadius.full');
+        }
+
+        .loading-progress {
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 30%;
+            background-color: theme('colors.primary');
+            animation: indeterminate 1.5s infinite ease-in-out;
+        }
+
+        @keyframes indeterminate {
+            0% {
+                left: -30%;
+                width: 30%;
+            }
+            50% {
+                left: 30%;
+                width: 70%;
+            }
+            100% {
+                left: 100%;
+                width: 30%;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 2s ease-out forwards;
+            opacity: 0;
+        }
+
+        .fade-in-delayed {
+            animation: fadeIn 2s ease-out 0.5s forwards;
+            opacity: 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface h-screen w-screen overflow-hidden flex flex-col items-center justify-center font-body-lg">
+<!-- Abstract Background Element -->
+<div class="absolute inset-0 z-0 pointer-events-none opacity-20 flex items-center justify-center">
+<div class="w-full h-full bg-cover bg-center mix-blend-screen" data-alt="A highly abstract, dark, technical command center background. Minimalist geometric patterns, subtle grid lines, and faint glowing terminal nodes in deep emerald green against a pitch black void. The overall feel is highly professional, precise, and engineered." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA2eweeURpff7SVaoUar3J2oWwmukzz9-Mdb7Q7_pHnf2zgQfjEgK2JAEI11PX_Jn8mX3SLDG0bwUttBxWh1gpyEpubo3Yd5CHu8gl2j_uCPh21gYfUMQ_tccJVk996NQewZiEHXYps31i1LWbMYroxGvDgpzpq4flVOP8gz3vyLiCz01S60VDnC-qjYdWODva86ACzsQ3nSDjTWyJuaz13o3zToon1PW2P9kpijoRNX3Ro7aXaqCR4')"></div>
+</div>
+<!-- Main Branding Content -->
+<main class="relative z-10 flex flex-col items-center justify-center w-full max-w-2xl px-lg text-center">
+<!-- Logo / Icon -->
+<div class="mb-xl fade-in flex items-center justify-center w-24 h-24 rounded-full border border-outline-variant bg-surface-container-low shadow-[0_0_40px_rgba(78,222,163,0.1)]">
+<span class="material-symbols-outlined text-primary" style="font-size: 48px; font-variation-settings: 'FILL' 1;">terminal</span>
+</div>
+<!-- Title -->
+<h1 class="font-display text-display text-on-surface mb-sm fade-in tracking-tight">
+            SATRIA AI WORKFORCE
+        </h1>
+<!-- Subtitle -->
+<p class="font-body-lg text-body-lg text-on-surface-variant mb-xxl fade-in-delayed max-w-md mx-auto">
+            Your Digital Workforce Command Center
+        </p>
+<!-- Loading Indicator -->
+<div class="fade-in-delayed flex flex-col items-center gap-sm mt-xl">
+<div class="loading-bar">
+<div class="loading-progress"></div>
+</div>
+<span class="font-mono text-mono text-on-surface-variant uppercase tracking-widest text-[10px] opacity-70">
+                Initializing Systems...
+            </span>
+</div>
+</main>
+<!-- Subtle Footer Info -->
+<footer class="absolute bottom-lg w-full text-center z-10 fade-in-delayed opacity-50">
+<span class="font-caption text-caption text-on-surface-variant">
+            v2.4.0-stable © 2024 SATRIA OPS
+        </span>
+</footer>
+</body></html>

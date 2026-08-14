@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SATRIA - Task Board</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800;900&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 20px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Custom Scrollbar for horizontal board */
+        ::-webkit-scrollbar {
+            height: 6px;
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #09100c; /* surface-container-lowest */
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3c4a42; /* outline-variant */
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #86948a; /* outline */
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "on-tertiary-fixed-variant": "#842225",
+                        "surface": "#0e1511",
+                        "tertiary": "#ffb3af",
+                        "secondary-fixed": "#acedff",
+                        "surface-bright": "#343b36",
+                        "on-error-container": "#ffdad6",
+                        "on-primary-container": "#00422b",
+                        "surface-container-lowest": "#09100c",
+                        "secondary-fixed-dim": "#4cd7f6",
+                        "on-secondary-container": "#00424e",
+                        "on-background": "#dde4dd",
+                        "error": "#ffb4ab",
+                        "primary": "#4edea3",
+                        "on-secondary-fixed": "#001f26",
+                        "outline": "#86948a",
+                        "outline-variant": "#3c4a42",
+                        "surface-container-highest": "#2f3632",
+                        "on-surface-variant": "#bbcabf",
+                        "on-secondary-fixed-variant": "#004e5c",
+                        "inverse-on-surface": "#2b322d",
+                        "primary-fixed-dim": "#4edea3",
+                        "surface-container-high": "#242c27",
+                        "on-error": "#690005",
+                        "on-secondary": "#003640",
+                        "inverse-primary": "#006c49",
+                        "on-primary-fixed-variant": "#005236",
+                        "inverse-surface": "#dde4dd",
+                        "tertiary-fixed-dim": "#ffb3af",
+                        "primary-container": "#10b981",
+                        "primary-fixed": "#6ffbbe",
+                        "surface-container": "#1a211d",
+                        "secondary": "#4cd7f6",
+                        "on-tertiary-fixed": "#410005",
+                        "error-container": "#93000a",
+                        "on-primary": "#003824",
+                        "on-surface": "#dde4dd",
+                        "on-tertiary": "#650911",
+                        "background": "#0e1511",
+                        "on-tertiary-container": "#711419",
+                        "tertiary-fixed": "#ffdad7",
+                        "on-primary-fixed": "#002113",
+                        "surface-container-low": "#161d19",
+                        "surface-dim": "#0e1511",
+                        "tertiary-container": "#fc7c78",
+                        "secondary-container": "#03b5d3",
+                        "surface-tint": "#4edea3",
+                        "surface-variant": "#2f3632"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "md": "16px",
+                        "xxl": "48px",
+                        "xl": "32px",
+                        "xs": "4px",
+                        "lg": "24px",
+                        "sm": "8px"
+                    },
+                    "fontFamily": {
+                        "h1": ["Geist"],
+                        "body-sm": ["Geist"],
+                        "h3": ["Geist"],
+                        "body-lg": ["Geist"],
+                        "display": ["Geist"],
+                        "mono": ["JetBrains Mono"],
+                        "label": ["Geist"],
+                        "caption": ["Geist"],
+                        "h1-mobile": ["Geist"],
+                        "h2": ["Geist"]
+                    },
+                    "fontSize": {
+                        "h1": ["30px", {"lineHeight": "1.3", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "h3": ["18px", {"lineHeight": "1.5", "fontWeight": "500"}],
+                        "body-lg": ["16px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "display": ["38px", {"lineHeight": "1.2", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                        "mono": ["13px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label": ["13px", {"lineHeight": "1", "fontWeight": "500"}],
+                        "caption": ["12px", {"lineHeight": "1", "fontWeight": "400"}],
+                        "h1-mobile": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "h2": ["22px", {"lineHeight": "1.4", "fontWeight": "500"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-sm h-screen overflow-hidden flex flex-col antialiased">
+<!-- TopNavBar -->
+<header class="bg-surface dark:bg-surface font-body-lg text-body-lg text-primary dark:text-primary docked full-width top-0 border-b border-outline-variant flex justify-between items-center w-full px-lg h-16 shrink-0 z-50">
+<div class="flex items-center gap-md">
+<span class="font-h2 text-h2 font-bold text-primary tracking-tight">SATRIA</span>
+<div class="h-6 w-px bg-outline-variant mx-sm"></div>
+<div class="flex gap-md font-mono text-mono text-on-surface-variant">
+<span>Status: Online</span>
+<span>Latency: 24ms</span>
+</div>
+</div>
+<div class="flex items-center gap-md">
+<div class="relative hidden md:block">
+<span class="material-symbols-outlined absolute left-sm top-1/2 -translate-y-1/2 text-on-surface-variant" style="font-size: 16px;">search</span>
+<input class="bg-surface-container-high border border-outline-variant rounded pl-xl pr-sm py-1 font-body-sm text-body-sm text-on-surface focus:border-primary focus:ring-0 focus:outline-none transition-colors w-64 placeholder-on-surface-variant/50" placeholder="Search tasks..." type="text"/>
+</div>
+<button class="p-xs text-on-surface-variant hover:text-on-surface transition-colors" title="help">
+<span class="material-symbols-outlined">help</span>
+</button>
+<button class="p-xs text-on-surface-variant hover:text-on-surface transition-colors" title="notifications">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border border-outline-variant overflow-hidden ml-sm cursor-pointer">
+<img alt="User Profile Avatar" class="w-full h-full object-cover" data-alt="A futuristic minimalist avatar placeholder featuring a subtle geometric design in deep dark greens and emerald tones, matching a high-end command center interface." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD07NYcfx3jszYFadH92665TaDCpVic5oYyvCb03iRXyQkB7mXQX1clqTvNP9_GFl817yoTf8Q0spQTQtS5tM1DiQQ6_5zt592_yQ5RDfawDufVMgCUekx1p1n7k11cLsK9XdW8Tsjxrk2FA9CbgIXEUpZQxaFXzwgMfjakOH9ROZtpd03tRDp-jC5r5GCWvG499NQRX2yKo6ysvylpWGiHsW7k6Y9YdiVm7vVb0eAfBF-p1_Zq9Pxn"/>
+</div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- SideNavBar -->
+<nav class="bg-surface-container-lowest dark:bg-surface-container-lowest text-primary dark:text-primary font-label text-label fixed left-0 top-16 h-[calc(100vh-4rem)] w-[240px] border-r border-outline-variant flex flex-col shrink-0 z-40">
+<div class="p-lg border-b border-outline-variant mb-sm">
+<div class="font-h3 text-h3 font-black text-primary tracking-tighter mb-xs">SATRIA OS</div>
+<div class="font-mono text-mono text-on-surface-variant opacity-70">V2.4.0-CORE</div>
+<button class="mt-md w-full bg-primary text-on-primary py-sm px-md rounded font-label text-label font-bold hover:bg-primary-fixed transition-colors flex items-center justify-center gap-sm">
+<span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+                    New Operation
+                </button>
+</div>
+<div class="flex-1 overflow-y-auto py-sm px-sm flex flex-col gap-1">
+<a class="text-on-surface-variant px-md py-sm flex items-center gap-sm rounded hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Overview
+                </a>
+<a class="bg-primary-container/10 text-primary border-l-2 border-primary px-md py-sm flex items-center gap-sm rounded-r transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">assignment</span>
+                    Tasks
+                </a>
+<a class="text-on-surface-variant px-md py-sm flex items-center gap-sm rounded hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+                    Projects
+                </a>
+<a class="text-on-surface-variant px-md py-sm flex items-center gap-sm rounded hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">folder</span>
+                    Files
+                </a>
+<a class="text-on-surface-variant px-md py-sm flex items-center gap-sm rounded hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">calendar_today</span>
+                    Calendar
+                </a>
+<a class="text-on-surface-variant px-md py-sm flex items-center gap-sm rounded hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">analytics</span>
+                    Activity
+                </a>
+<a class="text-on-surface-variant px-md py-sm flex items-center gap-sm rounded hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">bar_chart</span>
+                    Reports
+                </a>
+<a class="text-on-surface-variant px-md py-sm flex items-center gap-sm rounded hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out mt-auto" href="#">
+<span class="material-symbols-outlined">settings</span>
+                    Settings
+                </a>
+</div>
+<div class="border-t border-outline-variant p-sm flex flex-col gap-1">
+<a class="text-on-surface-variant px-md py-sm flex items-center gap-sm rounded hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">notifications_active</span>
+                    Notifications
+                </a>
+<a class="text-on-surface-variant px-md py-sm flex items-center gap-sm rounded hover:bg-surface-container-high hover:text-on-surface transition-all duration-200 ease-in-out" href="#">
+<span class="material-symbols-outlined">contact_support</span>
+                    Support
+                </a>
+</div>
+</nav>
+<!-- Main Content Area -->
+<main class="flex-1 ml-[240px] flex flex-col h-full bg-surface-dim overflow-hidden">
+<!-- Header section for Tasks -->
+<div class="px-xl py-lg border-b border-outline-variant bg-surface shrink-0">
+<div class="flex justify-between items-end mb-md">
+<div>
+<h1 class="font-h1 text-h1 text-on-surface">Tasks</h1>
+<p class="font-body-sm text-body-sm text-on-surface-variant mt-xs">Manage and track project deliverables.</p>
+</div>
+<div class="flex gap-sm">
+<button class="px-md py-1 border border-outline-variant rounded text-on-surface font-label text-label hover:bg-surface-container-highest transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined" style="font-size: 16px;">filter_list</span> Filter
+                        </button>
+<button class="px-md py-1 border border-outline-variant rounded text-on-surface font-label text-label hover:bg-surface-container-highest transition-colors flex items-center gap-xs">
+<span class="material-symbols-outlined" style="font-size: 16px;">sort</span> Sort
+                        </button>
+</div>
+</div>
+<!-- View Tabs -->
+<div class="flex gap-lg border-b border-outline-variant/50">
+<a class="pb-sm font-label text-label text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-xs" href="#">
+<span class="material-symbols-outlined" style="font-size: 18px;">list</span> List
+                    </a>
+<a class="pb-sm font-label text-label text-primary border-b-2 border-primary flex items-center gap-xs" href="#">
+<span class="material-symbols-outlined" style="font-size: 18px;">view_column</span> Board
+                    </a>
+<a class="pb-sm font-label text-label text-on-surface-variant hover:text-on-surface transition-colors flex items-center gap-xs" href="#">
+<span class="material-symbols-outlined" style="font-size: 18px;">calendar_month</span> Timeline
+                    </a>
+</div>
+</div>
+<!-- Kanban Board -->
+<div class="flex-1 overflow-x-auto overflow-y-hidden p-xl flex gap-lg">
+<!-- Column: BACKLOG -->
+<div class="w-80 flex flex-col shrink-0 bg-surface-container-low rounded border border-outline-variant h-full overflow-hidden">
+<div class="p-sm border-b border-outline-variant flex justify-between items-center bg-surface-container">
+<div class="font-label text-label text-on-surface flex items-center gap-xs">
+<div class="w-2 h-2 rounded-full bg-outline"></div>
+                            BACKLOG <span class="text-on-surface-variant ml-xs">(4)</span>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined" style="font-size: 16px;">add</span></button>
+</div>
+<div class="flex-1 overflow-y-auto p-sm flex flex-col gap-sm">
+<!-- Card 1 -->
+<div class="bg-surface rounded border border-outline-variant p-md hover:border-outline cursor-grab active:cursor-grabbing transition-colors group">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-mono text-[10px] text-on-surface-variant border border-outline-variant rounded px-1 py-0.5">DB-Migrate</span>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-outline" style="font-size: 14px;">more_horiz</span>
+</div>
+<div class="font-body-sm text-body-sm font-medium text-on-surface mb-xs leading-tight">Audit database index performance</div>
+<div class="flex items-center justify-between mt-md">
+<span class="font-caption text-caption text-error bg-error-container/20 px-1.5 py-0.5 rounded border border-error/30">High</span>
+<div class="w-6 h-6 rounded-full bg-surface-container-highest border border-outline-variant overflow-hidden">
+<span class="material-symbols-outlined text-on-surface-variant mx-auto mt-0.5" style="font-size: 16px;">person</span>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface rounded border border-outline-variant p-md hover:border-outline cursor-grab active:cursor-grabbing transition-colors group">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-mono text-[10px] text-on-surface-variant border border-outline-variant rounded px-1 py-0.5">CRM SaaS</span>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-outline" style="font-size: 14px;">more_horiz</span>
+</div>
+<div class="font-body-sm text-body-sm font-medium text-on-surface mb-xs leading-tight">Design empty states for dashboard</div>
+<div class="flex items-center justify-between mt-md">
+<span class="font-caption text-caption text-on-surface-variant bg-surface-container px-1.5 py-0.5 rounded border border-outline-variant">Low</span>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface rounded border border-outline-variant p-md hover:border-outline cursor-grab active:cursor-grabbing transition-colors group">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-mono text-[10px] text-on-surface-variant border border-outline-variant rounded px-1 py-0.5">Core API</span>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-outline" style="font-size: 14px;">more_horiz</span>
+</div>
+<div class="font-body-sm text-body-sm font-medium text-on-surface mb-xs leading-tight">Implement rate limiting middleware</div>
+<div class="flex items-center justify-between mt-md">
+<span class="font-caption text-caption text-secondary bg-secondary-container/20 px-1.5 py-0.5 rounded border border-secondary/30">Medium</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: IN PROGRESS -->
+<div class="w-80 flex flex-col shrink-0 bg-surface-container-low rounded border border-outline-variant h-full overflow-hidden">
+<div class="p-sm border-b border-outline-variant flex justify-between items-center bg-surface-container">
+<div class="font-label text-label text-on-surface flex items-center gap-xs">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+                            IN PROGRESS <span class="text-on-surface-variant ml-xs">(3)</span>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined" style="font-size: 16px;">add</span></button>
+</div>
+<div class="flex-1 overflow-y-auto p-sm flex flex-col gap-sm">
+<!-- Card 1 -->
+<div class="bg-surface rounded border-l-2 border-l-secondary border-y border-r border-outline-variant p-md shadow-[0_2px_8px_rgba(0,0,0,0.2)] cursor-grab active:cursor-grabbing group">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-mono text-[10px] text-on-surface-variant border border-outline-variant rounded px-1 py-0.5">CRM SaaS</span>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-outline" style="font-size: 14px;">more_horiz</span>
+</div>
+<div class="font-body-sm text-body-sm font-medium text-on-surface mb-xs leading-tight">Fix login UI responsiveness on mobile</div>
+<div class="mt-sm mb-2">
+<div class="flex justify-between font-mono text-[10px] text-on-surface-variant mb-1">
+<span>Progress</span>
+<span>65%</span>
+</div>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[65%]"></div>
+</div>
+</div>
+<div class="flex items-center justify-between mt-md border-t border-outline-variant pt-sm">
+<span class="font-caption text-caption text-error bg-error-container/20 px-1.5 py-0.5 rounded border border-error/30 flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">schedule</span> Due today
+                                </span>
+<div class="flex -space-x-2">
+<div class="w-6 h-6 rounded-full bg-surface-container-highest border border-outline-variant overflow-hidden z-10">
+<img class="w-full h-full object-cover" data-alt="Small avatar portrait of a user in a futuristic dark mode theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA__fGux5pT7bTCKh8OB3xLxCyJwEU7Z2YctwFSEXUguYQNU-7pD0G2T7xG_8WE2E-ZX_wJlNRve7FyB4DlFWIDLrj2MJ3oOMeT0CONPqdFSKS8xmJBPnQ1mMl703E49aIO_yEnL5StAiNAiNCVZ_TexjTrH8ZNY0i8-IggoNjTr0vis7Gc-RdINRxSqTyTdaLSTM2g6eV8QNxm-ydhveqtK-DvO51S9qZTFmhU4mWgNorkBRO1Y9RL"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface rounded border border-outline-variant p-md hover:border-outline cursor-grab active:cursor-grabbing transition-colors group">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-mono text-[10px] text-on-surface-variant border border-outline-variant rounded px-1 py-0.5">Platform</span>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-outline" style="font-size: 14px;">more_horiz</span>
+</div>
+<div class="font-body-sm text-body-sm font-medium text-on-surface mb-xs leading-tight">Update dependency versions for security</div>
+<div class="mt-sm mb-2">
+<div class="flex justify-between font-mono text-[10px] text-on-surface-variant mb-1">
+<span>Tasks</span>
+<span>2/5</span>
+</div>
+<div class="h-1 bg-surface-container-highest rounded-full overflow-hidden">
+<div class="h-full bg-secondary w-[40%]"></div>
+</div>
+</div>
+<div class="flex items-center justify-between mt-md">
+<span class="font-caption text-caption text-secondary bg-secondary-container/20 px-1.5 py-0.5 rounded border border-secondary/30">Medium</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: BLOCKED -->
+<div class="w-80 flex flex-col shrink-0 bg-surface-container-low rounded border border-outline-variant h-full overflow-hidden opacity-90">
+<div class="p-sm border-b border-outline-variant flex justify-between items-center bg-surface-container">
+<div class="font-label text-label text-on-surface flex items-center gap-xs">
+<div class="w-2 h-2 rounded-full bg-error"></div>
+                            BLOCKED <span class="text-on-surface-variant ml-xs">(1)</span>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined" style="font-size: 16px;">add</span></button>
+</div>
+<div class="flex-1 overflow-y-auto p-sm flex flex-col gap-sm">
+<!-- Card 1 -->
+<div class="bg-surface-container rounded border border-error/50 p-md cursor-grab active:cursor-grabbing group">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-mono text-[10px] text-error border border-error/30 bg-error-container/10 rounded px-1 py-0.5 flex items-center gap-1">
+<span class="material-symbols-outlined text-[10px]">block</span> Awaiting API Keys
+                                </span>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-outline" style="font-size: 14px;">more_horiz</span>
+</div>
+<div class="font-body-sm text-body-sm font-medium text-on-surface mb-xs leading-tight line-through opacity-70">Integrate Stripe Webhooks</div>
+<div class="flex items-center justify-between mt-md">
+<span class="font-caption text-caption text-error bg-error-container/20 px-1.5 py-0.5 rounded border border-error/30">High</span>
+<span class="font-caption text-caption text-on-surface-variant">Oct 12</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: REVIEW -->
+<div class="w-80 flex flex-col shrink-0 bg-surface-container-low rounded border border-outline-variant h-full overflow-hidden">
+<div class="p-sm border-b border-outline-variant flex justify-between items-center bg-surface-container">
+<div class="font-label text-label text-on-surface flex items-center gap-xs">
+<div class="w-2 h-2 rounded-full bg-tertiary"></div>
+                            REVIEW <span class="text-on-surface-variant ml-xs">(2)</span>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined" style="font-size: 16px;">add</span></button>
+</div>
+<div class="flex-1 overflow-y-auto p-sm flex flex-col gap-sm">
+<!-- Card 1 -->
+<div class="bg-surface rounded border border-outline-variant p-md hover:border-outline cursor-grab active:cursor-grabbing transition-colors group">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-mono text-[10px] text-on-surface-variant border border-outline-variant rounded px-1 py-0.5">Docs</span>
+<span class="material-symbols-outlined text-outline-variant group-hover:text-outline" style="font-size: 14px;">more_horiz</span>
+</div>
+<div class="font-body-sm text-body-sm font-medium text-on-surface mb-xs leading-tight">Draft Q3 Architecture Review</div>
+<div class="mt-sm bg-surface-container p-xs rounded border border-outline-variant/50 font-mono text-[10px] text-on-surface-variant flex items-center gap-1">
+<span class="material-symbols-outlined text-[12px]">comment</span> 3 unresolved comments
+                            </div>
+<div class="flex items-center justify-between mt-md">
+<span class="font-caption text-caption text-secondary bg-secondary-container/20 px-1.5 py-0.5 rounded border border-secondary/30">Medium</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Column: DONE -->
+<div class="w-80 flex flex-col shrink-0 bg-surface-container-low rounded border border-outline-variant h-full overflow-hidden">
+<div class="p-sm border-b border-outline-variant flex justify-between items-center bg-surface-container">
+<div class="font-label text-label text-on-surface flex items-center gap-xs">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+                            DONE <span class="text-on-surface-variant ml-xs">(12)</span>
+</div>
+<button class="text-on-surface-variant hover:text-on-surface"><span class="material-symbols-outlined" style="font-size: 16px;">more_horiz</span></button>
+</div>
+<div class="flex-1 overflow-y-auto p-sm flex flex-col gap-sm opacity-60 hover:opacity-100 transition-opacity">
+<!-- Card 1 -->
+<div class="bg-surface-container-lowest rounded border border-outline-variant p-md cursor-default group">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-mono text-[10px] text-on-surface-variant border border-outline-variant rounded px-1 py-0.5">CRM SaaS</span>
+<span class="material-symbols-outlined text-primary" style="font-size: 14px;">check_circle</span>
+</div>
+<div class="font-body-sm text-body-sm font-medium text-on-surface-variant mb-xs leading-tight strike-through">Setup initial repository structure</div>
+<div class="flex items-center justify-between mt-md">
+<span class="font-caption text-caption text-on-surface-variant">Closed Oct 10</span>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-container-lowest rounded border border-outline-variant p-md cursor-default group">
+<div class="flex justify-between items-start mb-sm">
+<span class="font-mono text-[10px] text-on-surface-variant border border-outline-variant rounded px-1 py-0.5">Infra</span>
+<span class="material-symbols-outlined text-primary" style="font-size: 14px;">check_circle</span>
+</div>
+<div class="font-body-sm text-body-sm font-medium text-on-surface-variant mb-xs leading-tight strike-through">Configure CI/CD pipeline</div>
+<div class="flex items-center justify-between mt-md">
+<span class="font-caption text-caption text-on-surface-variant">Closed Oct 08</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Ghost column for adding -->
+<div class="w-80 flex flex-col shrink-0 h-full">
+<button class="w-full h-10 border border-dashed border-outline-variant rounded flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:border-outline transition-colors font-label text-label gap-xs">
+<span class="material-symbols-outlined" style="font-size: 16px;">add</span> Add Column
+                    </button>
+</div>
+</div>
+</main>
+</div>
+</body></html>
