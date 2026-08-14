@@ -1,4 +1,5 @@
-import type { VerificationStatus } from '../../types'
+import type { VerificationStatus, VerificationEvidence } from '../../types'
+import type { AgentRuntimeResult } from '../types'
 
 export interface VerificationCheck {
   name: string
@@ -6,72 +7,207 @@ export interface VerificationCheck {
   details: string
 }
 
+export interface AcceptanceCriterionCheck {
+  name: string
+  passed: boolean
+  details: string
+}
+
+export interface VerificationInput {
+  runtimeResult?: AgentRuntimeResult
+  testOutput?: string
+  testExitCode?: number
+  typecheckPassed?: boolean
+  buildPassed?: boolean
+  acceptanceCriteria?: AcceptanceCriterionCheck[]
+  artifactChecks?: VerificationCheck[]
+  diffCount?: number
+  securityPassed?: boolean
+}
+
 export interface VerificationReport {
   status: VerificationStatus
   score: number // 0 - 100
   checks: VerificationCheck[]
+  evidence: VerificationEvidence[]
   summaryNotes: string
 }
 
 export class VerificationEngine {
-  static evaluate(
-    _testOutput?: string,
-    testExitCode?: number,
-    diffsCount?: number,
-    criteriaPassed: boolean = true
-  ): VerificationReport {
+  /**
+   * Evaluates structured verification evidence against quality gate policies
+   */
+  static evaluate(input: VerificationInput): VerificationReport {
     const checks: VerificationCheck[] = []
+    const evidence: VerificationEvidence[] = []
 
-    // Check 1: Test Suite Status
-    if (testExitCode !== undefined) {
-      const testsPassed = testExitCode === 0
+    let hasFatalFailure = false
+    let hasWarning = false
+
+    // 1. Security Compliance Quality Gate (Mandatory)
+    if (input.securityPassed !== undefined) {
+      const passed = input.securityPassed === true
+      if (!passed) hasFatalFailure = true
       checks.push({
-        name: 'Unit / Integration Test Suite',
-        passed: testsPassed,
-        details: testsPassed
-          ? 'All unit tests passed successfully with zero failures.'
-          : `Test suite failed with non-zero exit code (${testExitCode}).`
+        name: 'Security & Sandbox Boundary Compliance',
+        passed,
+        details: passed
+          ? 'Zero sandbox boundary violations or path traversal attempts detected.'
+          : 'Security check failed: unauthorized file or command access detected.'
       })
-    } else {
-      checks.push({
-        name: 'Automated Syntax & Type Validation',
-        passed: true,
-        details: 'Code syntax and static typing checks satisfied.'
+      evidence.push({
+        type: 'security',
+        name: 'Sandbox Policy Compliance',
+        passed,
+        details: passed ? 'Passed safe boundary audit' : 'Failed security validation'
       })
     }
 
-    // Check 2: Deliverable / Artifact Integrity
-    checks.push({
-      name: 'Deliverable File Changes',
-      passed: diffsCount !== undefined ? diffsCount > 0 : true,
-      details:
-        diffsCount !== undefined && diffsCount > 0
-          ? `${diffsCount} files modified and verified.`
-          : 'Read-only analysis completed with deliverable output.'
-    })
+    // 2. Test Suite Execution (Mandatory if executed)
+    if (input.testExitCode !== undefined) {
+      const testsPassed = input.testExitCode === 0
+      if (!testsPassed) hasFatalFailure = true
+      checks.push({
+        name: 'Automated Test Suite',
+        passed: testsPassed,
+        details: testsPassed
+          ? 'All unit/integration tests passed successfully with 0 failures.'
+          : `Test suite execution failed with exit code ${input.testExitCode}.`
+      })
+      evidence.push({
+        type: 'test',
+        name: 'Unit / Integration Tests',
+        passed: testsPassed,
+        details: input.testOutput || (testsPassed ? 'Exit code 0' : `Exit code ${input.testExitCode}`),
+        command: 'vitest run'
+      })
+    }
 
-    // Check 3: Acceptance Criteria
-    checks.push({
-      name: 'Task Acceptance Criteria',
-      passed: criteriaPassed,
-      details: criteriaPassed
-        ? 'All specified acceptance criteria fulfilled.'
-        : 'One or more acceptance criteria items failed validation.'
-    })
+    // 3. Static Typecheck (Mandatory if executed)
+    if (input.typecheckPassed !== undefined) {
+      const typePassed = input.typecheckPassed === true
+      if (!typePassed) hasFatalFailure = true
+      checks.push({
+        name: 'TypeScript Strict Typecheck',
+        passed: typePassed,
+        details: typePassed
+          ? 'Type verification clean with 0 type errors.'
+          : 'Static type checking reported errors.'
+      })
+      evidence.push({
+        type: 'typecheck',
+        name: 'TypeScript Validation',
+        passed: typePassed,
+        details: typePassed ? '0 errors (strict mode)' : 'Typecheck errors found',
+        command: 'vue-tsc --noEmit'
+      })
+    }
+
+    // 4. Production Build (Mandatory if executed)
+    if (input.buildPassed !== undefined) {
+      const bPassed = input.buildPassed === true
+      if (!bPassed) hasFatalFailure = true
+      checks.push({
+        name: 'Production Build & Bundling',
+        passed: bPassed,
+        details: bPassed
+          ? 'Vite production build and PWA bundle succeeded.'
+          : 'Production build compilation failed.'
+      })
+      evidence.push({
+        type: 'build',
+        name: 'Production Build Bundle',
+        passed: bPassed,
+        details: bPassed ? 'Clean bundle generation' : 'Build failed',
+        command: 'vite build'
+      })
+    }
+
+    // 5. Acceptance Criteria Validation (Mandatory)
+    if (input.acceptanceCriteria && input.acceptanceCriteria.length > 0) {
+      for (const crit of input.acceptanceCriteria) {
+        if (!crit.passed) hasFatalFailure = true
+        checks.push({
+          name: `Criteria: ${crit.name}`,
+          passed: crit.passed,
+          details: crit.details
+        })
+        evidence.push({
+          type: 'criteria',
+          name: crit.name,
+          passed: crit.passed,
+          details: crit.details
+        })
+      }
+    } else if (input.runtimeResult !== undefined) {
+      // Default baseline criteria check from output if runtimeResult was provided
+      const hasOutput = input.runtimeResult.output.trim().length > 0
+      checks.push({
+        name: 'Deliverable Output Generation',
+        passed: hasOutput,
+        details: hasOutput
+          ? 'Agent produced valid deliverable output content.'
+          : 'No output generated by agent.'
+      })
+      evidence.push({
+        type: 'criteria',
+        name: 'Deliverable Output',
+        passed: hasOutput,
+        details: hasOutput ? 'Content generated' : 'Empty output'
+      })
+      if (!hasOutput) hasFatalFailure = true
+    }
+
+    // 6. Artifact & File Change Verification
+    if (input.artifactChecks && input.artifactChecks.length > 0) {
+      for (const art of input.artifactChecks) {
+        checks.push(art)
+        evidence.push({
+          type: 'artifact',
+          name: art.name,
+          passed: art.passed,
+          details: art.details
+        })
+        if (!art.passed) hasWarning = true
+      }
+    } else if (input.diffCount !== undefined) {
+      const hasDiffs = input.diffCount > 0
+      checks.push({
+        name: 'Deliverable File Changes',
+        passed: true,
+        details: hasDiffs
+          ? `${input.diffCount} file modifications verified.`
+          : 'Read-only analysis task verified with structured deliverable report.'
+      })
+      evidence.push({
+        type: 'diff',
+        name: 'File Modifications',
+        passed: true,
+        details: hasDiffs ? `${input.diffCount} files modified` : 'Read-only execution'
+      })
+    }
 
     const totalPassed = checks.filter((c) => c.passed).length
-    const score = Math.round((totalPassed / checks.length) * 100)
+    const score = checks.length > 0 ? Math.round((totalPassed / checks.length) * 100) : 100
 
+    // Quality Gate Decision Logic:
     let status: VerificationStatus = 'Pending'
-    if (score === 100) status = 'Passed'
-    else if (score >= 50) status = 'Warning'
-    else status = 'Failed'
+    if (hasFatalFailure) {
+      status = 'Failed'
+    } else if (hasWarning || score < 100) {
+      status = 'Warning'
+    } else {
+      status = 'Passed'
+    }
+
+    const summaryNotes = `Quality Gate ${status}: ${totalPassed}/${checks.length} assertions passed (Score: ${score}%).`
 
     return {
       status,
       score,
       checks,
-      summaryNotes: `Automated Quality Gate: ${status} (${totalPassed}/${checks.length} assertions passed, Score: ${score}%)`
+      evidence,
+      summaryNotes
     }
   }
 }

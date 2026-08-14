@@ -53,6 +53,7 @@ Archived blueprints & execution plans in `work-histori/`:
 - `work-histori/14_PHASE3_6_REAL_HERMES_INTEGRATION_VALIDATION_REPORT.md`
 - `work-histori/15_PHASE3_6R_NATIVE_HERMES_API_ALIGNMENT.md`
 - `work-histori/16_PHASE3_6R_NATIVE_HERMES_API_ALIGNMENT_REPORT.md`
+- `work-histori/17_PHASE3_7_EXECUTION_VERIFICATION_REVIEW_PIPELINE.md`
 
 
 ---

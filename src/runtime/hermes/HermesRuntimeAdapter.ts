@@ -7,6 +7,7 @@ import type {
 import { HermesClient } from './HermesClient'
 import { HermesMapper } from './HermesMapper'
 import { AgentRuntimeError } from '../RuntimeError'
+import { globalResultIngestor } from '../results/ResultIngestor'
 import type { HermesExecution } from './hermesContract'
 
 export interface HermesRunState {
@@ -118,14 +119,37 @@ export class HermesRuntimeAdapter implements AgentRuntime {
 
           const event = HermesMapper.fromHermesEvent(rawEvent, satriaRunId)
 
+          // Ingest streaming deltas and outputs
+          if (rawEvent?.delta || rawEvent?.content) {
+            globalResultIngestor.appendOutputDelta(satriaRunId, rawEvent.delta || rawEvent.content)
+          }
+          if (rawEvent?.output) {
+            globalResultIngestor.setFullOutput(satriaRunId, rawEvent.output)
+          }
+          if (event.toolResult) {
+            globalResultIngestor.recordToolExecution(
+              satriaRunId,
+              event.toolResult.toolName,
+              event.toolResult.output,
+              event.toolResult.diff,
+              event.toolResult.success
+            )
+          }
+          if (event.telemetry) {
+            globalResultIngestor.setTelemetry(satriaRunId, event.telemetry)
+          }
+
           if (event.type === 'run:completed') {
             runState.status = 'completed'
+            event.result = globalResultIngestor.buildRuntimeResult(satriaRunId, 'Completed', event.log?.message)
             this.cleanupRun(satriaRunId)
           } else if (event.type === 'run:failed') {
             runState.status = 'failed'
+            event.result = globalResultIngestor.buildRuntimeResult(satriaRunId, 'Failed', event.error)
             this.cleanupRun(satriaRunId)
           } else if (event.type === 'run:cancelled') {
             runState.status = 'cancelled'
+            event.result = globalResultIngestor.buildRuntimeResult(satriaRunId, 'Cancelled')
             this.cleanupRun(satriaRunId)
           } else if (event.type === 'approval:required') {
             runState.status = 'waiting_approval'

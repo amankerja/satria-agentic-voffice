@@ -84,6 +84,7 @@ export interface RuntimeEvent {
   toolCall?: ToolCallRequest
   toolResult?: ToolCallResult
   approvalRequest?: ApprovalRequest
+  result?: AgentRuntimeResult
   error?: string
 }
 
@@ -93,9 +94,15 @@ export interface AgentRuntimeResult {
   summary: string
   output: string
   artifactIds: string[]
-  diffs?: { filePath: string; original: string; modified: string }[]
-  verificationNotes: string
-  telemetry: RuntimeTelemetry
+  diffs?: {
+    filePath: string
+    changeType: 'created' | 'modified' | 'deleted'
+    additions: number
+    deletions: number
+    diffContent?: string
+  }[]
+  verificationNotes?: string
+  telemetry?: RuntimeTelemetry
   error?: string
 }
 

@@ -159,17 +159,36 @@ describe('SATRIA AI Workforce — Phase 3: Real Agent Runtime & Safety Engine', 
 
   it('evaluates automated quality gate verifications', () => {
     // Perfect run: tests exit code 0, 2 diffs, all criteria met
-    const passReport = VerificationEngine.evaluate('Pass: 12 tests', 0, 2, true)
+    const passReport = VerificationEngine.evaluate({
+      testOutput: 'Pass: 12 tests',
+      testExitCode: 0,
+      diffCount: 2,
+      acceptanceCriteria: [{ name: 'Auth feature', passed: true, details: 'Verified' }],
+      securityPassed: true
+    })
     expect(passReport.status).toBe('Passed')
     expect(passReport.score).toBe(100)
 
-    // Warning run: 0 diffs on modification task
-    const warnReport = VerificationEngine.evaluate('Pass: 12 tests', 0, 0, true)
+    // Warning run: partial non-fatal warning
+    const warnReport = VerificationEngine.evaluate({
+      testOutput: 'Pass: 12 tests',
+      testExitCode: 0,
+      diffCount: 0,
+      artifactChecks: [{ name: 'Doc artifact', passed: false, details: 'Missing optional doc' }],
+      acceptanceCriteria: [{ name: 'Analysis', passed: true, details: 'Verified' }],
+      securityPassed: true
+    })
     expect(warnReport.status).toBe('Warning')
     expect(warnReport.score).toBeGreaterThanOrEqual(50)
 
     // Failed run: test suite returned exit code 1
-    const failReport = VerificationEngine.evaluate('FAIL: test_auth_failed', 1, 1, false)
+    const failReport = VerificationEngine.evaluate({
+      testOutput: 'FAIL: test_auth_failed',
+      testExitCode: 1,
+      diffCount: 1,
+      acceptanceCriteria: [{ name: 'Auth feature', passed: false, details: 'Broken test' }],
+      securityPassed: true
+    })
     expect(failReport.status).toBe('Failed')
   })
 

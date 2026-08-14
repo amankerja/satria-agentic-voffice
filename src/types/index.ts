@@ -356,6 +356,30 @@ export interface AgentRun {
 
 export type VerificationStatus = 'Passed' | 'Failed' | 'Warning' | 'Pending'
 
+export interface VerificationEvidence {
+  type: 'test' | 'typecheck' | 'build' | 'artifact' | 'diff' | 'security' | 'criteria'
+  name: string
+  passed: boolean
+  details: string
+  command?: string
+}
+
+export interface RunResultDeliverable {
+  type: 'code' | 'document' | 'analysis' | 'config'
+  title: string
+  content?: string
+  path?: string
+  diffSummary?: string
+}
+
+export interface RunResultDiff {
+  filePath: string
+  changeType: 'created' | 'modified' | 'deleted'
+  additions: number
+  deletions: number
+  diffContent?: string
+}
+
 export interface RunResult {
   id: string                  // 'res-101'
   runId: string
@@ -365,8 +389,11 @@ export interface RunResult {
   output: string
   status: 'success' | 'failure' | 'partial'
   artifactIds: string[]
+  deliverables?: RunResultDeliverable[]
+  diffs?: RunResultDiff[]
   verificationStatus: VerificationStatus
   verificationNotes?: string
+  verificationEvidence?: VerificationEvidence[]
   createdAt: string
   updatedAt: string
 }
