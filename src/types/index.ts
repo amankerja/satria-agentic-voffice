@@ -319,6 +319,17 @@ export interface RunLogEntry {
   level: 'info' | 'warn' | 'error' | 'success'
 }
 
+export interface RuntimeTelemetry {
+  promptTokens: number
+  completionTokens: number
+  totalTokens: number
+  cachedTokens: number
+  model: string
+  provider: string
+  durationMs: number
+  estimatedCostUsd: number | null
+}
+
 export interface AgentRun {
   id: string                  // 'run-1023-01'
   assignmentId: string
@@ -333,6 +344,7 @@ export interface AgentRun {
   currentStep: RunStep
   progress: number            // 0 - 100
   logs: RunLogEntry[]
+  telemetry?: RuntimeTelemetry
   startedAt: string
   completedAt?: string
   durationSeconds?: number

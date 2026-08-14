@@ -29,8 +29,8 @@
       </div>
     </div>
 
-    <!-- 4 High-Level Execution KPI Cards -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
+    <!-- 6 High-Level Execution & Telemetry KPI Cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
       <UiCard padding="md">
         <div class="flex items-center justify-between">
           <span class="text-[11px] font-mono text-muted uppercase">Total Runs</span>
@@ -50,7 +50,7 @@
         <div class="text-2xl font-bold font-mono text-primary mt-1.5">
           {{ agentRunStore.activeRuns.length }}
         </div>
-        <div class="text-[10px] text-on-surface-variant font-mono mt-0.5">Live Mock Runner</div>
+        <div class="text-[10px] text-on-surface-variant font-mono mt-0.5">Active Executions</div>
       </UiCard>
 
       <UiCard padding="md">
@@ -61,7 +61,7 @@
         <div class="text-2xl font-bold font-mono text-primary-container mt-1.5">
           {{ agentRunStore.completedRuns.length }}
         </div>
-        <div class="text-[10px] text-on-surface-variant font-mono mt-0.5">Awaiting Review / Done</div>
+        <div class="text-[10px] text-on-surface-variant font-mono mt-0.5">Ready for Review</div>
       </UiCard>
 
       <UiCard padding="md">
@@ -72,7 +72,29 @@
         <div class="text-2xl font-bold font-mono text-error mt-1.5">
           {{ agentRunStore.failedRuns.length }}
         </div>
-        <div class="text-[10px] text-on-surface-variant font-mono mt-0.5">Requires Attention</div>
+        <div class="text-[10px] text-on-surface-variant font-mono mt-0.5">Needs Attention</div>
+      </UiCard>
+
+      <UiCard padding="md">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-mono text-muted uppercase">Total Tokens</span>
+          <Cpu class="w-4 h-4 text-secondary" />
+        </div>
+        <div class="text-2xl font-bold font-mono text-on-surface mt-1.5">
+          {{ totalFormattedTokens }}
+        </div>
+        <div class="text-[10px] text-on-surface-variant font-mono mt-0.5">Cumulative Usage</div>
+      </UiCard>
+
+      <UiCard padding="md">
+        <div class="flex items-center justify-between">
+          <span class="text-[11px] font-mono text-muted uppercase">Estimated Cost</span>
+          <Coins class="w-4 h-4 text-secondary" />
+        </div>
+        <div class="text-2xl font-bold font-mono text-secondary mt-1.5">
+          {{ totalFormattedCost }}
+        </div>
+        <div class="text-[10px] text-on-surface-variant font-mono mt-0.5">Versioned Pricing</div>
       </UiCard>
     </div>
 
@@ -184,6 +206,22 @@
             </div>
           </div>
 
+          <!-- Compact Telemetry Summary Row -->
+          <div
+            v-if="run.telemetry"
+            class="flex items-center justify-between gap-1.5 p-2 rounded-lg bg-surface-container-lowest text-[10px] font-mono border border-outline-variant"
+          >
+            <div class="flex items-center gap-1 text-muted truncate max-w-[48%]" :title="run.telemetry.model">
+              <Cpu class="w-3 h-3 text-primary shrink-0" />
+              <span class="truncate">{{ formatModelName(run.telemetry.model) }}</span>
+            </div>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <span class="text-on-surface-variant">{{ formatTokens(run.telemetry.totalTokens) }} toks</span>
+              <span class="text-outline">/</span>
+              <span class="text-secondary font-bold">{{ formatCost(run.telemetry.estimatedCostUsd) }}</span>
+            </div>
+          </div>
+
           <!-- Error Alert if failed -->
           <div v-if="run.error" class="p-2 rounded bg-error/10 border border-error/20 text-[11px] text-error line-clamp-2">
             {{ run.error }}
@@ -193,7 +231,7 @@
         <!-- Card Footer & Quick Actions -->
         <div class="pt-3 border-t border-outline-variant flex items-center justify-between gap-2 text-xs">
           <div class="text-[10px] font-mono text-muted">
-            {{ run.durationSeconds ? `${run.durationSeconds}s duration` : 'In progress' }}
+            {{ formatDuration(run) }}
           </div>
 
           <div class="flex items-center gap-2">
@@ -246,7 +284,9 @@ import {
   Plus,
   Play,
   Pause,
-  RotateCcw
+  RotateCcw,
+  Cpu,
+  Coins
 } from '@lucide/vue'
 import UiCard from '../../components/ui/UiCard.vue'
 import UiBadge from '../../components/ui/UiBadge.vue'
@@ -254,7 +294,8 @@ import UiButton from '../../components/ui/UiButton.vue'
 import UiSkeleton from '../../components/ui/UiSkeleton.vue'
 import UiEmptyState from '../../components/ui/UiEmptyState.vue'
 import { useAgentRunStore } from '../../stores/agentRun'
-import type { AgentRunStatus } from '../../types'
+import { CostCalculator } from '../../runtime'
+import type { AgentRun, AgentRunStatus } from '../../types'
 
 const agentRunStore = useAgentRunStore()
 
@@ -276,6 +317,46 @@ const filteredRuns = computed(() => {
     return matchStatus && matchSearch
   })
 })
+
+const totalFormattedTokens = computed(() => CostCalculator.formatTokens(agentRunStore.totalTokensAllRuns))
+const totalFormattedCost = computed(() => CostCalculator.formatCost(agentRunStore.totalEstimatedCost))
+
+function formatTokens(tokens?: number | null): string {
+  if (tokens === undefined || tokens === null) return '—'
+  if (tokens >= 1000) {
+    return `${(tokens / 1000).toFixed(1)}k`
+  }
+  return String(tokens)
+}
+
+function formatCost(cost?: number | null): string {
+  if (cost === undefined || cost === null) return '—'
+  if (cost === 0) return '$0.00'
+  if (cost < 0.01) return `$${cost.toFixed(4)}`
+  return `$${cost.toFixed(2)}`
+}
+
+function formatDuration(run: AgentRun): string {
+  if (run.durationSeconds) {
+    return CostCalculator.formatDuration(run.durationSeconds)
+  }
+  if (run.telemetry?.durationMs) {
+    return CostCalculator.formatDuration(run.telemetry.durationMs, true)
+  }
+  return 'In progress'
+}
+
+function formatModelName(model?: string): string {
+  if (!model) return 'auto'
+  if (model.includes('claude-3-5-sonnet')) return 'claude-3.5-sonnet'
+  if (model.includes('claude-3-haiku')) return 'claude-3-haiku'
+  if (model.includes('gpt-4o-mini')) return 'gpt-4o-mini'
+  if (model.includes('gpt-4o')) return 'gpt-4o'
+  if (model.includes('hermes-3') && model.includes('70b')) return 'hermes-3-70b'
+  if (model.includes('hermes-3') && model.includes('8b')) return 'hermes-3-8b'
+  if (model.includes('mock')) return 'mock-runner'
+  return model.length > 16 ? `${model.substring(0, 14)}...` : model
+}
 
 const getStatusBadgeVariant = (status: AgentRunStatus) => {
   switch (status) {

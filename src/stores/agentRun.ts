@@ -154,11 +154,21 @@ export const useAgentRunStore = defineStore('agentRun', () => {
     const notificationStore = useNotificationStore()
 
     await runtime.start(input, async (event: RuntimeEvent) => {
-      if (event.type === 'progress:updated') {
+      if (event.type === 'telemetry:updated') {
+        if (event.telemetry) {
+          targetRun.telemetry = event.telemetry
+          await runRepo.update(runId, { telemetry: event.telemetry })
+        }
+      } else if (event.type === 'progress:updated') {
         if (event.progress !== undefined) targetRun.progress = event.progress
         if (event.step) targetRun.currentStep = event.step
         if (event.log) targetRun.logs.push(event.log)
-        await runRepo.updateProgress(runId, targetRun.progress, targetRun.currentStep)
+        if (event.telemetry) targetRun.telemetry = event.telemetry
+        await runRepo.update(runId, {
+          progress: targetRun.progress,
+          currentStep: targetRun.currentStep,
+          telemetry: targetRun.telemetry
+        })
       } else if (event.type === 'approval:required') {
         targetRun.status = 'Waiting'
         if (event.approvalRequest) {
@@ -181,7 +191,8 @@ export const useAgentRunStore = defineStore('agentRun', () => {
           })
         }
         if (event.log) targetRun.logs.push(event.log)
-        await runRepo.update(runId, { status: 'Waiting' })
+        if (event.telemetry) targetRun.telemetry = event.telemetry
+        await runRepo.update(runId, { status: 'Waiting', telemetry: targetRun.telemetry })
       } else if (event.type === 'run:completed') {
         targetRun.status = 'Completed'
         targetRun.progress = 100
@@ -194,6 +205,9 @@ export const useAgentRunStore = defineStore('agentRun', () => {
               1000
           )
         )
+        if (event.telemetry) {
+          targetRun.telemetry = event.telemetry
+        }
         targetRun.outputSummary = `Pekerjaan "${targetRun.taskTitle}" telah selesai dijalankan oleh ${targetRun.employeeName} dengan hasil verifikasi optimal.`
 
         await runRepo.update(runId, {
@@ -202,7 +216,8 @@ export const useAgentRunStore = defineStore('agentRun', () => {
           currentStep: 'Completing',
           completedAt: targetRun.completedAt,
           durationSeconds: targetRun.durationSeconds,
-          outputSummary: targetRun.outputSummary
+          outputSummary: targetRun.outputSummary,
+          telemetry: targetRun.telemetry
         })
 
         // Auto-generate run result & review item for review workflow
@@ -401,6 +416,53 @@ export const useAgentRunStore = defineStore('agentRun', () => {
     }
   }
 
+  function getRunTelemetry(runId: string) {
+    const target = runs.value.find((r) => r.id === runId) || (currentRun.value?.id === runId ? currentRun.value : null)
+    return target?.telemetry
+  }
+
+  function getRunCost(runId: string): number | null | undefined {
+    return getRunTelemetry(runId)?.estimatedCostUsd
+  }
+
+  function getRunDuration(runId: string): number {
+    const target = runs.value.find((r) => r.id === runId) || (currentRun.value?.id === runId ? currentRun.value : null)
+    if (!target) return 0
+    if (target.durationSeconds) return target.durationSeconds
+    if (target.telemetry?.durationMs) return Math.round(target.telemetry.durationMs / 1000)
+    if (target.startedAt) {
+      const end = target.completedAt ? new Date(target.completedAt).getTime() : Date.now()
+      return Math.max(0, Math.floor((end - new Date(target.startedAt).getTime()) / 1000))
+    }
+    return 0
+  }
+
+  function getRunTokenUsage(runId: string): { total: number; prompt: number; completion: number; cached: number } | undefined {
+    const telemetry = getRunTelemetry(runId)
+    if (!telemetry) return undefined
+    return {
+      total: telemetry.totalTokens,
+      prompt: telemetry.promptTokens,
+      completion: telemetry.completionTokens,
+      cached: telemetry.cachedTokens
+    }
+  }
+
+  const totalTokensAllRuns = computed(() => {
+    return runs.value.reduce((acc, r) => acc + (r.telemetry?.totalTokens || 0), 0)
+  })
+
+  const totalEstimatedCost = computed(() => {
+    return runs.value.reduce((acc, r) => acc + (r.telemetry?.estimatedCostUsd || 0), 0)
+  })
+
+  const averageDurationSeconds = computed(() => {
+    const completed = runs.value.filter((r) => r.status === 'Completed' && r.durationSeconds)
+    if (completed.length === 0) return 0
+    const totalSecs = completed.reduce((acc, r) => acc + (r.durationSeconds || 0), 0)
+    return Math.round(totalSecs / completed.length)
+  })
+
   return {
     runs,
     currentRun,
@@ -411,8 +473,15 @@ export const useAgentRunStore = defineStore('agentRun', () => {
     completedRuns,
     failedRuns,
     waitingRuns,
+    totalTokensAllRuns,
+    totalEstimatedCost,
+    averageDurationSeconds,
     setRuntimeMode,
     getPendingApproval,
+    getRunTelemetry,
+    getRunCost,
+    getRunDuration,
+    getRunTokenUsage,
     fetchRuns,
     fetchRunById,
     fetchRunsByEmployee,

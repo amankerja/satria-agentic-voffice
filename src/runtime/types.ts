@@ -35,7 +35,7 @@ export interface RuntimeTelemetry {
   model: string
   provider: string
   durationMs: number
-  estimatedCostUsd: number
+  estimatedCostUsd: number | null
 }
 
 export interface ToolCallRequest {
@@ -71,6 +71,7 @@ export type RuntimeEventType =
   | 'step:changed'
   | 'log:emitted'
   | 'progress:updated'
+  | 'telemetry:updated'
   | 'tool:requested'
   | 'tool:executed'
   | 'approval:required'

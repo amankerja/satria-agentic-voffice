@@ -197,7 +197,7 @@
 
         <!-- Session Timing & Attempt Stats -->
         <div class="p-4 bg-surface-container-low border border-outline-variant rounded-xl space-y-2">
-          <span class="text-[10px] font-mono text-muted uppercase">Session Telemetry</span>
+          <span class="text-[10px] font-mono text-muted uppercase">Session Timeline</span>
           <div class="space-y-1 text-xs font-mono">
             <div class="flex justify-between text-on-surface-variant">
               <span>Started:</span>
@@ -216,7 +216,7 @@
 
         <!-- Review / Verification Quick Action -->
         <div class="p-4 bg-surface-container-low border border-outline-variant rounded-xl flex flex-col justify-between space-y-2">
-          <span class="text-[10px] font-mono text-muted uppercase">Verification Status</span>
+          <span class="text-[10px] font-mono text-muted uppercase">Verification Gate</span>
           <div v-if="run.status === 'Completed'" class="space-y-1.5">
             <div class="flex items-center gap-1.5 text-xs text-primary-container font-bold">
               <CheckCircle2 class="w-4 h-4" />
@@ -230,6 +230,102 @@
           </div>
           <div v-else class="text-xs text-muted">
             Verification gate will activate upon execution completion.
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Runtime Telemetry & Model Accounting Card -->
+      <div class="p-5 bg-surface-container-low border border-outline-variant rounded-xl space-y-4 shadow-sm">
+        <div class="flex items-center justify-between border-b border-outline-variant pb-3">
+          <div class="flex items-center gap-2">
+            <Cpu class="w-4 h-4 text-primary" />
+            <h3 class="text-sm font-bold text-on-surface">Runtime Telemetry & Model Accounting</h3>
+            <UiBadge variant="neutral" size="sm" class="font-mono text-[10px]">
+              {{ telemetry?.provider || (agentRunStore.runtimeMode === 'hermes' ? 'Hermes Daemon' : 'Mock Runner') }}
+            </UiBadge>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-[10px] font-mono text-muted">Live Accounting</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+          <!-- Runtime -->
+          <div class="p-3 bg-surface-container-lowest border border-outline-variant rounded-lg space-y-1">
+            <span class="text-[10px] font-mono text-muted uppercase">Runtime</span>
+            <div class="text-xs font-mono font-bold text-on-surface flex items-center gap-1.5 truncate">
+              <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
+              {{ agentRunStore.runtimeMode === 'hermes' ? 'Hermes' : 'Mock Engine' }}
+            </div>
+          </div>
+
+          <!-- Provider -->
+          <div class="p-3 bg-surface-container-lowest border border-outline-variant rounded-lg space-y-1">
+            <span class="text-[10px] font-mono text-muted uppercase">Provider</span>
+            <div class="text-xs font-mono font-bold text-on-surface truncate">
+              {{ telemetry?.provider || (agentRunStore.runtimeMode === 'hermes' ? 'NousResearch' : 'satria-in-memory') }}
+            </div>
+          </div>
+
+          <!-- Model -->
+          <div class="p-3 bg-surface-container-lowest border border-outline-variant rounded-lg space-y-1 col-span-2 sm:col-span-2 lg:col-span-2">
+            <span class="text-[10px] font-mono text-muted uppercase">Model ID</span>
+            <div
+              class="text-xs font-mono font-bold text-primary truncate"
+              :title="telemetry?.model || (agentRunStore.runtimeMode === 'hermes' ? 'hermes-3-llama-3.1-70b' : 'mock-agent-simulation-v1')"
+            >
+              {{ telemetry?.model || (agentRunStore.runtimeMode === 'hermes' ? 'hermes-3-llama-3.1-70b' : 'mock-agent-simulation-v1') }}
+            </div>
+          </div>
+
+          <!-- Total Tokens -->
+          <div class="p-3 bg-surface-container-lowest border border-outline-variant rounded-lg space-y-1">
+            <span class="text-[10px] font-mono text-muted uppercase">Total Tokens</span>
+            <div class="text-xs font-mono font-bold text-on-surface">
+              {{ formattedTotalTokens }}
+            </div>
+          </div>
+
+          <!-- Duration -->
+          <div class="p-3 bg-surface-container-lowest border border-outline-variant rounded-lg space-y-1">
+            <span class="text-[10px] font-mono text-muted uppercase">Duration</span>
+            <div class="text-xs font-mono font-bold text-on-surface">
+              {{ formattedDuration }}
+            </div>
+          </div>
+
+          <!-- Estimated Cost -->
+          <div class="p-3 bg-surface-container-lowest border border-outline-variant rounded-lg space-y-1">
+            <span class="text-[10px] font-mono text-muted uppercase">Estimated Cost</span>
+            <div class="text-xs font-mono font-bold text-secondary">
+              {{ formattedCost }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Token Breakdown Subgrid -->
+        <div class="p-3 bg-surface-container-lowest/60 border border-outline-variant rounded-lg flex flex-wrap items-center justify-between gap-3 text-xs font-mono">
+          <div class="flex items-center gap-4">
+            <span class="text-muted text-[11px]">Token Breakdown:</span>
+            <div class="flex items-center gap-1.5 text-on-surface-variant text-[11px]">
+              <span class="text-muted">Prompt:</span>
+              <span class="text-on-surface font-semibold">{{ formattedPromptTokens }}</span>
+            </div>
+            <span class="text-outline">/</span>
+            <div class="flex items-center gap-1.5 text-on-surface-variant text-[11px]">
+              <span class="text-muted">Completion:</span>
+              <span class="text-on-surface font-semibold">{{ formattedCompletionTokens }}</span>
+            </div>
+            <span class="text-outline">/</span>
+            <div class="flex items-center gap-1.5 text-on-surface-variant text-[11px]">
+              <span class="text-muted">Cached:</span>
+              <span class="text-on-surface font-semibold">{{ formattedCachedTokens }}</span>
+            </div>
+          </div>
+
+          <div class="text-[10px] text-muted flex items-center gap-1.5">
+            <Coins class="w-3.5 h-3.5 text-secondary" />
+            <span>Pricing Reference: Versioned Table (USD)</span>
           </div>
         </div>
       </div>
@@ -303,7 +399,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute } from 'vue-router'
 import {
   ArrowLeft,
@@ -313,13 +409,16 @@ import {
   RotateCcw,
   CheckCircle2,
   Terminal,
-  ShieldAlert
+  ShieldAlert,
+  Cpu,
+  Coins
 } from '@lucide/vue'
 import UiBadge from '../../components/ui/UiBadge.vue'
 import UiButton from '../../components/ui/UiButton.vue'
 import UiSkeleton from '../../components/ui/UiSkeleton.vue'
 import RunApprovalDrawer from '../../components/workforce/RunApprovalDrawer.vue'
 import { useAgentRunStore } from '../../stores/agentRun'
+import { CostCalculator } from '../../runtime'
 import type { AgentRunStatus, RunStep } from '../../types'
 
 const route = useRoute()
@@ -327,6 +426,8 @@ const agentRunStore = useAgentRunStore()
 
 const loading = ref<boolean>(false)
 const isApprovalDrawerOpen = ref<boolean>(false)
+const nowTick = ref<number>(Date.now())
+let tickerInterval: any = null
 
 const pipelineSteps: RunStep[] = [
   'Initializing',
@@ -347,12 +448,44 @@ const pendingApproval = computed(() => {
   return agentRunStore.getPendingApproval(runId.value)
 })
 
+const telemetry = computed(() => run.value?.telemetry)
+
+const formattedTotalTokens = computed(() => CostCalculator.formatTokens(telemetry.value?.totalTokens))
+const formattedPromptTokens = computed(() => CostCalculator.formatTokens(telemetry.value?.promptTokens))
+const formattedCompletionTokens = computed(() => CostCalculator.formatTokens(telemetry.value?.completionTokens))
+const formattedCachedTokens = computed(() => CostCalculator.formatTokens(telemetry.value?.cachedTokens))
+const formattedCost = computed(() => CostCalculator.formatCost(telemetry.value?.estimatedCostUsd))
+
+const formattedDuration = computed(() => {
+  if (run.value?.durationSeconds) {
+    return CostCalculator.formatDuration(run.value.durationSeconds)
+  }
+  if (telemetry.value?.durationMs) {
+    return CostCalculator.formatDuration(telemetry.value.durationMs, true)
+  }
+  if (run.value?.startedAt) {
+    const elapsed = Math.max(0, Math.floor((nowTick.value - new Date(run.value.startedAt).getTime()) / 1000))
+    return CostCalculator.formatDuration(elapsed)
+  }
+  return '0s'
+})
+
 onMounted(async () => {
   loading.value = true
   try {
     await agentRunStore.fetchRunById(runId.value)
   } finally {
     loading.value = false
+  }
+
+  tickerInterval = setInterval(() => {
+    nowTick.value = Date.now()
+  }, 1000)
+})
+
+onUnmounted(() => {
+  if (tickerInterval) {
+    clearInterval(tickerInterval)
   }
 })
 

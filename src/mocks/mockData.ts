@@ -2515,6 +2515,16 @@ export const mockAgentRuns: AgentRun[] = [
       { id: 'l4', timestamp: '08:24:15', step: 'Working', message: 'Refactored split view container with responsive grid constraints.', level: 'info' },
       { id: 'l5', timestamp: '08:25:30', step: 'Working', message: 'Implementing smooth error message opacity transitions.', level: 'info' }
     ],
+    telemetry: {
+      promptTokens: 14200,
+      completionTokens: 3850,
+      totalTokens: 18050,
+      cachedTokens: 1024,
+      model: 'claude-3-5-sonnet-20241022',
+      provider: 'Anthropic',
+      durationMs: 340000,
+      estimatedCostUsd: 0.10065
+    },
     startedAt: '2026-08-14T08:20:00Z',
     durationSeconds: 340,
     createdAt: '2026-08-14T08:20:00Z',
@@ -2538,6 +2548,16 @@ export const mockAgentRuns: AgentRun[] = [
       { id: 'l7', timestamp: '08:41:10', step: 'Loading Task & Context', message: 'Fetching route map and pinia stores directory structure.', level: 'info' },
       { id: 'l8', timestamp: '08:42:30', step: 'Working', message: 'Indexing 12 employees, 3 departments, and 20+ skill registry items.', level: 'info' }
     ],
+    telemetry: {
+      promptTokens: 8200,
+      completionTokens: 2100,
+      totalTokens: 10300,
+      cachedTokens: 0,
+      model: 'hermes-3-llama-3.1-70b',
+      provider: 'NousResearch',
+      durationMs: 220000,
+      estimatedCostUsd: 0.00824
+    },
     startedAt: '2026-08-14T08:40:00Z',
     durationSeconds: 220,
     createdAt: '2026-08-14T08:40:00Z',
@@ -2563,6 +2583,16 @@ export const mockAgentRuns: AgentRun[] = [
       { id: 'l12', timestamp: '09:22:15', step: 'Verifying', message: 'Executed dry-run migration rollback & re-migration test. 0 errors.', level: 'success' },
       { id: 'l13', timestamp: '09:25:00', step: 'Completing', message: 'Schema migration bundle ready for review approval.', level: 'success' }
     ],
+    telemetry: {
+      promptTokens: 24100,
+      completionTokens: 8310,
+      totalTokens: 32410,
+      cachedTokens: 4096,
+      model: 'hermes-3-llama-3.1-70b',
+      provider: 'NousResearch',
+      durationMs: 600000,
+      estimatedCostUsd: 0.02675
+    },
     startedAt: '2026-08-13T09:15:00Z',
     completedAt: '2026-08-13T14:30:00Z',
     durationSeconds: 600,
@@ -2589,6 +2619,16 @@ export const mockAgentRuns: AgentRun[] = [
       { id: 'l16', timestamp: '09:13:00', step: 'Verifying', message: 'All 24 test assertions passed with 100% success rate.', level: 'success' },
       { id: 'l17', timestamp: '09:14:00', step: 'Completing', message: 'QA approval certificate generated.', level: 'success' }
     ],
+    telemetry: {
+      promptTokens: 15300,
+      completionTokens: 4200,
+      totalTokens: 19500,
+      cachedTokens: 2048,
+      model: 'gpt-4o',
+      provider: 'OpenAI',
+      durationMs: 240000,
+      estimatedCostUsd: 0.08281
+    },
     startedAt: '2026-08-14T09:10:00Z',
     completedAt: '2026-08-14T11:00:00Z',
     durationSeconds: 240,
@@ -2614,6 +2654,16 @@ export const mockAgentRuns: AgentRun[] = [
       { id: 'l19', timestamp: '10:22:00', step: 'Working', message: 'Scanning codebase for hardcoded API keys and credentials.', level: 'info' },
       { id: 'l20', timestamp: '10:25:30', step: 'Verifying', message: 'Running CSP header compliance and XSS sanitization checks.', level: 'info' }
     ],
+    telemetry: {
+      promptTokens: 19400,
+      completionTokens: 5120,
+      totalTokens: 24520,
+      cachedTokens: 0,
+      model: 'hermes-3-llama-3.1-70b',
+      provider: 'NousResearch',
+      durationMs: 380000,
+      estimatedCostUsd: 0.01962
+    },
     startedAt: '2026-08-14T10:20:00Z',
     durationSeconds: 380,
     createdAt: '2026-08-14T10:20:00Z',
@@ -2637,6 +2687,16 @@ export const mockAgentRuns: AgentRun[] = [
       { id: 'l22', timestamp: '09:00:00', step: 'Working', message: 'Synthesizing incident patterns and risk mitigation points.', level: 'info' },
       { id: 'l23', timestamp: '09:30:00', step: 'Verifying', message: 'Verified citations against ESDM mining regulations.', level: 'success' }
     ],
+    telemetry: {
+      promptTokens: 31000,
+      completionTokens: 9200,
+      totalTokens: 40200,
+      cachedTokens: 5120,
+      model: 'claude-3-5-sonnet-20241022',
+      provider: 'Anthropic',
+      durationMs: 720000,
+      estimatedCostUsd: 0.23254
+    },
     startedAt: '2026-08-12T08:45:00Z',
     completedAt: '2026-08-12T16:00:00Z',
     durationSeconds: 720,
@@ -2661,6 +2721,16 @@ export const mockAgentRuns: AgentRun[] = [
       { id: 'l24', timestamp: '09:15:00', step: 'Initializing', message: 'Selected 16:9 dark theme presentation template.', level: 'info' },
       { id: 'l25', timestamp: '09:20:00', step: 'Working', message: 'Designing slides 1 to 15 with hazard symbols and typography.', level: 'info' }
     ],
+    telemetry: {
+      promptTokens: 11500,
+      completionTokens: 3400,
+      totalTokens: 14900,
+      cachedTokens: 0,
+      model: 'hermes-3-llama-3.1-70b',
+      provider: 'NousResearch',
+      durationMs: 450000,
+      estimatedCostUsd: 0.01192
+    },
     startedAt: '2026-08-13T09:15:00Z',
     durationSeconds: 450,
     createdAt: '2026-08-13T09:15:00Z',
@@ -2684,6 +2754,16 @@ export const mockAgentRuns: AgentRun[] = [
       { id: 'l27', timestamp: '10:30:00', step: 'Working', message: 'Analyzed search volume and competitor density for 5 categories.', level: 'info' },
       { id: 'l28', timestamp: '10:45:00', step: 'Completing', message: 'Product candidate recommendation report compiled.', level: 'success' }
     ],
+    telemetry: {
+      promptTokens: 21800,
+      completionTokens: 6400,
+      totalTokens: 28200,
+      cachedTokens: 1024,
+      model: 'gpt-4o-mini',
+      provider: 'OpenAI',
+      durationMs: 580000,
+      estimatedCostUsd: 0.00719
+    },
     startedAt: '2026-08-11T10:15:00Z',
     completedAt: '2026-08-11T17:30:00Z',
     durationSeconds: 580,
@@ -2708,6 +2788,16 @@ export const mockAgentRuns: AgentRun[] = [
       { id: 'l29', timestamp: '08:15:00', step: 'Initializing', message: 'Target audience persona loaded: tech early-adopters.', level: 'info' },
       { id: 'l30', timestamp: '08:20:00', step: 'Working', message: 'Drafting 5 problem-agitate-solution hook variations.', level: 'info' }
     ],
+    telemetry: {
+      promptTokens: 7600,
+      completionTokens: 1800,
+      totalTokens: 9400,
+      cachedTokens: 0,
+      model: 'hermes-3-llama-3.1-8b',
+      provider: 'NousResearch',
+      durationMs: 290000,
+      estimatedCostUsd: 0.00188
+    },
     startedAt: '2026-08-14T08:15:00Z',
     durationSeconds: 290,
     createdAt: '2026-08-14T08:15:00Z',
@@ -2731,6 +2821,16 @@ export const mockAgentRuns: AgentRun[] = [
       { id: 'l32', timestamp: '09:55:00', step: 'Working', message: 'Rendering video transition effects in timeline track 1.', level: 'info' },
       { id: 'l33', timestamp: '10:10:00', step: 'Working', message: 'Runner paused: Waiting for additional audio assets approval.', level: 'warn' }
     ],
+    telemetry: {
+      promptTokens: 6400,
+      completionTokens: 1200,
+      totalTokens: 7600,
+      cachedTokens: 0,
+      model: 'hermes-3-llama-3.1-8b',
+      provider: 'NousResearch',
+      durationMs: 310000,
+      estimatedCostUsd: 0.00152
+    },
     startedAt: '2026-08-14T09:45:00Z',
     durationSeconds: 310,
     createdAt: '2026-08-14T09:45:00Z',
@@ -2753,6 +2853,16 @@ export const mockAgentRuns: AgentRun[] = [
       { id: 'l34', timestamp: '08:10:00', step: 'Initializing', message: 'Connected to CRM message incoming queue.', level: 'info' },
       { id: 'l35', timestamp: '08:20:00', step: 'Working', message: 'Replied to 12 inquiries with product demo invitation links.', level: 'info' }
     ],
+    telemetry: {
+      promptTokens: 11200,
+      completionTokens: 2900,
+      totalTokens: 14100,
+      cachedTokens: 512,
+      model: 'claude-3-haiku-20240307',
+      provider: 'Anthropic',
+      durationMs: 420000,
+      estimatedCostUsd: 0.00644
+    },
     startedAt: '2026-08-14T08:10:00Z',
     durationSeconds: 420,
     createdAt: '2026-08-14T08:10:00Z',
@@ -2776,6 +2886,16 @@ export const mockAgentRuns: AgentRun[] = [
       { id: 'l37', timestamp: '13:20:00', step: 'Working', message: 'Implemented rate limiter token bucket algorithm.', level: 'info' },
       { id: 'l38', timestamp: '13:30:00', step: 'Verifying', message: 'Connection timeout: Redis cluster port unreachable on sandbox network.', level: 'error' }
     ],
+    telemetry: {
+      promptTokens: 16800,
+      completionTokens: 3200,
+      totalTokens: 20000,
+      cachedTokens: 0,
+      model: 'hermes-3-llama-3.1-70b',
+      provider: 'NousResearch',
+      durationMs: 390000,
+      estimatedCostUsd: 0.016
+    },
     startedAt: '2026-08-13T13:10:00Z',
     completedAt: '2026-08-13T14:15:00Z',
     durationSeconds: 390,
@@ -2802,6 +2922,16 @@ export const mockAgentRuns: AgentRun[] = [
       { id: 'l41', timestamp: '10:45:00', step: 'Verifying', message: 'WCAG AA contrast audit: 13.8:1 text contrast verified.', level: 'success' },
       { id: 'l42', timestamp: '11:00:00', step: 'Completing', message: 'Design tokens synchronized.', level: 'success' }
     ],
+    telemetry: {
+      promptTokens: 25400,
+      completionTokens: 7100,
+      totalTokens: 32500,
+      cachedTokens: 3072,
+      model: 'claude-3-5-sonnet-20241022',
+      provider: 'Anthropic',
+      durationMs: 510000,
+      estimatedCostUsd: 0.18362
+    },
     startedAt: '2026-08-10T10:15:00Z',
     completedAt: '2026-08-10T15:00:00Z',
     durationSeconds: 510,

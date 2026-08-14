@@ -40,23 +40,41 @@ export class MockRuntimeAdapter implements AgentRuntime {
       5,
       {
         onProgress: (progress: number, step: RunStep, log: RunLogEntry) => {
+          const startTime = this.startTimestamps.get(runId) || performance.now()
+          const durationMs = Math.round(performance.now() - startTime)
+          const promptTokens = 420 + Math.round(progress * 15)
+          const completionTokens = 150 + Math.round(progress * 25)
+          const telemetry: RuntimeTelemetry = {
+            promptTokens,
+            completionTokens,
+            totalTokens: promptTokens + completionTokens,
+            cachedTokens: 128,
+            model: 'mock-agent-simulation-v1',
+            provider: 'satria-in-memory',
+            durationMs,
+            estimatedCostUsd: 0.0
+          }
+
           onEvent({
             type: 'progress:updated',
             runId,
             timestamp: new Date().toISOString(),
             progress,
             step,
-            log
+            log,
+            telemetry
           })
         },
         onStatusChange: (status: AgentRunStatus) => {
           const startTime = this.startTimestamps.get(runId) || performance.now()
           const durationMs = Math.round(performance.now() - startTime)
 
+          const promptTokens = 1920
+          const completionTokens = 2650
           const telemetry: RuntimeTelemetry = {
-            promptTokens: 420,
-            completionTokens: 850,
-            totalTokens: 1270,
+            promptTokens,
+            completionTokens,
+            totalTokens: promptTokens + completionTokens,
             cachedTokens: 128,
             model: 'mock-agent-simulation-v1',
             provider: 'satria-in-memory',

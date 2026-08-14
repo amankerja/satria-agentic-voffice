@@ -1,6 +1,6 @@
 import type { AgentRunInput, RuntimeEvent } from '../types'
 import { ContextBuilder } from '../context/ContextBuilder'
-import { CostCalculator } from '../telemetry/CostCalculator'
+import { TelemetryMapper } from '../telemetry/TelemetryMapper'
 
 export class HermesMapper {
   static toHermesPayload(input: AgentRunInput) {
@@ -33,21 +33,19 @@ export class HermesMapper {
 
   static fromHermesEvent(raw: any, runId: string): RuntimeEvent {
     const timestamp = raw.timestamp || new Date().toISOString()
-    const model = raw.model || 'hermes-3-llama-3.1-70b'
-    const promptTokens = raw.promptTokens || 0
-    const completionTokens = raw.completionTokens || 0
-    const cachedTokens = raw.cachedTokens || 0
-    const durationMs = raw.durationMs || 0
+    const telemetry = TelemetryMapper.normalize(
+      raw.telemetry || raw,
+      raw.provider || 'hermes-cloud',
+      raw.model || 'hermes-3-llama-3.1-70b'
+    )
 
-    const telemetry = {
-      promptTokens,
-      completionTokens,
-      totalTokens: promptTokens + completionTokens,
-      cachedTokens,
-      model,
-      provider: raw.provider || 'hermes-cloud',
-      durationMs,
-      estimatedCostUsd: CostCalculator.calculate(model, promptTokens, completionTokens, cachedTokens)
+    if (raw.type === 'telemetry:updated') {
+      return {
+        type: 'telemetry:updated',
+        runId,
+        timestamp,
+        telemetry
+      }
     }
 
     if (raw.type === 'tool:requested') {

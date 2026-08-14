@@ -27,14 +27,14 @@ Phase 0 (Workspace Foundation) and Phase 1 (Workforce Structure & Registry) are 
   - Sub-Phase 2.6: Employee Profile Extension (`Work` and `Runs` tabs in `EmployeeDetailPage.vue`) ✅
   - Sub-Phase 2.7: Workspace Dashboard, Activity & Command Palette (Ctrl+K) Integration ✅
   - Sub-Phase 2.8: QA & Validation (29 Vitest tests pass across 4 suites, vue-tsc 0 errors, production build OK) ✅
-- **Phase 3 (Real Agent Runtime — Hermes Adapter & Pilot Worker):** Sub-Phases 3.1–3.5 100% Hardened & Verified ✅
+- **Phase 3 (Real Agent Runtime — Hermes Adapter & Pilot Worker):** Sub-Phases 3.1–3.6 100% Hardened & Verified ✅
   - Sub-Phase 3.1: Runtime Architecture & Interface Contract (`src/runtime/types.ts`, `RuntimeFactory.ts`, `MockRuntimeAdapter.ts`) ✅
   - Sub-Phase 3.2: Hermes Adapter & Protocol Gateway (`HermesClient.ts`, `HermesMapper.ts`, `HermesRuntimeAdapter.ts`) ✅
   - Sub-Phase 3.3: Context Synthesis & Skill Loader (`SkillLoader.ts`, `ContextBuilder.ts`) ✅
   - Sub-Phase 3.4: Safe Tool Sandbox & Telemetry (`SandboxPolicy.ts`, `CostCalculator.ts`, `VerificationEngine.ts`) ✅
   - Sub-Phase 3.5: Approval Gate & Hardened Human-in-the-Loop (`RunApprovalDrawer.vue`, `RunDetailPage.vue`, `useAgentRunStore`, Retry/Rejection Lifecycle, Sandbox Boundary & Symlink Defense) ✅
-  - Sub-Phase 3.6: Observability Dashboard & Live Telemetry UI (Next Step ⏳)
-  - QA & Validation: 61 Vitest tests pass across 10 suites, vue-tsc 0 errors, production build OK ✅
+  - Sub-Phase 3.6: Observability Dashboard & Live Telemetry UI (`modelPricing.ts`, `CostCalculator.ts`, `TelemetryMapper.ts`, `TelemetryError.ts`, `RunDetailPage.vue`, `RunsPage.vue`, `useAgentRunStore`) ✅
+  - QA & Validation: 79 Vitest tests pass across 13 suites, vue-tsc 0 errors, production build OK ✅
 
 Archived blueprints & execution plans in `work-histori/`:
 - `work-histori/01_PHASE0_PRD_PWA_Workspace_UIUX_v2.md`
@@ -55,7 +55,7 @@ npm run dev          # Vite dev server (http://localhost:5173)
 npm run build        # vue-tsc typecheck + vite production build
 npm run preview      # preview production build
 npm run typecheck    # vue-tsc --noEmit (strict mode)
-npm run test:unit    # vitest run (29 tests across 4 suites)
+npm run test:unit    # vitest run (79 tests across 13 suites)
 ```
 
 **Required order:** `typecheck` → `test:unit` → `build`
