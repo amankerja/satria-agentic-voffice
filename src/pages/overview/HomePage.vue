@@ -16,6 +16,9 @@
       </div>
     </div>
 
+    <!-- Quick 1-Click AI Workforce Dispatch Bar -->
+    <QuickDispatchBar />
+
     <!-- Live Agent Execution Banner (Phase 2) -->
     <div
       v-if="agentRunStore.activeRuns.length > 0"
@@ -209,6 +212,7 @@ import UiProgress from '../../components/ui/UiProgress.vue'
 import UiEmptyState from '../../components/ui/UiEmptyState.vue'
 import UiModal from '../../components/ui/UiModal.vue'
 import UiInput from '../../components/ui/UiInput.vue'
+import QuickDispatchBar from '../../components/workforce/QuickDispatchBar.vue'
 import { useWorkspaceStore } from '../../stores/workspace'
 import { useProjectStore } from '../../stores/project'
 import { useTaskStore } from '../../stores/task'

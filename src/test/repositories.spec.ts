@@ -9,10 +9,12 @@ import { useTaskStore } from '../stores/task'
 import { useFileStore } from '../stores/file'
 import { useActivityStore } from '../stores/activity'
 import { useNotificationStore } from '../stores/notification'
+import { seedTestFixtures } from './testFixtures'
 
 describe('SATRIA AI Workforce — Mock Data Layer & Pinia Stores', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    seedTestFixtures()
   })
 
   it('MockWorkspaceRepository returns workspace list and creates workspace', async () => {

@@ -4,10 +4,12 @@ import { useDepartmentStore } from '../stores/department'
 import { useEmployeeStore } from '../stores/employee'
 import { useSkillStore } from '../stores/skill'
 import { useWorkforceToolStore } from '../stores/workforceTool'
+import { seedTestFixtures } from './testFixtures'
 
 describe('SATRIA AI Workforce Phase 1 — Integrated User Journey Tests', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    seedTestFixtures()
   })
 
   it('Journey 1: Workforce Overview displays correct baseline metrics', async () => {

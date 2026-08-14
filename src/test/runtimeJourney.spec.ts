@@ -244,6 +244,7 @@ describe('SATRIA AI Workforce — Phase 3: Real Agent Runtime & Safety Engine', 
 
   it('runs full AgentRunStore execution through the pluggable runtime adapter', async () => {
     const store = useAgentRunStore()
+    store.setRuntimeMode('mock')
     await store.fetchRuns()
 
     const initialCount = store.runs.length

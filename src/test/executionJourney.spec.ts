@@ -7,10 +7,12 @@ import { useAssignmentStore } from '../stores/assignment'
 import { useAgentRunStore } from '../stores/agentRun'
 import { useReviewStore } from '../stores/review'
 import type { Employee } from '../types'
+import { seedTestFixtures } from './testFixtures'
 
 describe('SATRIA AI Workforce — Phase 2: Task Assignment, Agent Run & Review Journey', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
+    seedTestFixtures()
   })
 
   it('calculates skill eligibility accurately with separate required and optional percentages', async () => {
@@ -120,6 +122,7 @@ describe('SATRIA AI Workforce — Phase 2: Task Assignment, Agent Run & Review J
 
   it('runs agent execution lifecycle, pause, resume, cancel, and retry attempts', async () => {
     const agentRunStore = useAgentRunStore()
+    agentRunStore.setRuntimeMode('mock')
     await agentRunStore.fetchRuns()
 
     const run = await agentRunStore.createRun({

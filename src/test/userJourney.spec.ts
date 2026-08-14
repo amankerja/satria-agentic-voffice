@@ -9,6 +9,8 @@ import {
   MockUserRepository
 } from '../repositories'
 
+import { seedTestFixtures } from './testFixtures'
+
 describe('SATRIA AI WORKFORCE — Integrated Demo User Journey Tests', () => {
   let wsRepo: MockWorkspaceRepository
   let prjRepo: MockProjectRepository
@@ -19,6 +21,7 @@ describe('SATRIA AI WORKFORCE — Integrated Demo User Journey Tests', () => {
   let userRepo: MockUserRepository
 
   beforeEach(() => {
+    seedTestFixtures()
     wsRepo = new MockWorkspaceRepository()
     prjRepo = new MockProjectRepository()
     taskRepo = new MockTaskRepository()

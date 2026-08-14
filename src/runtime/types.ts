@@ -4,8 +4,11 @@ import type {
   TaskAssignment,
   Employee,
   Skill,
-  WorkforceTool
+  WorkforceTool,
+  RuntimeTelemetry
 } from '../types'
+
+export type { RuntimeTelemetry }
 
 export type RuntimeMode = 'mock' | 'hermes'
 
@@ -25,17 +28,6 @@ export interface AgentRunInput {
   taskPrompt: string
   acceptanceCriteria?: string[]
   instructions?: string
-}
-
-export interface RuntimeTelemetry {
-  promptTokens: number
-  completionTokens: number
-  totalTokens: number
-  cachedTokens: number
-  model: string
-  provider: string
-  durationMs: number
-  estimatedCostUsd: number | null
 }
 
 export interface ToolCallRequest {

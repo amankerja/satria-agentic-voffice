@@ -5,8 +5,14 @@ import { TelemetryMapper } from '../telemetry/TelemetryMapper'
 export class HermesMapper {
   static toHermesPayload(input: AgentRunInput) {
     const context = ContextBuilder.build(input)
+    const meta = import.meta as any
+    const configuredModel =
+      (meta?.env?.VITE_HERMES_MODEL as string) || 'hermes-3-llama-3.1-70b'
 
     return {
+      input: context.userPrompt || input.taskPrompt,
+      instructions: context.systemPrompt,
+      model: configuredModel,
       runId: input.runId,
       agentId: input.employee.id,
       agentName: input.employee.name,
@@ -24,7 +30,7 @@ export class HermesMapper {
         project: input.projectContext?.projectName || 'General Workspace'
       },
       modelConfig: {
-        model: 'hermes-3-llama-3.1-70b',
+        model: configuredModel,
         maxTokens: 4096,
         temperature: 0.2
       }
@@ -32,14 +38,32 @@ export class HermesMapper {
   }
 
   static fromHermesEvent(raw: any, runId: string): RuntimeEvent {
-    const timestamp = raw.timestamp || new Date().toISOString()
+    if (!raw || typeof raw !== 'object') {
+      return {
+        type: 'progress:updated',
+        runId,
+        timestamp: new Date().toISOString(),
+        progress: 50,
+        step: 'Working'
+      }
+    }
+
+    const eventName = raw.event || raw.type || ''
+    const timestamp = raw.timestamp
+      ? (typeof raw.timestamp === 'number' ? new Date(raw.timestamp * 1000).toISOString() : String(raw.timestamp))
+      : new Date().toISOString()
+    const meta = import.meta as any
+    const defaultModel =
+      (meta?.env?.VITE_HERMES_MODEL as string) || 'hermes-3-llama-3.1-70b'
+
+    const rawTelemetry = raw.usage || raw.telemetry || raw
     const telemetry = TelemetryMapper.normalize(
-      raw.telemetry || raw,
+      rawTelemetry,
       raw.provider || 'hermes-cloud',
-      raw.model || 'hermes-3-llama-3.1-70b'
+      raw.model || defaultModel
     )
 
-    if (raw.type === 'telemetry:updated') {
+    if (eventName === 'telemetry:updated' || eventName === 'telemetry.updated') {
       return {
         type: 'telemetry:updated',
         runId,
@@ -48,45 +72,74 @@ export class HermesMapper {
       }
     }
 
-    if (raw.type === 'tool:requested') {
+    if (eventName === 'tool:requested' || eventName === 'tool.requested' || eventName === 'tool.call') {
       return {
         type: 'tool:requested',
         runId,
         timestamp,
         toolCall: {
-          id: raw.toolCallId || `tc-${Date.now()}`,
-          toolName: raw.toolName,
-          parameters: raw.parameters || {},
-          isHighRisk: raw.isHighRisk ?? (raw.toolName === 'filesystem.write' || raw.toolName === 'deploy'),
+          id: raw.toolCallId || raw.tool_call_id || raw.id || `tc-${Date.now()}`,
+          toolName: raw.toolName || raw.tool_name || raw.name || 'unknown.tool',
+          parameters: raw.parameters || raw.arguments || raw.args || {},
+          isHighRisk:
+            raw.isHighRisk ??
+            (raw.toolName === 'filesystem.write' ||
+              raw.toolName === 'deploy' ||
+              raw.toolName === 'terminal.execute'),
           requestedAt: timestamp
         }
       }
     }
 
-    if (raw.type === 'approval:required') {
+    if (eventName === 'tool:executed' || eventName === 'tool.executed' || eventName === 'tool.result') {
+      return {
+        type: 'tool:executed',
+        runId,
+        timestamp,
+        toolResult: {
+          toolCallId: raw.toolCallId || raw.tool_call_id || raw.id || `tc-${Date.now()}`,
+          toolName: raw.toolName || raw.tool_name || raw.name || 'unknown.tool',
+          success: raw.success !== false,
+          output: raw.output || raw.result,
+          diff: raw.diff,
+          error: raw.error,
+          executionTimeMs: raw.executionTimeMs || raw.execution_time_ms || 0
+        }
+      }
+    }
+
+    if (eventName === 'approval:required' || eventName === 'approval.required' || eventName === 'approval.request') {
       return {
         type: 'approval:required',
         runId,
         timestamp,
         approvalRequest: {
-          id: raw.approvalId || `apprv-${Date.now()}`,
+          id: raw.approvalId || raw.approval_id || raw.id || `apprv-${Date.now()}`,
           runId,
           toolCall: {
-            id: raw.toolCallId || `tc-${Date.now()}`,
-            toolName: raw.toolName,
-            parameters: raw.parameters || {},
+            id: raw.toolCallId || raw.tool_call_id || `tc-${Date.now()}`,
+            toolName: raw.toolName || raw.tool_name || raw.name || 'unknown.tool',
+            parameters: raw.parameters || raw.arguments || raw.args || {},
             isHighRisk: true,
             requestedAt: timestamp
           },
-          reason: raw.reason || 'High-risk action requires human confirmation.',
-          previewContent: raw.previewContent,
-          diffContent: raw.diffContent,
+          reason: raw.reason || raw.message || 'High-risk action requires human confirmation.',
+          previewContent: raw.previewContent || raw.preview,
+          diffContent: raw.diffContent || raw.diff,
           requestedAt: timestamp
         }
       }
     }
 
-    if (raw.type === 'run:completed') {
+    if (eventName === 'approval:resolved' || eventName === 'approval.resolved') {
+      return {
+        type: 'approval:resolved',
+        runId,
+        timestamp
+      }
+    }
+
+    if (eventName === 'run:completed' || eventName === 'run.completed') {
       return {
         type: 'run:completed',
         runId,
@@ -97,12 +150,48 @@ export class HermesMapper {
       }
     }
 
-    if (raw.type === 'run:failed') {
+    if (eventName === 'run:failed' || eventName === 'run.failed') {
       return {
         type: 'run:failed',
         runId,
         timestamp,
-        error: raw.error || 'Hermes execution failed.'
+        error: raw.error || raw.message || 'Hermes execution failed.'
+      }
+    }
+
+    if (eventName === 'run:cancelled' || eventName === 'run.cancelled') {
+      return {
+        type: 'run:cancelled',
+        runId,
+        timestamp
+      }
+    }
+
+    if (eventName === 'run:paused' || eventName === 'run.paused') {
+      return {
+        type: 'run:paused',
+        runId,
+        timestamp
+      }
+    }
+
+    if (eventName === 'message.delta' || eventName === 'message:delta') {
+      return {
+        type: 'progress:updated',
+        runId,
+        timestamp,
+        progress: raw.progress ?? 50,
+        step: 'Working',
+        log: raw.delta
+          ? {
+              id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+              timestamp: new Date().toLocaleTimeString(),
+              step: 'Working',
+              message: raw.delta,
+              level: 'info'
+            }
+          : undefined,
+        telemetry
       }
     }
 
@@ -113,12 +202,12 @@ export class HermesMapper {
       timestamp,
       progress: raw.progress ?? 50,
       step: raw.step ?? 'Working',
-      log: raw.message
+      log: (raw.message || raw.delta)
         ? {
             id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
             timestamp: new Date().toLocaleTimeString(),
             step: raw.step ?? 'Working',
-            message: raw.message,
+            message: raw.message || raw.delta,
             level: raw.level ?? 'info'
           }
         : undefined,

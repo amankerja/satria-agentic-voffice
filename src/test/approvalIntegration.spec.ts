@@ -10,6 +10,7 @@ describe('SATRIA AI Workforce — Sub-Phase 3.5 Hardening: True Approval Integra
   beforeEach(() => {
     setActivePinia(createPinia())
     RuntimeFactory.reset()
+    RuntimeFactory.setDefaultMode('mock')
   })
 
   it('1. Full Runtime-to-Store Event Bridge: runtime emits approval:required, store intercepts, transitions to Waiting, registers pending approval and notifs', async () => {

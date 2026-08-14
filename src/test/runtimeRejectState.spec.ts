@@ -9,6 +9,7 @@ describe('SATRIA AI Workforce — Sub-Phase 3.5 Hardening: Rejected-Run State', 
   beforeEach(() => {
     setActivePinia(createPinia())
     RuntimeFactory.reset()
+    RuntimeFactory.setDefaultMode('mock')
   })
 
   it('1. transitions run status to Cancelled and clears pending approval when rejected', async () => {

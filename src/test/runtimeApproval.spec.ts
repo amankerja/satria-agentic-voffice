@@ -10,6 +10,7 @@ describe('SATRIA AI Workforce — Phase 3.5: Approval Gate & Human-in-the-Loop',
   beforeEach(() => {
     setActivePinia(createPinia())
     RuntimeFactory.reset()
+    RuntimeFactory.setDefaultMode('mock')
   })
 
   it('receives approval:required, transitions status to Waiting, and stores pending approval', async () => {

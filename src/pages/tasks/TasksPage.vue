@@ -148,48 +148,37 @@
           </div>
         </div>
 
-        <!-- Phase 2: Digital Workforce Assignment & Execution Section -->
-        <div class="p-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl space-y-3">
+        <!-- Phase 2 & 3.6: Integrated Inline Agent Execution Workspace -->
+        <InlineAgentWorkspace
+          v-if="selectedTask"
+          :task="selectedTask"
+          @updated="loadData"
+        />
+
+        <!-- Workforce Assignment Details -->
+        <div class="p-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl space-y-2.5">
           <div class="flex items-center justify-between">
-            <span class="text-[10px] font-mono text-muted uppercase">Digital Workforce Assignment</span>
-            <UiBadge v-if="selectedTask.assigneeName" variant="success" size="sm">Assigned</UiBadge>
-            <UiBadge v-else variant="neutral" size="sm">Unassigned</UiBadge>
+            <span class="text-[10px] font-mono text-muted uppercase">Assigned Personnel</span>
+            <button
+              @click="openAssignmentDrawer = true"
+              class="text-[11px] text-primary hover:underline font-mono"
+            >
+              {{ selectedTask.assigneeName ? 'Change Agent' : 'Assign Agent' }}
+            </button>
           </div>
 
-          <div v-if="selectedTask.assigneeName" class="flex items-center justify-between gap-3">
-            <div class="flex items-center gap-2.5 truncate">
-              <img
-                v-if="selectedTask.assigneeAvatar"
-                :src="selectedTask.assigneeAvatar"
-                :alt="selectedTask.assigneeName"
-                class="w-7 h-7 rounded-full object-cover border border-outline"
-              />
-              <div class="truncate">
-                <div class="text-xs font-bold text-on-surface truncate">{{ selectedTask.assigneeName }}</div>
-                <div class="text-[10px] text-muted font-mono">Assigned Personnel</div>
-              </div>
+          <div v-if="selectedTask.assigneeName" class="flex items-center gap-2.5 truncate">
+            <img
+              v-if="selectedTask.assigneeAvatar"
+              :src="selectedTask.assigneeAvatar"
+              :alt="selectedTask.assigneeName"
+              class="w-6 h-6 rounded-full object-cover border border-outline"
+            />
+            <div class="truncate">
+              <div class="text-xs font-bold text-on-surface truncate">{{ selectedTask.assigneeName }}</div>
             </div>
-            <UiButton size="sm" variant="secondary" @click="openAssignmentDrawer = true">
-              Reassign
-            </UiButton>
           </div>
-
-          <div v-else class="flex items-center justify-between gap-2">
-            <span class="text-xs text-muted">No employee assigned yet</span>
-            <UiButton size="sm" variant="primary" @click="openAssignmentDrawer = true">
-              Assign Employee
-            </UiButton>
-          </div>
-
-          <div v-if="selectedTask.activeRunId" class="pt-2 border-t border-outline-variant flex items-center justify-between text-xs">
-            <span class="text-[10px] font-mono text-primary flex items-center gap-1">
-              <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-              Active Execution Run: {{ selectedTask.activeRunId }}
-            </span>
-            <router-link :to="`/runs/${selectedTask.activeRunId}`" class="text-primary hover:underline text-[11px] font-mono">
-              Inspect Live Run &rarr;
-            </router-link>
-          </div>
+          <div v-else class="text-xs text-muted">Belum ada agent/employee yang ditugaskan.</div>
         </div>
 
         <!-- Interactive Checklist Section -->
@@ -285,6 +274,7 @@ import UiDrawer from '../../components/ui/UiDrawer.vue'
 import UiModal from '../../components/ui/UiModal.vue'
 import UiInput from '../../components/ui/UiInput.vue'
 import AssignmentDrawer from '../../components/workforce/AssignmentDrawer.vue'
+import InlineAgentWorkspace from '../../components/workforce/InlineAgentWorkspace.vue'
 import { useWorkspaceStore } from '../../stores/workspace'
 import { useTaskStore } from '../../stores/task'
 import { useToast } from '../../composables/useToast'

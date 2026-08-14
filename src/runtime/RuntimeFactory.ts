@@ -4,7 +4,7 @@ import { HermesRuntimeAdapter } from './hermes/HermesRuntimeAdapter'
 
 export class RuntimeFactory {
   private static instanceMap = new Map<RuntimeMode, AgentRuntime>()
-  private static currentDefaultMode: RuntimeMode = 'mock' // Default to mock until hermes connection is selected
+  private static currentDefaultMode: RuntimeMode = 'hermes'
 
   public static getRuntime(mode?: RuntimeMode): AgentRuntime {
     const selectedMode = mode || this.currentDefaultMode
@@ -28,6 +28,6 @@ export class RuntimeFactory {
 
   public static reset(): void {
     this.instanceMap.clear()
-    this.currentDefaultMode = 'mock'
+    this.currentDefaultMode = 'hermes'
   }
 }

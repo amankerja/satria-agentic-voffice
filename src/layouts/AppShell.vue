@@ -48,6 +48,9 @@
       :description="toastState.description"
       :variant="toastState.variant"
     />
+
+    <!-- Global Floating Active Agent Run Pill -->
+    <ActiveRunPill />
   </div>
 </template>
 
@@ -57,6 +60,7 @@ import Sidebar from '../components/layout/Sidebar.vue'
 import Topbar from '../components/layout/Topbar.vue'
 import BottomNav from '../components/layout/BottomNav.vue'
 import CommandPalette from '../components/layout/CommandPalette.vue'
+import ActiveRunPill from '../components/layout/ActiveRunPill.vue'
 import UiModal from '../components/ui/UiModal.vue'
 import UiToast from '../components/ui/UiToast.vue'
 import UiOfflineBanner from '../components/ui/UiOfflineBanner.vue'

@@ -7,27 +7,71 @@ import type {
 import { HermesClient } from './HermesClient'
 import { HermesMapper } from './HermesMapper'
 import { AgentRuntimeError } from '../RuntimeError'
+import type { HermesExecution } from './hermesContract'
+
+export interface HermesRunState {
+  runId: string // Satria Logical Run ID
+  execution?: HermesExecution
+  hermesRunId?: string
+  sessionId?: string
+  status:
+    | 'starting'
+    | 'running'
+    | 'paused'
+    | 'waiting_approval'
+    | 'completed'
+    | 'failed'
+    | 'cancelled'
+  input: AgentRunInput
+  listener: (event: RuntimeEvent) => void
+  closeStream?: () => void
+  retryCount: number
+}
 
 export class HermesRuntimeAdapter implements AgentRuntime {
   public readonly mode: RuntimeMode = 'hermes'
   private client: HermesClient
-  private activeStreams = new Map<string, () => void>()
-  private sessionMap = new Map<string, string>() // runId -> sessionId
-  private runInputs = new Map<string, AgentRunInput>()
-  private listeners = new Map<string, (event: RuntimeEvent) => void>()
+  private runs = new Map<string, HermesRunState>()
 
   constructor(client?: HermesClient) {
     this.client = client || new HermesClient()
   }
 
+  public getRunState(runId: string): HermesRunState | undefined {
+    return this.runs.get(runId)
+  }
+
   async start(input: AgentRunInput, onEvent: (event: RuntimeEvent) => void): Promise<void> {
-    const { runId } = input
-    this.runInputs.set(runId, input)
-    this.listeners.set(runId, onEvent)
+    const satriaRunId = input.runId
+
+    // Check for active duplicate runs
+    const existing = this.runs.get(satriaRunId)
+    if (
+      existing &&
+      (existing.status === 'running' ||
+        existing.status === 'starting' ||
+        existing.status === 'paused' ||
+        existing.status === 'waiting_approval')
+    ) {
+      throw new AgentRuntimeError(
+        'CONFLICT',
+        `Run ${satriaRunId} is already active with status '${existing.status}'.`,
+        satriaRunId
+      )
+    }
+
+    const state: HermesRunState = {
+      runId: satriaRunId,
+      status: 'starting',
+      input,
+      listener: onEvent,
+      retryCount: existing?.retryCount ?? 0
+    }
+    this.runs.set(satriaRunId, state)
 
     onEvent({
       type: 'run:started',
-      runId,
+      runId: satriaRunId,
       timestamp: new Date().toISOString(),
       step: 'Initializing',
       progress: 5,
@@ -42,31 +86,79 @@ export class HermesRuntimeAdapter implements AgentRuntime {
 
     try {
       const payload = HermesMapper.toHermesPayload(input)
-      const { sessionId } = await this.client.initiateRun(payload)
-      this.sessionMap.set(runId, sessionId)
+      const { run_id: hermesRunId } = await this.client.initiateRun(payload)
+      
+      const currentRun = this.runs.get(satriaRunId)
+      if (!currentRun || currentRun.status === 'cancelled') {
+        // Run was cancelled while initiateRun was in flight
+        return
+      }
+
+      currentRun.hermesRunId = hermesRunId
+      currentRun.execution = {
+        satriaRunId,
+        hermesRunId,
+        attempt: (currentRun.retryCount || 0) + 1
+      }
+      currentRun.status = 'running'
 
       const closeStream = this.client.connectEventStream(
-        sessionId,
-        (rawEvent) => {
-          const event = HermesMapper.fromHermesEvent(rawEvent, runId)
+        hermesRunId,
+        (rawEvent: any) => {
+          const runState = this.runs.get(satriaRunId)
+          if (!runState) return
+
+          if (rawEvent?.session_id || rawEvent?.sessionId) {
+            const sid = rawEvent.session_id || rawEvent.sessionId
+            runState.sessionId = sid
+            if (runState.execution) {
+              runState.execution.sessionId = sid
+            }
+          }
+
+          const event = HermesMapper.fromHermesEvent(rawEvent, satriaRunId)
+
+          if (event.type === 'run:completed') {
+            runState.status = 'completed'
+            this.cleanupRun(satriaRunId)
+          } else if (event.type === 'run:failed') {
+            runState.status = 'failed'
+            this.cleanupRun(satriaRunId)
+          } else if (event.type === 'run:cancelled') {
+            runState.status = 'cancelled'
+            this.cleanupRun(satriaRunId)
+          } else if (event.type === 'approval:required') {
+            runState.status = 'waiting_approval'
+          }
+
           onEvent(event)
         },
-        (err) => {
+        (err: any) => {
+          const runState = this.runs.get(satriaRunId)
+          if (!runState) return
+          runState.status = 'failed'
+          this.cleanupRun(satriaRunId)
           onEvent({
             type: 'run:failed',
-            runId,
+            runId: satriaRunId,
             timestamp: new Date().toISOString(),
             error: `Hermes streaming connection interrupted: ${err?.message || 'Network error'}`
           })
         }
       )
 
-      this.activeStreams.set(runId, closeStream)
+      currentRun.closeStream = closeStream
     } catch (e: any) {
       const errorMsg = `Hermes execution failed: ${e.message || 'Unable to connect to Hermes daemon'}`
+      const currentRun = this.runs.get(satriaRunId)
+      if (currentRun) {
+        currentRun.status = 'failed'
+        this.cleanupRun(satriaRunId)
+      }
+
       onEvent({
         type: 'run:failed',
-        runId,
+        runId: satriaRunId,
         timestamp: new Date().toISOString(),
         error: errorMsg,
         log: {
@@ -77,56 +169,76 @@ export class HermesRuntimeAdapter implements AgentRuntime {
           level: 'error'
         }
       })
-      throw new AgentRuntimeError('NETWORK_FAILURE', errorMsg, runId, true, e)
+      throw new AgentRuntimeError('NETWORK_FAILURE', errorMsg, satriaRunId, true, e)
+    }
+  }
+
+  private cleanupRun(runId: string): void {
+    const run = this.runs.get(runId)
+    if (run && run.closeStream) {
+      run.closeStream()
+      run.closeStream = undefined
     }
   }
 
   async pause(runId: string): Promise<void> {
-    const sessionId = this.sessionMap.get(runId)
-    if (sessionId) {
-      await this.client.sendSignal(sessionId, 'pause')
+    const run = this.runs.get(runId)
+    const targetId = run?.hermesRunId || run?.sessionId
+    if (!run || !targetId) {
+      throw new AgentRuntimeError(
+        'SESSION_NOT_FOUND',
+        `Cannot pause run ${runId}: active Hermes session not found.`,
+        runId
+      )
     }
-    const listener = this.listeners.get(runId)
-    if (listener) {
-      listener({
-        type: 'run:paused',
-        runId,
-        timestamp: new Date().toISOString()
-      })
-    }
+
+    await this.client.stopRun(targetId)
+    run.status = 'paused'
+    run.listener({
+      type: 'run:paused',
+      runId,
+      timestamp: new Date().toISOString()
+    })
   }
 
   async resume(runId: string): Promise<void> {
-    const sessionId = this.sessionMap.get(runId)
-    if (sessionId) {
-      await this.client.sendSignal(sessionId, 'resume')
+    const run = this.runs.get(runId)
+    const targetId = run?.hermesRunId || run?.sessionId
+    if (!run || !targetId) {
+      throw new AgentRuntimeError(
+        'SESSION_NOT_FOUND',
+        `Cannot resume run ${runId}: active Hermes session not found.`,
+        runId
+      )
     }
-  }
 
-  private stopExecutionStreams(runId: string) {
-    const closeStream = this.activeStreams.get(runId)
-    if (closeStream) {
-      closeStream()
-      this.activeStreams.delete(runId)
-    }
+    await this.client.sendSignal(targetId, 'resume')
+    run.status = 'running'
   }
 
   async cancel(runId: string): Promise<void> {
-    const sessionId = this.sessionMap.get(runId)
-    if (sessionId) {
+    const run = this.runs.get(runId)
+    const targetId = run?.hermesRunId || run?.sessionId
+    if (run && targetId) {
       try {
-        await this.client.sendSignal(sessionId, 'cancel')
+        await this.client.stopRun(targetId)
       } catch {
         // Ignore network cancel errors on termination
       }
     }
-    this.stopExecutionStreams(runId)
-    this.sessionMap.delete(runId)
+    if (run) {
+      run.status = 'cancelled'
+      this.cleanupRun(runId)
+      run.hermesRunId = undefined
+      run.sessionId = undefined
+    }
   }
 
   async retry(runId: string, attempt: number): Promise<void> {
+    const run = this.runs.get(runId)
+    const listener = run?.listener
+
     if (attempt > 3) {
-      const listener = this.listeners.get(runId)
       if (listener) {
         listener({
           type: 'run:failed',
@@ -138,31 +250,46 @@ export class HermesRuntimeAdapter implements AgentRuntime {
       return
     }
 
-    const input = this.runInputs.get(runId)
-    const listener = this.listeners.get(runId)
-    
+    if (!run || !listener) {
+      throw new AgentRuntimeError(
+        'INTERNAL_ERROR',
+        `Cannot retry run ${runId}: execution input not found.`,
+        runId
+      )
+    }
+
+    const savedInput = run.input
     // Stop prior execution streams cleanly
     await this.cancel(runId)
 
-    if (input && listener) {
-      await this.start(input, listener)
-    } else {
-      throw new AgentRuntimeError('INTERNAL_ERROR', `Cannot retry run ${runId}: execution input not found.`, runId)
-    }
+    // Reset status to allow re-start
+    run.status = 'starting'
+    run.retryCount = attempt
+    this.runs.delete(runId)
+
+    await this.start(savedInput, listener)
   }
 
-  async respondApproval(runId: string, approvalId: string, approved: boolean, feedback?: string): Promise<void> {
-    const sessionId = this.sessionMap.get(runId)
-    if (sessionId) {
-      await this.client.sendSignal(sessionId, 'approval', {
-        approvalId,
+  async respondApproval(
+    runId: string,
+    approvalId: string,
+    approved: boolean,
+    feedback?: string
+  ): Promise<void> {
+    const run = this.runs.get(runId)
+    const targetId = run?.hermesRunId || run?.sessionId
+    if (run && targetId) {
+      await this.client.respondApproval(targetId, {
+        approval_id: approvalId,
+        choice: approved ? 'once' : 'deny',
+        message: feedback,
         approved,
         feedback
       })
     }
-    const listener = this.listeners.get(runId)
-    if (listener) {
-      listener({
+
+    if (run) {
+      run.listener({
         type: 'approval:resolved',
         runId,
         timestamp: new Date().toISOString(),
@@ -176,10 +303,13 @@ export class HermesRuntimeAdapter implements AgentRuntime {
           level: approved ? 'info' : 'warn'
         }
       })
-    }
 
-    if (!approved) {
-      this.stopExecutionStreams(runId)
+      if (!approved) {
+        run.status = 'cancelled'
+        this.cleanupRun(runId)
+      } else {
+        run.status = 'running'
+      }
     }
   }
 

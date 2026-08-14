@@ -50,14 +50,15 @@ describe('SATRIA AI Workforce — Sub-Phase 3.5 Hardening: Hermes Retry Lifecycl
 
   beforeEach(() => {
     mockClient = new HermesClient({ baseUrl: 'http://localhost:8000' })
-    vi.spyOn(mockClient, 'initiateRun').mockResolvedValue({ sessionId: 'session-retry-101' })
-    vi.spyOn(mockClient, 'connectEventStream').mockImplementation((_sessionId, onMessage) => {
+    vi.spyOn(mockClient, 'initiateRun').mockResolvedValue({ run_id: 'run_retry_101', status: 'started' })
+    vi.spyOn(mockClient, 'connectEventStream').mockImplementation((_runId, onMessage) => {
       onMessage({
         type: 'step_progress',
         data: { step: 'Working', progress: 40, log: 'Working on connection pool fix' }
       })
       return () => {}
     })
+    vi.spyOn(mockClient, 'stopRun').mockResolvedValue(undefined)
     vi.spyOn(mockClient, 'sendSignal').mockResolvedValue(undefined)
     adapter = new HermesRuntimeAdapter(mockClient)
   })
@@ -80,7 +81,7 @@ describe('SATRIA AI Workforce — Sub-Phase 3.5 Hardening: Hermes Retry Lifecycl
     await adapter.start(sampleInput, () => {})
     await adapter.retry('run-retry-test-01', 2)
 
-    expect(mockClient.sendSignal).toHaveBeenCalledWith('session-retry-101', 'cancel')
+    expect(mockClient.stopRun).toHaveBeenCalledWith('run_retry_101')
   })
 
   it('3. enforces maximum retry limit of 3 attempts', async () => {

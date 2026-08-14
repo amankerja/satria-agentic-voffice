@@ -4,6 +4,7 @@ import { useAgentRunStore } from '../stores/agentRun'
 import { HermesMapper } from '../runtime/hermes/HermesMapper'
 import { MockAgentRunRepository } from '../repositories'
 import type { TaskAssignment, AgentRun } from '../types'
+import { seedTestFixtures } from './testFixtures'
 
 describe('Telemetry & Cost Tracking Integration (Phase 3.6)', () => {
   let runStore: ReturnType<typeof useAgentRunStore>
@@ -11,6 +12,7 @@ describe('Telemetry & Cost Tracking Integration (Phase 3.6)', () => {
 
   beforeEach(async () => {
     setActivePinia(createPinia())
+    seedTestFixtures()
     runStore = useAgentRunStore()
     runRepo = new MockAgentRunRepository()
     await runStore.fetchRuns()
