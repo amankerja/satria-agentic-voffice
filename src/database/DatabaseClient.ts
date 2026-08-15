@@ -25,7 +25,9 @@ import {
   initialActivityLogs,
   initialNotifications,
   initialUser,
-  initialUserSettings
+  initialUserSettings,
+  initialMemories,
+  initialSchedules
 } from './initialSeed'
 import type {
   Workspace,
@@ -44,7 +46,9 @@ import type {
   ActivityLog,
   NotificationItem,
   UserProfile,
-  UserSettings
+  UserSettings,
+  AgentMemoryItem,
+  Schedule
 } from '../types'
 import { STORAGE_KEYS, saveStoredCollection } from '../utils/mockStorage'
 import * as mockArrays from '../mocks/mockData'
@@ -65,6 +69,8 @@ export interface FullDatabaseState {
   files: WorkspaceFile[]
   activities: ActivityLog[]
   notifications: NotificationItem[]
+  memories: AgentMemoryItem[]
+  schedules: Schedule[]
   user_profile: UserProfile
   user_settings: UserSettings
 }
@@ -73,7 +79,7 @@ export type StoreName = keyof FullDatabaseState
 
 class SatriaDatabaseClient {
   private dbName = 'satria_ai_workforce_db'
-  private dbVersion = 2
+  private dbVersion = 5
   private db: IDBDatabase | null = null
   private memoryCache: FullDatabaseState
   private initialized = false
@@ -101,6 +107,8 @@ class SatriaDatabaseClient {
       files: JSON.parse(JSON.stringify(initialFiles)),
       activities: JSON.parse(JSON.stringify(initialActivityLogs)),
       notifications: JSON.parse(JSON.stringify(initialNotifications)),
+      memories: JSON.parse(JSON.stringify(initialMemories)),
+      schedules: JSON.parse(JSON.stringify(initialSchedules)),
       user_profile: JSON.parse(JSON.stringify(initialUser)),
       user_settings: JSON.parse(JSON.stringify(initialUserSettings))
     }
@@ -148,6 +156,8 @@ class SatriaDatabaseClient {
       files: { array: mockArrays.mockFiles, key: STORAGE_KEYS.FILES },
       activities: { array: mockArrays.mockActivityLogs, key: STORAGE_KEYS.ACTIVITY },
       notifications: { array: mockArrays.mockNotifications, key: STORAGE_KEYS.NOTIFICATIONS },
+      memories: { array: mockArrays.mockMemories, key: STORAGE_KEYS.MEMORIES },
+      schedules: { array: mockArrays.mockSchedules, key: STORAGE_KEYS.SCHEDULES },
       user_profile: {},
       user_settings: {}
     }
@@ -186,6 +196,8 @@ class SatriaDatabaseClient {
           'files',
           'activities',
           'notifications',
+          'memories',
+          'schedules',
           'user_profile',
           'user_settings'
         ]
@@ -204,6 +216,11 @@ class SatriaDatabaseClient {
 
   private async populateOrLoadIndexedDB(): Promise<void> {
     if (!this.db) return
+
+    if (!this.db.objectStoreNames.contains('tasks')) {
+      await this.saveAllToIndexedDB(this.memoryCache)
+      return
+    }
 
     const tx = this.db.transaction('tasks', 'readonly')
     const store = tx.objectStore('tasks')
@@ -238,10 +255,15 @@ class SatriaDatabaseClient {
       'task_reviews',
       'files',
       'activities',
-      'notifications'
+      'notifications',
+      'memories',
+      'schedules'
     ]
 
     for (const storeName of stores) {
+      if (!this.db.objectStoreNames.contains(storeName)) {
+        continue
+      }
       try {
         const tx = this.db.transaction(storeName, 'readonly')
         const store = tx.objectStore(storeName)
@@ -264,6 +286,9 @@ class SatriaDatabaseClient {
     const stores = Object.keys(state) as StoreName[]
 
     for (const storeName of stores) {
+      if (!this.db.objectStoreNames.contains(storeName)) {
+        continue
+      }
       try {
         const tx = this.db.transaction(storeName, 'readwrite')
         const store = tx.objectStore(storeName)
@@ -332,7 +357,7 @@ class SatriaDatabaseClient {
     const list: T[] = (this.memoryCache as any)[storeName] || []
     list.unshift(item)
 
-    if (this.db) {
+    if (this.db && this.db.objectStoreNames.contains(storeName)) {
       try {
         const tx = this.db.transaction(storeName, 'readwrite')
         tx.objectStore(storeName).put(item)
@@ -359,7 +384,7 @@ class SatriaDatabaseClient {
     const updated = { ...list[index], ...updates }
     list[index] = updated
 
-    if (this.db) {
+    if (this.db && this.db.objectStoreNames.contains(storeName)) {
       try {
         const tx = this.db.transaction(storeName, 'readwrite')
         tx.objectStore(storeName).put(updated)
@@ -381,7 +406,7 @@ class SatriaDatabaseClient {
 
     list.splice(index, 1)
 
-    if (this.db) {
+    if (this.db && this.db.objectStoreNames.contains(storeName)) {
       try {
         const tx = this.db.transaction(storeName, 'readwrite')
         tx.objectStore(storeName).delete(id)

@@ -96,7 +96,7 @@ export class TaskLifecycleMachine {
     switch (this.currentState) {
       case 'Idle':
       case 'Planning':
-        return 'Backlog'
+        return 'Todo'
       case 'Executing':
       case 'Verifying':
       case 'Retrying':
@@ -104,12 +104,13 @@ export class TaskLifecycleMachine {
       case 'AwaitingReview':
         return 'Review'
       case 'Blocked':
-        return 'Blocked'
+        return 'Waiting'
       case 'Completed':
         return 'Done'
       case 'Failed':
+        return 'Todo'
       case 'Cancelled':
-        return 'Backlog'
+        return 'Cancelled'
     }
   }
 

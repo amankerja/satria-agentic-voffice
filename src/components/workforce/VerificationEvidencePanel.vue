@@ -1,5 +1,9 @@
 <template>
-  <div class="bg-surface-container-low border border-outline-variant rounded-xl p-5 space-y-3 shadow-sm">
+  <div
+    role="region"
+    aria-label="Verification Evidence Panel"
+    class="bg-surface-container-low border border-outline-variant rounded-xl p-5 space-y-3 shadow-sm"
+  >
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2">
         <ClipboardCheck class="w-4 h-4 text-primary" />
@@ -11,7 +15,7 @@
     </div>
 
     <!-- Evidence Items -->
-    <div class="space-y-2">
+    <div class="space-y-2" role="list" aria-label="Evidence checks list">
       <div
         v-for="(ev, idx) in evidence"
         :key="idx"

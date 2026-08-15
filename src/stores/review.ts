@@ -2,6 +2,10 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type { TaskReview, ReviewDecision, RunResult } from '../types'
 import { MockReviewRepository, MockRunResultRepository } from '../repositories'
+import { useTaskStore } from './task'
+import { useAgentRunStore } from './agentRun'
+import { useNotificationStore } from './notification'
+import { useActivityStore } from './activity'
 
 export const useReviewStore = defineStore('review', () => {
   const reviewRepo = new MockReviewRepository()
@@ -76,6 +80,81 @@ export const useReviewStore = defineStore('review', () => {
         if (currentReview.value?.id === reviewId) {
           currentReview.value = { ...updated }
         }
+
+        const taskStore = useTaskStore()
+        const notificationStore = useNotificationStore()
+        const activityStore = useActivityStore()
+        const agentRunStore = useAgentRunStore()
+
+        if (decision === 'Approved') {
+          await taskStore.updateTask(updated.taskId, {
+            status: 'Done',
+            progress: 100
+          })
+
+          await notificationStore.createNotification({
+            workspaceId: 'ws-dev',
+            title: 'Review Approved',
+            message: `Task "${updated.taskTitle}" has been approved and marked Done.`,
+            priority: 'normal',
+            category: 'Tasks',
+            link: '/tasks',
+            read: false
+          })
+
+          await activityStore.logActivity({
+            workspaceId: 'ws-dev',
+            actorName: 'Lead Reviewer',
+            action: 'completed',
+            targetType: 'task',
+            targetTitle: `Approved deliverable for "${updated.taskTitle}"`
+          })
+        } else if (decision === 'Changes Requested') {
+          await taskStore.updateTaskStatus(updated.taskId, 'In Progress')
+
+          await notificationStore.createNotification({
+            workspaceId: 'ws-dev',
+            title: 'Changes Requested',
+            message: `Revisions requested for "${updated.taskTitle}": ${comment || 'See reviewer notes'}`,
+            priority: 'important',
+            category: 'Tasks',
+            link: `/runs/${updated.runId}`,
+            read: false
+          })
+
+          await activityStore.logActivity({
+            workspaceId: 'ws-dev',
+            actorName: 'Lead Reviewer',
+            action: 'updated',
+            targetType: 'task',
+            targetTitle: `Requested changes on "${updated.taskTitle}"`
+          })
+
+          // Trigger autonomous retry with reviewer feedback
+          if (updated.runId) {
+            await agentRunStore.retryRun(updated.runId, comment)
+          }
+        } else if (decision === 'Rejected') {
+          await taskStore.updateTaskStatus(updated.taskId, 'Waiting')
+
+          await notificationStore.createNotification({
+            workspaceId: 'ws-dev',
+            title: 'Review Rejected',
+            message: `Deliverable for task "${updated.taskTitle}" was rejected.`,
+            priority: 'important',
+            category: 'Tasks',
+            link: '/reviews',
+            read: false
+          })
+
+          await activityStore.logActivity({
+            workspaceId: 'ws-dev',
+            actorName: 'Lead Reviewer',
+            action: 'updated',
+            targetType: 'task',
+            targetTitle: `Rejected deliverable for "${updated.taskTitle}"`
+          })
+        }
       }
       return updated
     } finally {
@@ -100,3 +179,4 @@ export const useReviewStore = defineStore('review', () => {
     submitDecision
   }
 })
+

@@ -17,6 +17,11 @@ const routes = [
     component: () => import('../pages/overview/HomePage.vue')
   },
   {
+    path: '/work',
+    name: 'ActiveWork',
+    component: () => import('../pages/work/ActiveWorkPage.vue')
+  },
+  {
     path: '/workspace',
     name: 'Workspace',
     component: () => import('../pages/workspace/WorkspacePage.vue')
@@ -37,6 +42,24 @@ const routes = [
     component: () => import('../pages/tasks/TasksPage.vue')
   },
   {
+    path: '/tasks/:id',
+    name: 'TaskDetail',
+    component: () => import('../pages/tasks/TaskDetailPage.vue')
+  },
+  {
+    path: '/schedules',
+    name: 'Schedules',
+    component: () => import('../pages/schedules/SchedulesPage.vue')
+  },
+  {
+    path: '/workers',
+    redirect: '/workforce/employees'
+  },
+  {
+    path: '/workers/:id',
+    redirect: (to: any) => `/workforce/employees/${to.params.id}`
+  },
+  {
     path: '/files',
     name: 'Files',
     component: () => import('../pages/files/FilesPage.vue')
@@ -55,6 +78,11 @@ const routes = [
     path: '/reports',
     name: 'Reports',
     component: () => import('../pages/reports/ReportsPage.vue')
+  },
+  {
+    path: '/governance',
+    name: 'CostGovernance',
+    component: () => import('../pages/governance/GovernanceDashboardPage.vue')
   },
   {
     path: '/notifications',
@@ -111,6 +139,15 @@ const routes = [
     path: '/workforce/tools',
     name: 'WorkforceTools',
     component: () => import('../pages/workforce/ToolsPage.vue')
+  },
+  {
+    path: '/workforce/assignments',
+    name: 'WorkforceAssignments',
+    component: () => import('../pages/workforce/AssignmentsPage.vue')
+  },
+  {
+    path: '/assignments',
+    redirect: '/workforce/assignments'
   },
   // --- PHASE 2: RUNS & REVIEWS ROUTES ---
   {

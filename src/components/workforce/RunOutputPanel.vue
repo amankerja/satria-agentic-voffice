@@ -1,5 +1,9 @@
 <template>
-  <div class="bg-surface-container-low border border-outline-variant rounded-xl p-5 space-y-3 shadow-sm">
+  <div
+    role="region"
+    aria-label="Agent deliverable output"
+    class="bg-surface-container-low border border-outline-variant rounded-xl p-5 space-y-3 shadow-sm"
+  >
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2">
         <FileText class="w-4 h-4 text-primary" />

@@ -5,7 +5,8 @@ import type {
   Employee,
   Skill,
   WorkforceTool,
-  RuntimeTelemetry
+  RuntimeTelemetry,
+  AgentMemoryItem
 } from '../types'
 
 export type { RuntimeTelemetry }
@@ -28,6 +29,7 @@ export interface AgentRunInput {
   taskPrompt: string
   acceptanceCriteria?: string[]
   instructions?: string
+  memories?: AgentMemoryItem[]
 }
 
 export interface ToolCallRequest {

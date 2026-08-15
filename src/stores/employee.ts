@@ -132,6 +132,10 @@ export const useEmployeeStore = defineStore('employee', () => {
     }
   }
 
+  async function fetchEmployeesByWorkspace(_workspaceId?: string) {
+    return fetchEmployees()
+  }
+
   async function archiveEmployee(id: string) {
     return updateEmployeeStatus(id, 'Archived')
   }
@@ -144,6 +148,7 @@ export const useEmployeeStore = defineStore('employee', () => {
     archivedEmployees,
     draftEmployees,
     fetchEmployees,
+    fetchEmployeesByWorkspace,
     fetchEmployeeById,
     fetchEmployeesByDepartment,
     createEmployee,

@@ -16,10 +16,13 @@
 
       <div class="flex items-center gap-3">
         <!-- View Switcher (Month, Week, Day) -->
-        <div class="flex items-center bg-surface-container-low p-1 rounded-lg border border-outline-variant">
+        <div role="tablist" aria-label="Calendar view switcher" class="flex items-center bg-surface-container-low p-1 rounded-lg border border-outline-variant">
           <button
             v-for="v in viewOptions"
             :key="v"
+            role="tab"
+            :aria-selected="activeView === v"
+            :aria-label="`${v} view`"
             @click="activeView = v"
             :class="[
               'px-2.5 py-1 rounded text-xs font-medium transition capitalize',
@@ -32,14 +35,14 @@
 
         <!-- Month Nav Controls -->
         <div class="flex items-center bg-surface-container-low rounded-lg border border-outline-variant p-0.5">
-          <button @click="prevMonth" class="p-1.5 text-muted hover:text-on-surface transition rounded hover:bg-surface-container-high">
-            <ChevronLeft class="w-4 h-4" />
+          <button @click="prevMonth" aria-label="Previous month" class="p-1.5 text-muted hover:text-on-surface transition rounded hover:bg-surface-container-high">
+            <ChevronLeft class="w-4 h-4" aria-hidden="true" />
           </button>
-          <button @click="goToToday" class="px-2 text-xs font-mono text-on-surface hover:text-primary transition">
+          <button @click="goToToday" aria-label="Go to current date" class="px-2 text-xs font-mono text-on-surface hover:text-primary transition">
             Today
           </button>
-          <button @click="nextMonth" class="p-1.5 text-muted hover:text-on-surface transition rounded hover:bg-surface-container-high">
-            <ChevronRight class="w-4 h-4" />
+          <button @click="nextMonth" aria-label="Next month" class="p-1.5 text-muted hover:text-on-surface transition rounded hover:bg-surface-container-high">
+            <ChevronRight class="w-4 h-4" aria-hidden="true" />
           </button>
         </div>
 
@@ -251,10 +254,16 @@ const taskStore = useTaskStore()
 const activeView = ref<'month' | 'week' | 'day'>('month')
 const viewOptions = ['month', 'week', 'day'] as const
 const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const statusList: TaskStatus[] = ['Backlog', 'In Progress', 'Blocked', 'Review', 'Done']
+const statusList: TaskStatus[] = ['Todo', 'In Progress', 'Waiting', 'Review', 'Done', 'Cancelled']
 
-const currentMonth = ref(7) // 0-indexed: 7 is August
-const currentYear = ref(2026)
+const now = new Date()
+const currentMonth = ref(now.getMonth())
+const currentYear = ref(now.getFullYear())
+
+const todayDateString = computed(() => {
+  const d = new Date()
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+})
 
 const isDrawerOpen = ref(false)
 const selectedTask = ref<Task | null>(null)
@@ -297,8 +306,9 @@ const nextMonth = () => {
 }
 
 const goToToday = () => {
-  currentMonth.value = 7 // August
-  currentYear.value = 2026
+  const d = new Date()
+  currentMonth.value = d.getMonth()
+  currentYear.value = d.getFullYear()
 }
 
 const calendarDays = computed(() => {
@@ -314,12 +324,14 @@ const calendarDays = computed(() => {
   // Prev month padding
   for (let i = firstDayIndex - 1; i >= 0; i--) {
     const d = daysInPrevMonth - i
-    const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+    const prevM = month === 0 ? 12 : month
+    const prevY = month === 0 ? year - 1 : year
+    const dateStr = `${prevY}-${String(prevM).padStart(2, '0')}-${String(d).padStart(2, '0')}`
     days.push({
       dayNumber: d,
       dateString: dateStr,
       isCurrentMonth: false,
-      isToday: false,
+      isToday: dateStr === todayDateString.value,
       tasks: taskStore.tasks.filter((t) => t.dueDate === dateStr)
     })
   }
@@ -327,7 +339,7 @@ const calendarDays = computed(() => {
   // Current month days
   for (let d = 1; d <= daysInMonth; d++) {
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`
-    const isToday = year === 2026 && month === 7 && d === 14
+    const isToday = dateStr === todayDateString.value
     days.push({
       dayNumber: d,
       dateString: dateStr,
@@ -340,12 +352,14 @@ const calendarDays = computed(() => {
   // Next month padding to fill 35 or 42 cells
   const remaining = 35 - days.length > 0 ? 35 - days.length : 42 - days.length
   for (let d = 1; d <= remaining; d++) {
-    const dateStr = `${year}-${String(month + 2).padStart(2, '0')}-${String(d).padStart(2, '0')}`
+    const nextM = month === 11 ? 1 : month + 2
+    const nextY = month === 11 ? year + 1 : year
+    const dateStr = `${nextY}-${String(nextM).padStart(2, '0')}-${String(d).padStart(2, '0')}`
     days.push({
       dayNumber: d,
       dateString: dateStr,
       isCurrentMonth: false,
-      isToday: false,
+      isToday: dateStr === todayDateString.value,
       tasks: taskStore.tasks.filter((t) => t.dueDate === dateStr)
     })
   }
@@ -354,11 +368,11 @@ const calendarDays = computed(() => {
 })
 
 const todayTasks = computed(() => {
-  return taskStore.tasks.filter((t) => t.dueDate === '2026-08-14')
+  return taskStore.tasks.filter((t) => t.dueDate === todayDateString.value)
 })
 
 const upcomingTasks = computed(() => {
-  return taskStore.tasks.filter((t) => t.dueDate > '2026-08-14').slice(0, 5)
+  return taskStore.tasks.filter((t) => t.dueDate > todayDateString.value).slice(0, 5)
 })
 
 const openTaskDrawer = (task: Task) => {

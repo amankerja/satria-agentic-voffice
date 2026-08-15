@@ -4,9 +4,9 @@
 
 **SATRIA AI WORKFORCE** — PWA Web Workspace / "Your Digital Workforce Command Center"
 
-Phase 0 (Workspace Foundation) and Phase 1 (Workforce Structure & Registry) are complete. The workspace is a fully functional dark-first enterprise UI with mock data. No AI agent runtime, no LLM, no backend — everything runs on Mock Repository Pattern with in-memory data.
+SATRIA AI Workforce is an enterprise-grade agentic AI workforce operating layer with real autonomous execution runtime (Hermes Agent & Pilot Worker), safe tool sandboxing, verification quality gates, human-in-the-loop approvals, self-healing retries, and executive cost governance.
 
-> "Build the office first. Fill it with digital workforce. Automate execution later."
+> "Build the office first. Fill it with digital workforce. Automate execution, verification, and governance."
 
 ## Status
 
@@ -27,19 +27,44 @@ Phase 0 (Workspace Foundation) and Phase 1 (Workforce Structure & Registry) are 
   - Sub-Phase 2.6: Employee Profile Extension (`Work` and `Runs` tabs in `EmployeeDetailPage.vue`) ✅
   - Sub-Phase 2.7: Workspace Dashboard, Activity & Command Palette (Ctrl+K) Integration ✅
   - Sub-Phase 2.8: QA & Validation (29 Vitest tests pass across 4 suites, vue-tsc 0 errors, production build OK) ✅
-- **Phase 3 (Real Agent Runtime — Hermes Adapter & Pilot Worker):** Sub-Phases 3.1–3.6 100% Hardened & Verified ✅
+- **Phase 3 (Real Agent Runtime — Hermes Adapter, Autonomous Loop & Governance):** 100% Complete ✅
   - Sub-Phase 3.1: Runtime Architecture & Interface Contract (`src/runtime/types.ts`, `RuntimeFactory.ts`, `MockRuntimeAdapter.ts`) ✅
-  - Sub-Phase 3.2: Hermes Adapter & Protocol Gateway (`HermesClient.ts`, `HermesMapper.ts`, `HermesRuntimeAdapter.ts`) ✅
+  - Sub-Phase 3.2: Native Hermes API Alignment & Protocol Gateway (`HermesClient.ts`, `HermesMapper.ts`, `HermesRuntimeAdapter.ts`, SSE stream parser, exponential backoff) ✅
   - Sub-Phase 3.3: Context Synthesis & Skill Loader (`SkillLoader.ts`, `ContextBuilder.ts`) ✅
-  - Sub-Phase 3.4: Safe Tool Sandbox & Telemetry (`SandboxPolicy.ts`, `CostCalculator.ts`, `VerificationEngine.ts`) ✅
-  - Sub-Phase 3.5: Approval Gate & Hardened Human-in-the-Loop (`RunApprovalDrawer.vue`, `RunDetailPage.vue`, `useAgentRunStore`, Retry/Rejection Lifecycle, Sandbox Boundary & Symlink Defense) ✅
-  - Sub-Phase 3.6: Observability Dashboard & Live Telemetry UI (`modelPricing.ts`, `CostCalculator.ts`, `TelemetryMapper.ts`, `TelemetryError.ts`, `RunDetailPage.vue`, `RunsPage.vue`, `useAgentRunStore`) ✅
-  - QA & Validation: 79 Vitest tests pass across 13 suites, vue-tsc 0 errors, production build OK ✅
+  - Sub-Phase 3.4: Safe Tool Sandbox & Security Defense (`SandboxPolicy.ts`, Path Traversal & Symlink Defense, Read/Write/Admin policy) ✅
+  - Sub-Phase 3.5: Approval Gate & Hardened Human-in-the-Loop (`RunApprovalDrawer.vue`, `RunDetailPage.vue`, `useAgentRunStore`, Retry/Rejection Lifecycle) ✅
+  - Sub-Phase 3.6: Live Observability & Telemetry Engine (`modelPricing.ts`, `CostCalculator.ts`, `TelemetryMapper.ts`, `TelemetryError.ts`, `useHermesHealth.ts`, persistent topbar indicator) ✅
+  - Sub-Phase 3.7: Result Ingestion & Quality Gate Verification Pipeline (`ResultIngestor.ts`, `VerificationEngine.ts`, `AcceptanceCriteriaRule.ts`, multi-evidence assertions) ✅
+  - Sub-Phase 3.8: Unified Verification Presentation & Artifact Diff Viewers (`RunDetailPage.vue`, `ReviewsPage.vue`, `ReviewDrawer.vue`, visual diff syntax viewer) ✅
+  - Sub-Phase 3.9: Autonomous Task Loop & Lifecycle Governance (`AutonomousTaskLoop.ts`, `TaskLifecycleMachine.ts`, `FailureClassifier.ts`, `FeedbackBuilder.ts`, `RetryPolicy.ts`) ✅
+  - Sub-Phase 3.10: Cost & Governance Dashboard (Owner / Director View — PRD 5.1, `GovernanceAggregator.ts`, `useGovernanceStore`, `GovernanceDashboardPage.vue`, Multi-Department Spend & Token Trajectory, Quality Gate Assertion Matrix, Self-Healing Recovery Rate Ledger) ✅
+  - Sub-Phase 3.11: Dynamic Agent Memory Subsystem (`DatabaseClient.ts` v3 object store, `MemoryRepository.ts` semantic recall engine, `canManageOrganizationMemory` RBAC, `MemoryRecallFormatter.ts`, `ContextBuilder.ts` memory prompt injection, `useMemoryStore`, `agentRunStore` pre-run recall & post-run learning loop, Employee Memory Tab & Run Memory Injected Panel) ✅
+- **Phase 4 (Business Logic & UI Refinement — Full Spec Implementation):** 100% Complete ✅
+  - Sub-Phase 4.1: Domain Status Decoupling (Separation of `Task` lifecycle vs `AgentRun` execution lifecycle) ✅
+  - Sub-Phase 4.2: Automated Schedules Subsystem (`Schedule` domain model, `ScheduleRepository`, `useScheduleStore`, `SchedulesPage.vue`, recurring task instance generator) ✅
+  - Sub-Phase 4.3: Mandatory Project Folder Path & Pre-Flight Validation (`Project.path` mandatory enforcement, pre-flight folder connection verification modal) ✅
+  - Sub-Phase 4.4: Active Work Command Center & Computed Read Model (`ActiveWorkItem` model, `useActiveWorkStore`, `ActiveWorkPage.vue`, live step visualizer, folder path badges) ✅
+  - Sub-Phase 4.5: 4 Workers Spotlight on Home (Raka - Backend/Planner, Bima - Automation/Backend, Maya - Marketing/Frontend, Dimas - QA/Security answering 6 core questions in one screen) ✅
+  - Sub-Phase 4.6: Owner Mid-Run Controls (Stop run resets to Backlog, Change Worker mid-run with cascading run cancellation and restart, Add Directive mid-run, Cancel Task with active run cascade, Cancel Project with task & schedule cascade) ✅
+  - Sub-Phase 4.7: Safe Delete & Soft Deletion Lifecycle (`deletedAt`, `deletedBy`, `deleteReason` audit trail on Task, Project, Schedule, Run) ✅
+  - Sub-Phase 4.8: Simple First UI Navigation (Main: Home, Active Work, Tasks, Projects, Workers, Calendar, Reports, Settings; Collapsible Advanced: Runs, Schedules, Files, Reviews, Governance, Registries) ✅
+  - Sub-Phase 4.9: QA & Validation (201 Vitest tests pass across 30 suites, vue-tsc 0 errors, ESLint 0 errors, production build verified) ✅
+- **Phase 4.1 (Audit Corrections & Simplification):** 100% Complete ✅
+  - Disentangled Cancel vs Delete vs Archive across Project, Task, Schedule, and Run (no `deletedAt` on cancel) ✅
+  - Normalized `TaskStatus` to `'Draft' | 'Todo' | 'In Progress' | 'Waiting' | 'Review' | 'Done' | 'Cancelled'` ✅
+  - Decoupled `ProjectStatus` (`Draft`, `Active`, `Paused`, `Completed`, `Cancelled`, `Archived`) and `ProjectHealth` (`Healthy`, `At Risk`, `Critical`) ✅
+  - Standardized Stop Run to set Task to `Todo` (clearing `activeRunId`), enabling Run Again / Change Worker / Cancel Task ✅
+  - Removed all hard-coded production path fallbacks (dynamic Task override -> Project path -> Workspace Project resolution) ✅
+  - Dynamic 4 primary workers spotlight on Home based on `isPrimary` / `workerType` ✅
+  - Trash & Storage management tab under Settings with Restore & Permanent Delete actions ✅
 
-Archived blueprints & execution plans in `work-histori/`:
+Archived blueprints & execution plans in `work-histori/` (see `work-histori/INDEX.md`):
+- `work-histori/INDEX.md` — Master historical index & documentation registry
+- `work-histori/00_PRD_MASTER_AGENTIC_AI_PLATFORM.md`
+- `work-histori/00_SYSTEM_ANALYSIS_REPORT.md`
 - `work-histori/01_PHASE0_PRD_PWA_Workspace_UIUX_v2.md`
 - `work-histori/02_PHASE0_UIUX_BLUEPRINT.md`
-- `work-histori/03_PHASE0_MASTER_EXECUTION_PLAN_SiapBekerja.md`
+- `work-histori/03_PHASE0_MASTER_EXECUTION_PLAN.md`
 - `work-histori/04_PHASE1_MASTER_WORKFORCE_BLUEPRINT.md`
 - `work-histori/05_PHASE1_EXECUTION_PLAN.md`
 - `work-histori/06_PHASE2_PRD_TASK_ASSIGNMENT_AGENT_RUN.md`
@@ -51,10 +76,17 @@ Archived blueprints & execution plans in `work-histori/`:
 - `work-histori/12_PHASE3_6_HERMES_RUNTIME_HARDENING_PLAN.md`
 - `work-histori/13_PHASE3_6_REAL_HERMES_INTEGRATION_VALIDATION_PLAN.md`
 - `work-histori/14_PHASE3_6_REAL_HERMES_INTEGRATION_VALIDATION_REPORT.md`
-- `work-histori/15_PHASE3_6R_NATIVE_HERMES_API_ALIGNMENT.md`
+- `work-histori/15_PHASE3_6R_NATIVE_HERMES_API_ALIGNMENT_PLAN.md`
 - `work-histori/16_PHASE3_6R_NATIVE_HERMES_API_ALIGNMENT_REPORT.md`
-- `work-histori/17_PHASE3_7_EXECUTION_VERIFICATION_REVIEW_PIPELINE.md`
-
+- `work-histori/17_PHASE3_7_RESULT_INGESTION_VERIFICATION_PLAN.md`
+- `work-histori/18_PHASE3_7_EXECUTION_VERIFICATION_REVIEW_PIPELINE.md`
+- `work-histori/19_PHASE3_7_RESULT_INGESTION_VERIFICATION_REPORT.md`
+- `work-histori/20_PHASE3_8_UX_PRESENTATION_VERIFICATION_REPORT.md`
+- `work-histori/21_PHASE3_9_AUTONOMOUS_TASK_LOOP_PLAN.md`
+- `work-histori/22_PHASE3_9_AUTONOMOUS_TASK_LOOP_REPORT.md`
+- `work-histori/23_PHASE3_11_AGENT_MEMORY_SUB_SYSTEM_REPORT.md`
+- `work-histori/24_PHASE4_BUSINESS_LOGIC_UI_REFINEMENT_SPEC.md`
+- `work-histori/25_PHASE4_1_AUDIT_CORRECTION_AND_SIMPLIFICATION_REPORT.md`
 
 ---
 
@@ -65,10 +97,13 @@ npm run dev          # Vite dev server (http://localhost:5173)
 npm run build        # vue-tsc typecheck + vite production build
 npm run preview      # preview production build
 npm run typecheck    # vue-tsc --noEmit (strict mode)
-npm run test:unit    # vitest run (79 tests across 13 suites)
+npm run lint         # ESLint flat config validation (src/ & e2e/)
+npm run format       # Prettier code formatting
+npm run test:unit    # Vitest unit & integration test run (201 tests across 30 suites)
+npm run test:e2e     # Playwright E2E smoke test suite
 ```
 
-**Required order:** `typecheck` → `test:unit` → `build`
+**Required order:** `typecheck` → `lint` → `test:unit` → `build`
 
 ---
 
@@ -80,36 +115,44 @@ npm run test:unit    # vitest run (79 tests across 13 suites)
 - `src/layouts/AppShell.vue` — main layout shell (Sidebar + Topbar + BottomNav + Command Palette + Toast + Offline Banner)
 - `index.html` — HTML entry with Geist & JetBrains Mono font loading via Google Fonts CDN
 
-### Design System
-- `src/assets/main.css` — Tailwind v4 `@theme` block with all design tokens (CSS custom properties), `prefers-reduced-motion`, `:focus-visible` ring, scrollbar styling
-- `vite.config.ts` — Vite + `@tailwindcss/vite` + VitePWA config (manifest, workbox runtime caching)
-
-### Routing
-- `src/router/index.ts` — all lazy-loaded routes including `/workforce/*`, `/login`, `/onboarding`, catch-all `/:pathMatch(.*)*` → NotFoundPage
+### Agent Runtime & Autonomy Engine (`src/runtime/`)
+- `src/runtime/types.ts` — Runtime contract interfaces (`AgentRuntimeAdapter`, `RuntimeEvent`, `AgentRunInput`, `AgentRuntimeResult`, `ApprovalRequest`)
+- `src/runtime/RuntimeFactory.ts` — Runtime mode switcher (`'hermes'` vs `'mock'`)
+- `src/runtime/hermes/HermesClient.ts` — Native Hermes API client (SSE parser, HTTP retry, health check)
+- `src/runtime/hermes/HermesRuntimeAdapter.ts` — Production adapter bridging Satria to Hermes Agent
+- `src/runtime/autonomy/AutonomousTaskLoop.ts` — Finite State Machine governing plan → execute → verify → review → retry loop
+- `src/runtime/autonomy/FailureClassifier.ts` — Failure categorization (`TRANSIENT_ERROR`, `TEST_FAILURE`, `SECURITY_VIOLATION`, `UNRECOVERABLE`)
+- `src/runtime/autonomy/RetryPolicy.ts` — Bounded retry governance (Max 3 attempts, exponential backoff, circuit breaker)
+- `src/runtime/verification/VerificationEngine.ts` — Automated Quality Gate asserting unit tests, typecheck, build, criteria, and sandbox boundaries
+- `src/runtime/telemetry/CostCalculator.ts` — Multi-model token cost & cache savings calculator
+- `src/runtime/telemetry/modelPricing.ts` — Model pricing table (Claude 3.5 Sonnet, GPT-4o, Hermes 3 70B/8B, Haiku, GPT-4o-mini)
+- `src/runtime/governance/GovernanceAggregator.ts` — Owner/Director financial, quality, retry, and security aggregation engine
 
 ### State Management
+- `src/stores/activeWork.ts` — Computed active work read model & 4-worker spotlight
+- `src/stores/schedule.ts` — Automated recurring schedules CRUD, toggle & task instance trigger
 - `src/stores/workspace.ts` — workspace CRUD, currentWorkspaceId, workspace switching
-- `src/stores/project.ts` — projects by workspace
-- `src/stores/task.ts` — tasks CRUD, status updates
-- `src/stores/file.ts` — files by workspace, category filtering, search
-- `src/stores/activity.ts` — activity logs, date grouping, multi-level filtering
-- `src/stores/notification.ts` — notifications, unread count, mark read/dismiss
-- `src/stores/theme.ts` — dark/light mode toggle, persists to `localStorage('satria_theme')`
-- `src/stores/settings.ts` — user profile and workspace preferences
+- `src/stores/project.ts` — projects by workspace, mandatory folder path, cascading project cancellation
+- `src/stores/task.ts` — tasks CRUD, type ('project' | 'one_time' | 'recurring_instance'), cancel task with active run cascade, safe soft delete
+- `src/stores/agentRun.ts` — Agent execution lifecycle, live runner, owner mid-run controls (stop run, change worker mid-run, add directive mid-run), retry attempts
+- `src/stores/review.ts` — Human review hub, approvals, quality gate checklist
+- `src/stores/governance.ts` — Executive governance metrics, budget cap configuration, department/model filters
 - `src/stores/department.ts` — Phase 1 departments & roles directory
-- `src/stores/employee.ts` — Phase 1 digital employee CRUD, skills & tools assignment, status archive
-- `src/stores/skill.ts` — Phase 1 internal & external reusable skill package registry
-- `src/stores/workforceTool.ts` — Phase 1 toolset configuration and permission level registry
+- `src/stores/employee.ts` — Digital employee CRUD, skills & tools assignment, status archive
+- `src/stores/skill.ts` — Internal & external reusable skill package registry
+- `src/stores/workforceTool.ts` — Toolset configuration and permission level registry
+- `src/stores/theme.ts` — dark/light mode toggle, persists to `localStorage('satria_theme')`
 
 ### Data Layer
-- `src/types/index.ts` — all TypeScript interfaces (`Workspace`, `Project`, `Task`, `WorkspaceFile`, `ActivityLog`, `NotificationItem`, `Department`, `EmployeeRole`, `Employee`, `Skill`, `WorkforceTool`, etc.)
-- `src/repositories/index.ts` — Mock Repository classes (`MockWorkspaceRepository`, `MockProjectRepository`, `MockTaskRepository`, `MockFileRepository`, `MockActivityRepository`, `MockNotificationRepository`, `MockUserRepository`, `MockDepartmentRepository`, `MockEmployeeRoleRepository`, `MockEmployeeRepository`, `MockSkillRepository`, `MockWorkforceToolRepository`)
-- `src/mocks/mockData.ts` — realistic seed dataset (3 departments, 12 employee roles, 12 active employees, 20+ skills, 12 tools, 20+ tasks, 20 files, 22 activity logs, 10 notifications)
+- `src/types/index.ts` — all TypeScript interfaces (`Task`, `AgentRun`, `Schedule`, `ActiveWorkItem`, `Project`, `Employee`, `Department`, etc.)
+- `src/database/DatabaseClient.ts` — IndexedDB transactional persistence engine (v4) with `/api/db/sync`
+- `src/database/initialSeed.ts` — Seed dataset with 12 employees, 3 departments, 4 projects with folder paths, 3 schedules, and quality gate verifications
 
 ### Composables
-- `src/composables/useToast.ts` — global toast notification state (success/warning/error/info, auto-dismiss)
-- `src/composables/useNetwork.ts` — reactive `navigator.onLine` detection with dismissible offline warning
-- `src/composables/usePwaInstall.ts` — PWA install prompt handling (`beforeinstallprompt`, `appinstalled`)
+- `src/composables/useHermesHealth.ts` — Persistent runtime gateway health & latency probe
+- `src/composables/useToast.ts` — Global toast notification state (with `.success()`, `.error()`, `.warning()`, `.info()` shortcuts)
+- `src/composables/useNetwork.ts` — Reactive `navigator.onLine` detection
+- `src/composables/usePwaInstall.ts` — PWA install prompt handling
 
 ### UI Components (`src/components/ui/`)
 - `UiButton.vue` — Primary, Secondary, Ghost, Danger variants; sm/md/lg sizes; loading/disabled states; icon slot
@@ -117,75 +160,49 @@ npm run test:unit    # vitest run (79 tests across 13 suites)
 - `UiBadge.vue` — success/warning/error/info/neutral variants; dot indicator; icon slot
 - `UiCard.vue` — header/default slots; hoverable; padding variants
 - `UiModal.vue` — backdrop blur overlay; header/footer slots; close handler
-- `UiDrawer.vue` — right-slide panel; title + close; scroll content
+- `UiDrawer.vue` — right-slide panel with accessible `role="dialog"` & `aria-modal="true"`; title + close; scroll content
 - `UiToast.vue` — fixed bottom-right; icon + message + description; 4 variants
 - `UiProgress.vue` — percentage bar with label
 - `UiSkeleton.vue` — animated loading placeholder (configurable width/height)
 - `UiEmptyState.vue` — title + description + action slot
 - `UiErrorState.vue` — error display with icon and retry slot
-- `UiOfflineBanner.vue` — sticky amber banner when offline, dismissible
 
 ### Layout Components (`src/components/layout/`)
-- `Sidebar.vue` — expand/collapse (w-62.5 / w-17), workspace selector, nav links with active state, Workforce section, notification counter
-- `Topbar.vue` — breadcrumb, search trigger (Ctrl+K), online/offline indicator, PWA install button, notification badge, user avatar
-- `BottomNav.vue` — mobile sticky bottom navigation (visible < md breakpoint)
-- `CommandPalette.vue` — Ctrl+K modal search overlay for pages, employees, tasks, projects, workspace switching
+- `Sidebar.vue` — Simple First menu (Home, Active Work, Tasks, Projects, Workers, Calendar, Reports, Settings) + Collapsible Advanced Section
+- `Topbar.vue` — persistent Hermes Gateway health indicator, breadcrumb, search trigger (Ctrl+K), notifications, user avatar
+- `BottomNav.vue` — mobile navigation (Home, Active Work, Tasks, Projects, More drawer)
+- `CommandPalette.vue` — Ctrl+K modal search overlay for pages, employees, tasks, projects, governance
 
 ### Pages (`src/pages/`)
-- `workforce/WorkforceOverviewPage.vue` — 5 KPI cards, 3 department overview cards, workflow hierarchy matrix, roster spotlight
-- `workforce/DepartmentsPage.vue` — department directory, metrics, role breakdown
-- `workforce/DepartmentDetailPage.vue` — department details, allocated employees, role specifications & responsibilities
-- `workforce/EmployeesPage.vue` — employee directory, department & status filter pills, search input, employee cards
-- `workforce/CreateEmployeePage.vue` — 7-step guided wizard (Identity → Department/Role → Responsibilities → Skills → Tools → Supervisor → Review)
-- `workforce/EmployeeDetailPage.vue` — 6-tab profile (Overview, Responsibilities, Skills + Add Modal, Tools + Add Modal, Activity, Settings)
-- `workforce/SkillsPage.vue` — skill registry, source repository & install command copy, custom skill registration modal
-- `workforce/ToolsPage.vue` — toolset registry, permission access levels, tool registration modal
-- `auth/LoginPage.vue` — dark split login with demo credentials pre-filled
-- `auth/OnboardingPage.vue` — 4-step wizard (Welcome → Name → Archetype → Launch)
-- `overview/HomePage.vue` — 4 KPI cards, Today Focus tasks, Current Work progress, Recent Activity feed
-- `workspace/WorkspacePage.vue` — workspace summary stats, project cards grid
-- `projects/ProjectsPage.vue` — project directory with progress bars
-- `projects/ProjectDetailPage.vue` — milestones, task breakdown, progress detail
-- `tasks/TasksPage.vue` — List/Board view switcher, filter/search, interactive Task Detail Drawer (checklist + comments), create modal
-- `files/FilesPage.vue` — category pills, grid/table view, file preview drawer (code syntax + image render), upload modal
-- `activity/ActivityCenterPage.vue` — grouped timeline (Today/Yesterday/Earlier), multi-level type/target filtering
-- `calendar/CalendarPage.vue` — month/week/day view, deadline grid plotting, agenda sidebar
-- `reports/ReportsPage.vue` — KPI metrics, SVG velocity trend chart, status breakdown, project health table
-- `notifications/NotificationsPage.vue` — tabs, unread toggle, priority badges, mark read/dismiss
-- `settings/SettingsPage.vue` — General, Appearance (dark/light toggle), Workspace, Notifications, Shortcuts, About
-- `DesignSystemPage.vue` — full component showcase with dark/light and mobile simulation
-- `NotFoundPage.vue` — 404 catch-all with "Return Home" action
-
-### Testing
-- `src/test/repositories.spec.ts` — 11 unit tests for Workspace & Workforce Mock Repository CRUD operations
-- `src/test/userJourney.spec.ts` — 7 integrated demo user journey tests
-- `src/test/workforceJourney.spec.ts` — 6 comprehensive workforce journey tests (overview, department filter, employee wizard, skills assignment, archive/restore, skill registration)
-
+- `work/ActiveWorkPage.vue` — Dedicated Active Work Command Center (Live step visualizer, folder path badges, owner mid-run actions)
+- `overview/HomePage.vue` — Command Center Overview: 4 Workers Spotlight, Active Work Feed, Attention Required, Today Tasks
+- `tasks/TasksPage.vue` — Unified Task Management with List/Board view, scheduled instance badges, create task drawer
+- `tasks/TaskDetailPage.vue` — Comprehensive Task Detail with live execution runner, deliverables, attempt history, audit log, and owner controls
+- `schedules/SchedulesPage.vue` — Automated Recurring Schedules with trigger time, toggle switch, Run Now instant trigger
+- `projects/ProjectsPage.vue` & `ProjectDetailPage.vue` — Project Workspace with folder path validation and connection test
+- `governance/GovernanceDashboardPage.vue` — Executive Cost & Governance Dashboard (PRD 5.1): 4 Pillar KPIs, Quality Gate Matrix, Token Trajectory Chart, Employee ROI Ledger, Model Economics, Run Audit Trail
+- `runs/RunsPage.vue` — Agent Execution Center: Live runs, operational statuses, runtime telemetry, inspect action
+- `runs/RunDetailPage.vue` — Real-time execution monitor, step visualizer, Human-in-the-Loop approval gate, log stream, verification evidence, artifact diff viewer
+- `reviews/ReviewsPage.vue` — Verification & Quality Review Hub with interactive decision drawer
+- `workforce/AssignmentsPage.vue` — Cross-employee workload distribution, capacity matrix, unassigned backlog dispatch queue (Manager View)
+- `workforce/WorkforceOverviewPage.vue` — KPI cards (computed active status), department cards, roster spotlight
+- `workforce/EmployeesPage.vue` — Employee directory, filter pills, search input, employee cards
+- `workforce/CreateEmployeePage.vue` — 7-step guided wizard
+- `workforce/EmployeeDetailPage.vue` — 6-tab profile with Work & Runs tabs
+- `reports/ReportsPage.vue` — Workspace analytics with direct switcher to Cost & Governance Dashboard
+- `settings/SettingsPage.vue` — Appearance, Notifications, AI Runtime configuration (Hermes Base URL, API Key, Model selector)
 
 ---
 
-## Architecture Rules
+## Testing & Quality Guarantees
 
-### NO-AGENT RULE (Phase 0 Absolute Constraint)
-No AI agent runtime, LLM calls, orchestration engine, memory engine, tool execution, Hermes integration, Discord integration, or autonomous workflow. All data is mock. This rule applies to the entire codebase until Phase 1+ begins.
-
-### Tailwind v4
-Loaded via `@tailwindcss/vite` plugin (NOT PostCSS). Design tokens defined as CSS custom properties inside `@theme {}` block in `src/assets/main.css`. Do NOT use `tailwind.config.js` — it does not exist and is not needed.
-
-### TypeScript Strict Mode
-`tsconfig.json` has `strict: true`, `bundler` moduleResolution, `noEmit: true`. All components use `<script setup lang="ts">`. All props use `defineProps<{}>()` with explicit types.
-
-### Path Alias
-`@/` resolves to `src/` via Vite config. Use `@/` in imports when appropriate, but relative imports (`../../`) are also acceptable within the existing codebase.
-
-### Store Pattern
-Every Pinia store uses `defineStore` with Composition API (`setup()` function style). Stores call Mock Repository methods — they never import `mockData` directly. Theme store persists to `localStorage('satria_theme')`.
-
-### Mock Repository Pattern
-`src/repositories/index.ts` exports classes with async methods that operate on the arrays in `src/mocks/mockData.ts`. Stores are the only consumers of repositories. Pages and components only interact with stores.
-
-### PWA Configuration
-`vite-plugin-pwa` with `registerType: 'autoUpdate'`, `generateSW` mode. Workbox runtime caching for Google Fonts (CacheFirst, 1 year) and Unsplash images (StaleWhileRevalidate, 30 days). Precaches all built JS/CSS/HTML/icons.
+- **Test Suite**: 195 Vitest unit & integration tests passing across 30 test suites (including 12 §86 business logic scenarios).
+- **E2E Smoke Tests**: Playwright Golden Path test suite (`e2e/goldenPath.spec.ts`) validating end-to-end task assignment, execution dispatch, approval intercept, and deliverable review.
+- **Strict Typecheck**: `vue-tsc --noEmit` passing with 0 errors.
+- **Linting & Code Quality**: ESLint v9 Flat Config (`npm run lint`) passing with 0 errors.
+- **Code Formatter**: Prettier configured (`.prettierrc`, `.prettierignore`, `npm run format`).
+- **Production Bundle**: Vite + Tailwind v4 + PWA compilation verified.
+- **Accessibility**: Authoritative status badges, `role="progressbar"`, `role="log"`, `role="listbox"`, `role="dialog"`, `role="status"` / `role="alert"`, `aria-live` support, and `prefers-reduced-motion` compliance.
 
 ---
 
@@ -194,7 +211,7 @@ Every Pinia store uses `defineStore` with Composition API (`setup()` function st
 ### Visual Direction
 - **Personality:** Calm, Precise, Premium, Technical, Focused, Fast
 - **Reference:** Linear-like clarity + Notion-like workspace + modern enterprise command center
-- **Avoid:** Cyberpunk, neon overload, heavy gradients, glassmorphism, game dashboards, card spam, continuous animation
+- **Avoid:** Continuous flashing animation, heavy gradients, glassmorphism overuse, card spam
 
 ### Color Palette (Dark-First)
 | Token | Hex | Usage |
@@ -210,7 +227,7 @@ Every Pinia store uses `defineStore` with Composition API (`setup()` function st
 | Secondary (Cyan) | `#4cd7f6` | Secondary data highlights, info badges |
 | Tertiary (Coral) | `#ffb3af` | Warning indicators, attention items |
 | Error | `#ffb4ab` | Error states, destructive actions |
-| Amber | `#f59e0b` | Offline indicator, caution states |
+| Amber | `#f59e0b` | Offline indicator, caution states, approval required |
 | On-Surface | `#dde4dd` | Primary text |
 | On-Surface Variant | `#bbcabf` | Secondary text, descriptions |
 | Muted | `#86948a` | Metadata, timestamps, labels |
@@ -218,56 +235,11 @@ Every Pinia store uses `defineStore` with Composition API (`setup()` function st
 | Outline Variant | `#242c27` | Hairline borders (1px solid) |
 
 ### Typography
-- **Sans:** Geist (loaded via Google Fonts CDN) — all UI text, headings, body
-- **Mono:** JetBrains Mono — metrics, IDs (`tsk-101`, `ws-dev`), file extensions, dates, code, logs
-- **Scale:** Display 36–40px / H1 28–32px / H2 22–24px / Body 14–16px / Caption 12px / Micro 10–11px
-
-### Spacing & Radius
-- **Spacing base:** 4px (`4, 8, 12, 16, 20, 24, 32, 40, 48, 64`)
-- **Controls (Button/Input):** `border-radius: 8–10px`
-- **Cards/Containers:** `border-radius: 12–16px`
-- **Pills/Badges:** `border-radius: 9999px`
-
-### Icons
-- **Library:** Lucide Icons (`@lucide/vue`) — stroke-based, 1.5–2px stroke weight
-- **Sizes:** 16px (inline), 20px (standard), 24px (large)
-- **Rule:** No emoji as structural icons. Consistent stroke style within same hierarchy level.
-
-### Elevation
-- Tonal surface layering instead of box-shadow
-- Hairline borders (`1px solid $outline-variant`) for separation
-- Only floating elements (modals, drawers, toasts) use shadow
-
-### Responsive Breakpoints
-| Breakpoint | Range | Layout |
-|---|---|---|
-| Mobile | 360–767px | Sidebar hidden, BottomNav visible, single-column |
-| Tablet | 768–1199px | Sidebar collapsed, 2-column adaptive |
-| Desktop | 1200–1599px | Sidebar expanded, full layout |
-| Large Desktop | 1600px+ | `max-w-[1600px]` content container |
-
-### Accessibility
-- `:focus-visible` ring: 2px solid `#4edea3`, offset 2px (defined in `main.css`)
-- `prefers-reduced-motion: reduce` globally disables animations (defined in `main.css`)
-- WCAG AA text contrast: primary text `#dde4dd` on `#0e1511` = 13.8:1
-- Status always conveyed via icon + text + color (never color alone)
-
----
-
-## Integrated Demo User Journey
-
-The full flow implemented across all pages:
-
-```
-LOGIN (/login) → ONBOARDING (/onboarding) → WORKSPACE (/workspace) → HOME (/) → TASKS (/tasks) → TASK DETAIL (Drawer) → PROJECT DETAIL (/projects/:id) → CTRL+K (Command Palette) → ACTIVITY (/activity) → HOME / OFFLINE TEST
-```
+- **Sans:** Geist (loaded via Google Fonts CDN) — UI text, headings, body
+- **Mono:** JetBrains Mono — metrics, IDs (`run-101-01`, `tsk-101`), file extensions, tokens, costs, logs
 
 ---
 
 ## Known Gaps & Future Work
 
-- No ESLint/Prettier config (lint script missing from `package.json`)
-- No Playwright E2E browser tests (only Vitest unit/integration tests)
-- Fonts (Geist, JetBrains Mono) loaded from CDN — not bundled locally
-- Light mode is functional but not fully polished across all pages
-- Phase 1+ will introduce actual AI agent runtime, LLM integration, and real backend
+- Offline font bundling for local air-gapped deployments

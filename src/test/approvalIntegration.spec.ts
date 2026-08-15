@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAgentRunStore } from '../stores/agentRun'
+import { useTaskStore } from '../stores/task'
 import { useNotificationStore } from '../stores/notification'
 import { useActivityStore } from '../stores/activity'
 import { RuntimeFactory } from '../runtime'
@@ -18,12 +19,26 @@ describe('SATRIA AI Workforce — Sub-Phase 3.5 Hardening: True Approval Integra
     const notifStore = useNotificationStore()
     const actStore = useActivityStore()
     const mockRuntime = RuntimeFactory.getRuntime('mock')
+    const taskStore = useTaskStore()
+
+    const task = await taskStore.createTask({
+      workspaceId: 'ws-dev',
+      projectId: 'prj-satria-ui',
+      projectName: 'Satria UI',
+      title: 'Publish Staging Database Migration',
+      description: 'Run staging migration',
+      status: 'Todo',
+      priority: 'High',
+      assigneeName: 'Bima',
+      dueDate: '2026-08-30',
+      tags: ['Backend']
+    })
 
     // Create run record
     const run = await runStore.createRun({
       id: 'asg-int-01',
-      taskId: 'tsk-int-01',
-      taskTitle: 'Publish Staging Database Migration',
+      taskId: task.id,
+      taskTitle: task.title,
       employeeId: 'emp-bima',
       employeeName: 'Bima',
       employeeAvatar: '',

@@ -1,6 +1,11 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { AgentRun, TaskAssignment, RunLogEntry, Employee } from '../types'
+import type {
+  AgentRun,
+  TaskAssignment,
+  Employee,
+  RunLogEntry
+} from '../types'
 import {
   MockAgentRunRepository,
   MockRunResultRepository,
@@ -8,7 +13,8 @@ import {
   MockEmployeeRepository,
   MockTaskRepository,
   MockProjectRepository,
-  MockAssignmentRepository
+  MockAssignmentRepository,
+  MockMemoryRepository
 } from '../repositories'
 import { RuntimeFactory } from '../runtime/RuntimeFactory'
 import type { AgentRunInput, RuntimeEvent, RuntimeMode, ApprovalRequest } from '../runtime/types'
@@ -26,6 +32,7 @@ export const useAgentRunStore = defineStore('agentRun', () => {
   const taskRepo = new MockTaskRepository()
   const projectRepo = new MockProjectRepository()
   const assignmentRepo = new MockAssignmentRepository()
+  const memoryRepo = new MockMemoryRepository()
 
   const runs = ref<AgentRun[]>([])
   const currentRun = ref<AgentRun | null>(null)
@@ -33,6 +40,7 @@ export const useAgentRunStore = defineStore('agentRun', () => {
   const runtimeMode = ref<RuntimeMode>(RuntimeFactory.getDefaultMode())
   const pendingApprovals = ref<Record<string, ApprovalRequest>>({})
   const resolvingApprovals = ref<Record<string, boolean>>({})
+  const retryFeedbackMap = ref<Record<string, string>>({})
 
   const activeRuns = computed(() =>
     runs.value.filter(
@@ -88,14 +96,6 @@ export const useAgentRunStore = defineStore('agentRun', () => {
   }
 
   async function createRun(assignment: TaskAssignment, attempt: number = 1): Promise<AgentRun> {
-    const initialLog: RunLogEntry = {
-      id: `log-${Date.now()}-init`,
-      timestamp: new Date().toLocaleTimeString(),
-      step: 'Initializing',
-      message: `Starting execution run (Attempt #${attempt}) for task "${assignment.taskTitle}".`,
-      level: 'info'
-    }
-
     const newRun = await runRepo.create({
       assignmentId: assignment.id,
       taskId: assignment.taskId,
@@ -105,14 +105,23 @@ export const useAgentRunStore = defineStore('agentRun', () => {
       employeeAvatar: assignment.employeeAvatar,
       employeeRole: assignment.employeeRole,
       status: 'Running',
-      attempt,
       currentStep: 'Initializing',
       progress: 5,
-      logs: [initialLog],
+      attempt,
+      logs: [
+        {
+          id: `log-${Date.now()}-init`,
+          timestamp: new Date().toLocaleTimeString(),
+          step: 'Initializing',
+          message: `Digital employee ${assignment.employeeName} runtime initialized for task "${assignment.taskTitle}".`,
+          level: 'info'
+        }
+      ],
       startedAt: new Date().toISOString()
     })
 
     runs.value.unshift(newRun)
+    currentRun.value = newRun
     return newRun
   }
 
@@ -120,25 +129,34 @@ export const useAgentRunStore = defineStore('agentRun', () => {
     const targetRun = runs.value.find((r) => r.id === runId)
     if (!targetRun) return
 
-    // 1. Resolve Employee
-    const employee =
-      (await employeeRepo.getById(targetRun.employeeId)) ||
-      ({
-        id: targetRun.employeeId,
-        name: targetRun.employeeName,
-        avatar: targetRun.employeeAvatar,
-        roleName: targetRun.employeeRole,
-        departmentName: 'Coding',
-        description: 'Digital workforce employee'
-      } as Employee)
-
-    // 2. Resolve Task & Project Context
+    // 1. Fetch Task
     const task = await taskRepo.getById(targetRun.taskId)
-    const project = task?.projectId ? await projectRepo.getById(task.projectId) : undefined
 
-    // 3. Resolve Assignment
-    const existingAssignment = await assignmentRepo.getById(targetRun.assignmentId)
-    const assignment: TaskAssignment = existingAssignment || {
+    // 2. Fetch Project
+    const project = task ? await projectRepo.getById(task.projectId) : undefined
+
+    // 3. Fetch Assignment & Employee
+    const assignmentFromDb = await assignmentRepo.getById(targetRun.assignmentId)
+    const employeeFromDb = await employeeRepo.getById(targetRun.employeeId)
+
+    const employee: Employee = employeeFromDb || {
+      id: targetRun.employeeId,
+      name: targetRun.employeeName,
+      roleId: 'role-dev',
+      roleName: targetRun.employeeRole,
+      departmentId: 'dept-eng',
+      departmentName: 'Engineering',
+      avatar: targetRun.employeeAvatar,
+      status: 'Active',
+      description: 'Digital workforce employee',
+      skills: [],
+      toolIds: [],
+      permissions: ['task:execute'],
+      createdAt: targetRun.startedAt,
+      updatedAt: targetRun.startedAt
+    }
+
+    const assignment: TaskAssignment = assignmentFromDb || {
       id: targetRun.assignmentId,
       taskId: targetRun.taskId,
       taskTitle: targetRun.taskTitle,
@@ -154,16 +172,39 @@ export const useAgentRunStore = defineStore('agentRun', () => {
       updatedAt: targetRun.startedAt
     }
 
-    // 4. Patch A: Criteria Asli from Task
-    const resolvedCriteria =
+    // 4. Criteria from Task
+    const resolvedCriteria: string[] =
       task?.acceptanceCriteria && task.acceptanceCriteria.length > 0
         ? task.acceptanceCriteria
         : task?.checklist && task.checklist.length > 0
         ? task.checklist.map((c) => c.title)
         : [`Deliverable output integrity for ${targetRun.taskTitle}`]
 
-    // 5. Patch B: Dynamic Workspace Path & Project Context
-    const resolvedWorkspacePath = project?.path || 'C:/Projects/AI AGENTIC UI'
+    // 5. Dynamic Workspace Path & Project Context (Strict: Task.pathOverride -> Project.path -> FAIL)
+    const resolvedWorkspacePath = task?.pathOverride || project?.path
+    if (!resolvedWorkspacePath || !resolvedWorkspacePath.trim()) {
+      throw new Error(
+        `Cannot start execution for task "${targetRun.taskTitle}": Workspace folder path is not configured. Please set the project path or task path override.`
+      )
+    }
+
+    const retryFeedback = retryFeedbackMap.value[runId]
+    const resolvedInstructions = retryFeedback
+      ? `${assignment.instructions || ''}\n\n[REVISION / RETRY DIRECTIVE]:\n${retryFeedback}`.trim()
+      : assignment.instructions
+
+    // Phase 3.11: Dynamic Memory Recall Subsystem
+    const recalledMemories = await memoryRepo.recall({
+      workspaceId: 'ws-dev',
+      employeeId: targetRun.employeeId,
+      projectId: task?.projectId,
+      queryText: targetRun.taskTitle,
+      tags: task?.tags || [],
+      limit: 5
+    })
+
+    targetRun.injectedMemories = recalledMemories
+    await runRepo.update(runId, { injectedMemories: recalledMemories })
 
     const input: AgentRunInput = {
       runId,
@@ -184,7 +225,8 @@ export const useAgentRunStore = defineStore('agentRun', () => {
         ? `${targetRun.taskTitle}\n\nTask Description:\n${task.description}`
         : targetRun.taskTitle,
       acceptanceCriteria: resolvedCriteria,
-      instructions: assignment.instructions
+      instructions: resolvedInstructions,
+      memories: recalledMemories
     }
 
     const runtime = RuntimeFactory.getRuntime(runtimeMode.value)
@@ -262,9 +304,6 @@ export const useAgentRunStore = defineStore('agentRun', () => {
         const runtimeResult =
           event.result || globalResultIngestor.buildRuntimeResult(targetRun.id, 'Completed')
 
-        // Phase 3.7: Real per-criterion evaluation against actual agent output.
-        // AcceptanceCriteriaRule.evaluateAgainstOutput() checks each criterion
-        // independently using keyword matching — never auto-passes on status alone.
         const evaluatedCriteria = input.acceptanceCriteria && input.acceptanceCriteria.length > 0
           ? AcceptanceCriteriaRule.evaluateAgainstOutput(
               input.acceptanceCriteria,
@@ -286,8 +325,6 @@ export const useAgentRunStore = defineStore('agentRun', () => {
           runtimeResult,
           acceptanceCriteria: evaluatedCriteria,
           diffCount: runtimeResult.diffs?.length || 0,
-          // Security is evaluated by the sandbox — only mark true if no violations
-          // were recorded during this run (runtime ensures this)
           securityPassed: !runtimeResult.error?.toLowerCase().includes('sandbox')
         })
 
@@ -341,6 +378,64 @@ export const useAgentRunStore = defineStore('agentRun', () => {
                   }
                 ]
         })
+
+        if (verification.status === 'Passed') {
+          await notificationStore.createNotification({
+            workspaceId: 'ws-dev',
+            title: 'Review Required',
+            message: `Deliverable for task "${targetRun.taskTitle}" is verified and ready for review.`,
+            priority: 'important',
+            category: 'Tasks',
+            link: '/reviews',
+            read: false
+          })
+          await activityStore.logActivity({
+            workspaceId: 'ws-dev',
+            actorName: targetRun.employeeName,
+            action: 'completed',
+            targetType: 'task',
+            targetTitle: `Completed execution run for "${targetRun.taskTitle}"`
+          })
+        } else {
+          await notificationStore.createNotification({
+            workspaceId: 'ws-dev',
+            title: 'Quality Gate Warning',
+            message: `Run #${targetRun.id} completed with verification warnings: ${verification.summaryNotes}`,
+            priority: 'important',
+            category: 'Tasks',
+            link: `/runs/${targetRun.id}`,
+            read: false
+          })
+          await activityStore.logActivity({
+            workspaceId: 'ws-dev',
+            actorName: targetRun.employeeName,
+            action: 'updated',
+            targetType: 'task',
+            targetTitle: `Quality gate warning on Run #${targetRun.id}`
+          })
+        }
+
+        // Phase 3.11: Synthesize episodic memory on completion
+        try {
+          await memoryRepo.create({
+            workspaceId: 'ws-dev',
+            employeeId: targetRun.employeeId,
+            employeeName: targetRun.employeeName,
+            projectId: task?.projectId,
+            projectName: project?.name,
+            runId: targetRun.id,
+            type: 'episodic',
+            scope: 'employee',
+            title: `Successful Execution: ${targetRun.taskTitle}`,
+            content: `Agent completed "${targetRun.taskTitle}" in ${targetRun.durationSeconds}s (Attempt #${targetRun.attempt}). Verification: ${verification.status} (${verification.score}% score). Deliverable: ${targetRun.outputSummary}`,
+            tags: ['autonomous_run', 'success', targetRun.employeeRole.toLowerCase().replace(/\s+/g, '_')],
+            confidence: 0.95,
+            importance: 3,
+            source: 'autonomous_run'
+          })
+        } catch (err) {
+          console.warn('[agentRunStore] Memory write warning:', err)
+        }
       } else if (event.type === 'run:cancelled') {
         targetRun.status = 'Cancelled'
         delete pendingApprovals.value[runId]
@@ -350,6 +445,45 @@ export const useAgentRunStore = defineStore('agentRun', () => {
         targetRun.error = event.error || 'Execution failed.'
         delete pendingApprovals.value[runId]
         await runRepo.update(runId, { status: 'Failed', error: targetRun.error })
+
+        await notificationStore.createNotification({
+          workspaceId: 'ws-dev',
+          title: 'Agent Run Failed',
+          message: `Run #${runId} for "${targetRun.taskTitle}" failed: ${targetRun.error}`,
+          priority: 'important',
+          category: 'Tasks',
+          link: `/runs/${runId}`,
+          read: false
+        })
+        await activityStore.logActivity({
+          workspaceId: 'ws-dev',
+          actorName: targetRun.employeeName,
+          action: 'updated',
+          targetType: 'task',
+          targetTitle: `Run #${runId} execution failed`
+        })
+
+        // Phase 3.11: Synthesize diagnostic feedback memory on failure
+        try {
+          await memoryRepo.create({
+            workspaceId: 'ws-dev',
+            employeeId: targetRun.employeeId,
+            employeeName: targetRun.employeeName,
+            projectId: task?.projectId,
+            projectName: project?.name,
+            runId: targetRun.id,
+            type: 'feedback',
+            scope: 'employee',
+            title: `Execution Failure: ${targetRun.taskTitle}`,
+            content: `Agent encountered error during attempt #${targetRun.attempt}: ${targetRun.error || 'Execution failed'}. Avoid repeating this failure condition.`,
+            tags: ['autonomous_run', 'failure', 'error_diagnostic'],
+            confidence: 0.9,
+            importance: 4,
+            source: 'autonomous_run'
+          })
+        } catch (err) {
+          console.warn('[agentRunStore] Memory write warning:', err)
+        }
       } else if (event.type === 'run:paused') {
         targetRun.status = 'Waiting'
         await runRepo.update(runId, { status: 'Waiting' })
@@ -395,58 +529,136 @@ export const useAgentRunStore = defineStore('agentRun', () => {
   }
 
   /**
-   * Patch C: Single Source of Truth for Retry Lifecycle Contract
-   *
-   * Architectural Flow:
-   *   AutonomousTaskLoop / Human Trigger
-   *           ↓
-   *     agentRunStore.retryRun(runId)
-   *           ↓
-   *     runtime.cancel(runId) + state reset + attempt increment (max 3)
-   *           ↓
-   *     startLiveRunner(runId) -> runtime.start(input, listener)
-   *
-   * Note: Callers should ALWAYS invoke `agentRunStore.retryRun(runId)`
-   * and NEVER bypass the store to call `HermesRuntimeAdapter.retry()` directly.
+   * Single Source of Truth for Retry Lifecycle Contract with Feedback Propagation
    */
-  async function retryRun(runId: string) {
+  async function retryRun(runId: string, reviewerComment?: string) {
     const previousRun = runs.value.find((r) => r.id === runId)
     if (!previousRun) return null
 
     const runtime = RuntimeFactory.getRuntime(runtimeMode.value)
     await runtime.cancel(runId)
 
-    const nextAttempt = Math.min(3, previousRun.attempt + 1)
+    const nextAttempt = previousRun.attempt + 1
+    const notificationStore = useNotificationStore()
+    const activityStore = useActivityStore()
 
-    previousRun.attempt = nextAttempt
-    previousRun.progress = 0
-    previousRun.status = 'Running'
-    previousRun.currentStep = 'Initializing'
-    previousRun.error = undefined
-    previousRun.startedAt = new Date().toISOString()
-    previousRun.completedAt = undefined
+    if (nextAttempt > 3) {
+      previousRun.status = 'Failed'
+      previousRun.error = 'Max retry attempts (3) exceeded. Task is now waiting for human intervention.'
+      await runRepo.update(runId, { status: 'Failed', error: previousRun.error })
+      await taskRepo.update(previousRun.taskId, { status: 'Waiting' })
+
+      await notificationStore.createNotification({
+        workspaceId: 'ws-dev',
+        title: 'Task Waiting — Max Retries Exceeded',
+        message: `Task "${previousRun.taskTitle}" failed 3 consecutive retry attempts and is waiting for manual directive.`,
+        priority: 'critical',
+        category: 'Tasks',
+        link: `/tasks`,
+        read: false
+      })
+      await activityStore.logActivity({
+        workspaceId: 'ws-dev',
+        actorName: 'Self-Healing Engine',
+        action: 'updated',
+        targetType: 'task',
+        targetTitle: `Task "${previousRun.taskTitle}" Blocked (Max Retries Exceeded)`
+      })
+      return previousRun
+    }
+
     delete pendingApprovals.value[runId]
 
-    previousRun.logs.push({
-      id: `log-${Date.now()}-retry`,
-      timestamp: new Date().toLocaleTimeString(),
-      step: 'Initializing',
-      message: `Retrying execution run (Attempt #${nextAttempt}).`,
-      level: 'info'
-    })
+    if (reviewerComment) {
+      // Phase 3.11: Persist reviewer directive into feedback memory
+      try {
+        const previousTask = await taskRepo.getById(previousRun.taskId)
+        await memoryRepo.create({
+          workspaceId: 'ws-dev',
+          employeeId: previousRun.employeeId,
+          employeeName: previousRun.employeeName,
+          projectId: previousTask?.projectId,
+          runId: previousRun.id,
+          type: 'feedback',
+          scope: 'employee',
+          title: `Reviewer Revision Directive: ${previousRun.taskTitle}`,
+          content: `Supervisor Directive on Attempt #${previousRun.attempt}: "${reviewerComment}". Apply this revision directive in all subsequent attempts.`,
+          tags: ['reviewer_directive', 'revision', 'quality_gate'],
+          confidence: 0.99,
+          importance: 5,
+          source: 'reviewer_feedback'
+        })
+      } catch (err) {
+        console.warn('[agentRunStore] Retry memory write warning:', err)
+      }
+    }
 
-    await runRepo.update(runId, {
-      attempt: nextAttempt,
-      progress: 0,
+    const retryMsg = reviewerComment
+      ? `Retrying execution (Attempt #${nextAttempt}, parent: ${previousRun.id}). Feedback: ${reviewerComment}`
+      : `Retrying execution (Attempt #${nextAttempt}, parent: ${previousRun.id}).`
+
+    // Create fresh new Run record linked via parentRunId
+    const newRun = await runRepo.create({
+      assignmentId: previousRun.assignmentId,
+      taskId: previousRun.taskId,
+      taskTitle: previousRun.taskTitle,
+      employeeId: previousRun.employeeId,
+      employeeName: previousRun.employeeName,
+      employeeAvatar: previousRun.employeeAvatar,
+      employeeRole: previousRun.employeeRole,
       status: 'Running',
       currentStep: 'Initializing',
-      error: undefined,
-      startedAt: previousRun.startedAt,
-      completedAt: undefined
+      progress: 5,
+      attempt: nextAttempt,
+      parentRunId: previousRun.id,
+      logs: [
+        {
+          id: `log-${Date.now()}-retry`,
+          timestamp: new Date().toLocaleTimeString(),
+          step: 'Initializing',
+          message: retryMsg,
+          level: 'info'
+        }
+      ],
+      startedAt: new Date().toISOString()
     })
 
-    await startLiveRunner(runId)
-    return previousRun
+    // Update task with activeRunId and latestRunId
+    if (previousRun.taskId) {
+      await taskRepo.update(previousRun.taskId, {
+        status: 'In Progress',
+        activeRunId: newRun.id,
+        latestRunId: newRun.id
+      })
+    }
+
+    if (reviewerComment) {
+      retryFeedbackMap.value[newRun.id] = reviewerComment
+    }
+
+    runs.value.unshift(newRun)
+    currentRun.value = newRun
+
+    await notificationStore.createNotification({
+      workspaceId: 'ws-dev',
+      title: 'Retry Started',
+      message: `Attempt #${nextAttempt} started for "${previousRun.taskTitle}" (Run #${newRun.id}).`,
+      priority: 'normal',
+      category: 'Tasks',
+      link: `/runs/${newRun.id}`,
+      read: false
+    })
+
+    await activityStore.logActivity({
+      workspaceId: 'ws-dev',
+      actorName: 'Lead Developer',
+      action: 'updated',
+      targetType: 'task',
+      targetTitle: `Retried Run #${newRun.id} (Attempt #${nextAttempt}, parent #${previousRun.id})`
+    })
+
+    await startLiveRunner(newRun.id)
+    return newRun
   }
 
   async function respondApproval(
@@ -570,6 +782,177 @@ export const useAgentRunStore = defineStore('agentRun', () => {
     return Math.round(totalSecs / completed.length)
   })
 
+  async function stopRun(runId: string, reason = 'Stopped by owner', cancelTask = false) {
+    const run = runs.value.find((r) => r.id === runId)
+    if (run) {
+      const runtime = RuntimeFactory.getRuntime(runtimeMode.value)
+      await runtime.cancel(runId)
+      const now = new Date().toISOString()
+      run.status = 'Cancelled'
+      run.cancelledAt = now
+      run.cancelledBy = 'Owner'
+      run.cancelReason = reason
+      delete pendingApprovals.value[runId]
+      await runRepo.update(runId, {
+        status: 'Cancelled',
+        cancelledAt: run.cancelledAt,
+        cancelledBy: run.cancelledBy,
+        cancelReason: run.cancelReason
+      })
+
+      // Update task status and clear active run
+      const targetTaskStatus = cancelTask ? 'Cancelled' : 'Todo'
+      await taskRepo.update(run.taskId, {
+        status: targetTaskStatus,
+        cancelledAt: cancelTask ? now : undefined,
+        cancelledBy: cancelTask ? 'Owner' : undefined,
+        cancelReason: cancelTask ? reason : undefined,
+        activeRunId: undefined
+      })
+
+      const activityStore = useActivityStore()
+      await activityStore.logActivity({
+        workspaceId: 'ws-dev',
+        actorName: 'Owner',
+        action: 'updated',
+        targetType: 'task',
+        targetTitle: `Stopped execution Run #${runId}: ${reason}`
+      })
+    }
+    return run
+  }
+
+  async function changeWorkerMidRun(
+    runId: string,
+    newEmployeeId: string,
+    restartImmediately = true
+  ): Promise<AgentRun | undefined> {
+    const run = runs.value.find((r) => r.id === runId)
+    if (!run) return undefined
+
+    const newEmployee = await employeeRepo.getById(newEmployeeId)
+    if (!newEmployee) return undefined
+
+    const activityStore = useActivityStore()
+
+    // 1. Update task assignee
+    await taskRepo.update(run.taskId, {
+      assigneeId: newEmployee.id,
+      assigneeName: newEmployee.name,
+      assigneeAvatar: newEmployee.avatar,
+      workerId: newEmployee.id,
+      workerName: newEmployee.name
+    })
+
+    if (restartImmediately) {
+      // Cancel current run
+      await stopRun(runId, `Replaced worker with ${newEmployee.name}`)
+
+      // Create new assignment
+      const newAssignment = await assignmentRepo.create({
+        taskId: run.taskId,
+        taskTitle: run.taskTitle,
+        employeeId: newEmployee.id,
+        employeeName: newEmployee.name,
+        employeeAvatar: newEmployee.avatar,
+        employeeRole: newEmployee.roleName,
+        assignedBy: 'Owner',
+        skillIds: newEmployee.skills.map((s) => s.skillId),
+        priority: 'High',
+        status: 'In Progress'
+      })
+
+      // Create new fresh run
+      const freshRun = await runRepo.create({
+        assignmentId: newAssignment.id,
+        taskId: run.taskId,
+        taskTitle: run.taskTitle,
+        employeeId: newEmployee.id,
+        employeeName: newEmployee.name,
+        employeeAvatar: newEmployee.avatar,
+        employeeRole: newEmployee.roleName,
+        status: 'Running',
+        currentStep: 'Initializing',
+        progress: 5,
+        attempt: 1,
+        parentRunId: run.id,
+        logs: [
+          {
+            id: `log-${Date.now()}-worker-switch`,
+            timestamp: new Date().toLocaleTimeString(),
+            step: 'Initializing',
+            message: `Execution reassigned from ${run.employeeName} to ${newEmployee.name} by Owner.`,
+            level: 'info'
+          }
+        ],
+        startedAt: new Date().toISOString()
+      })
+
+      runs.value.unshift(freshRun)
+      currentRun.value = freshRun
+
+      await activityStore.logActivity({
+        workspaceId: 'ws-dev',
+        actorName: 'Owner',
+        action: 'updated',
+        targetType: 'task',
+        targetTitle: `Changed worker from ${run.employeeName} to ${newEmployee.name} and restarted run`
+      })
+
+      await startLiveRunner(freshRun.id)
+      return freshRun
+    } else {
+      await activityStore.logActivity({
+        workspaceId: 'ws-dev',
+        actorName: 'Owner',
+        action: 'updated',
+        targetType: 'task',
+        targetTitle: `Assigned next execution to ${newEmployee.name}`
+      })
+      return run
+    }
+  }
+
+  async function addInstructionMidRun(runId: string, additionalInstruction: string) {
+    const run = runs.value.find((r) => r.id === runId)
+    if (!run) return false
+
+    const prevFeedback = retryFeedbackMap.value[runId] || ''
+    retryFeedbackMap.value[runId] = `${prevFeedback}\n[OWNER INSTRUCTION]: ${additionalInstruction}`.trim()
+
+    const logEntry: RunLogEntry = {
+      id: `log-${Date.now()}-owner-instr`,
+      timestamp: new Date().toLocaleTimeString(),
+      step: 'Working',
+      message: `Owner directive injected: "${additionalInstruction}"`,
+      level: 'info'
+    }
+
+    run.logs.push(logEntry)
+    await runRepo.addLog(runId, logEntry)
+
+    const activityStore = useActivityStore()
+    await activityStore.logActivity({
+      workspaceId: 'ws-dev',
+      actorName: 'Owner',
+      action: 'updated',
+      targetType: 'task',
+      targetTitle: `Added mid-run instruction to Run #${runId}`
+    })
+
+    return true
+  }
+
+  async function deleteRun(runId: string, soft = true, reason = 'Run deleted') {
+    if (soft) {
+      await runRepo.softDelete(runId, 'Owner', reason)
+    } else {
+      await runRepo.delete(runId)
+    }
+    runs.value = runs.value.filter((r) => r.id !== runId)
+    return true
+  }
+
   return {
     runs,
     currentRun,
@@ -599,7 +982,12 @@ export const useAgentRunStore = defineStore('agentRun', () => {
     pauseRun,
     resumeRun,
     cancelRun,
+    stopRun,
+    changeWorkerMidRun,
+    addInstructionMidRun,
+    deleteRun,
     retryRun,
     respondApproval
   }
 })
+

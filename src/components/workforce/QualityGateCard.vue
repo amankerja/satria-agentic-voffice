@@ -1,5 +1,9 @@
 <template>
-  <div class="bg-surface-container-low border border-outline-variant rounded-xl p-5 space-y-4 shadow-sm">
+  <div
+    role="region"
+    aria-label="Quality Gate Verification Card"
+    class="bg-surface-container-low border border-outline-variant rounded-xl p-5 space-y-4 shadow-sm"
+  >
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-2">
         <Shield class="w-4 h-4 text-primary" />
@@ -16,7 +20,14 @@
         <span class="text-muted">Verification Score</span>
         <span :class="['font-bold', scoreColor]">{{ score }}%</span>
       </div>
-      <div class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden">
+      <div
+        class="w-full h-2 bg-surface-container-highest rounded-full overflow-hidden"
+        role="progressbar"
+        :aria-valuenow="score"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-label="Verification Score"
+      >
         <div
           class="h-full rounded-full transition-all duration-500"
           :class="scoreBarColor"

@@ -1,5 +1,9 @@
 <template>
-  <div class="flex flex-col items-center justify-center p-8 text-center bg-surface-container-low border border-error-container/40 rounded-xl space-y-3">
+  <div
+    role="alert"
+    aria-live="assertive"
+    class="flex flex-col items-center justify-center p-8 text-center bg-surface-container-low border border-error-container/40 rounded-xl space-y-3"
+  >
     <div class="w-12 h-12 rounded-full bg-error-container/20 border border-error/30 flex items-center justify-center text-error">
       <AlertOctagon class="w-6 h-6" />
     </div>

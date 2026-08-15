@@ -31,10 +31,13 @@
     <!-- Filters, Search & View Switcher Bar -->
     <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 bg-surface-container-low p-3 rounded-xl border border-outline-variant">
       <!-- Category Pills -->
-      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
+      <div role="tablist" aria-label="File categories" class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
         <button
           v-for="cat in categories"
           :key="cat"
+          role="tab"
+          :aria-selected="fileStore.selectedCategory === cat"
+          :aria-label="`Category: ${cat}`"
           @click="fileStore.selectedCategory = cat"
           :class="[
             'px-3 py-1.5 rounded-lg text-xs font-medium transition whitespace-nowrap flex items-center gap-1.5',
@@ -43,7 +46,7 @@
               : 'text-muted hover:text-on-surface hover:bg-surface-container'
           ]"
         >
-          <component :is="getCategoryIcon(cat)" class="w-3.5 h-3.5" />
+          <component :is="getCategoryIcon(cat)" class="w-3.5 h-3.5" aria-hidden="true" />
           <span>{{ cat }}</span>
           <span class="text-[10px] opacity-70 font-mono">({{ getCategoryCount(cat) }})</span>
         </button>
@@ -53,16 +56,18 @@
       <div class="flex items-center gap-2.5">
         <!-- Search Input -->
         <div class="relative flex-1 sm:w-64">
-          <Search class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+          <Search class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true" />
           <input
             v-model="fileStore.searchQuery"
             type="text"
+            aria-label="Search files by name or project"
             placeholder="Search filename or project..."
             class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-8 pr-3 py-1.5 text-xs text-on-surface placeholder-muted focus:outline-none focus:border-primary"
           />
           <button
             v-if="fileStore.searchQuery"
             @click="fileStore.searchQuery = ''"
+            aria-label="Clear file search"
             class="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted hover:text-on-surface"
           >
             <X class="w-3.5 h-3.5" />
@@ -70,20 +75,26 @@
         </div>
 
         <!-- View Switcher -->
-        <div class="flex items-center bg-surface-container-lowest p-1 rounded-lg border border-outline-variant">
+        <div role="tablist" aria-label="File layout view" class="flex items-center bg-surface-container-lowest p-1 rounded-lg border border-outline-variant">
           <button
+            role="tab"
+            :aria-selected="viewMode === 'grid'"
+            aria-label="Grid View"
             @click="viewMode = 'grid'"
             :class="['p-1.5 rounded text-xs transition', viewMode === 'grid' ? 'bg-surface-container-high text-primary' : 'text-muted hover:text-on-surface']"
             title="Grid View"
           >
-            <LayoutGrid class="w-3.5 h-3.5" />
+            <LayoutGrid class="w-3.5 h-3.5" aria-hidden="true" />
           </button>
           <button
+            role="tab"
+            :aria-selected="viewMode === 'list'"
+            aria-label="List View"
             @click="viewMode = 'list'"
             :class="['p-1.5 rounded text-xs transition', viewMode === 'list' ? 'bg-surface-container-high text-primary' : 'text-muted hover:text-on-surface']"
             title="List View"
           >
-            <List class="w-3.5 h-3.5" />
+            <List class="w-3.5 h-3.5" aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -306,7 +317,7 @@
               variant="primary"
               size="sm"
               :icon="Download"
-              @click="simulateDownload"
+              @click="handleRealDownload"
             >
               Download
             </UiButton>
@@ -318,11 +329,33 @@
     <!-- UPLOAD FILE MODAL -->
     <UiModal :open="openUploadModal" title="Upload New File" @close="openUploadModal = false">
       <div class="space-y-4 text-xs">
-        <!-- Drag & Drop Zone -->
-        <div class="border-2 border-dashed border-outline-variant hover:border-primary rounded-xl p-6 text-center space-y-2 bg-surface-container-lowest transition cursor-pointer">
+        <!-- Hidden Real File Input -->
+        <input
+          type="file"
+          ref="fileInputRef"
+          @change="onFileInputChange"
+          class="hidden"
+          accept=".pdf,.png,.jpg,.jpeg,.svg,.webp,.json,.ts,.js,.html,.css,.sql,.md,.txt,.zip,.tar"
+        />
+
+        <!-- Drag & Drop Zone with Real Click & Drop Handlers -->
+        <div
+          @click="triggerFileBrowse"
+          @dragover.prevent="isDragging = true"
+          @dragleave.prevent="isDragging = false"
+          @drop.prevent="onFileDrop"
+          :class="[
+            'border-2 border-dashed rounded-xl p-6 text-center space-y-2 bg-surface-container-lowest transition cursor-pointer',
+            isDragging ? 'border-primary bg-primary/5' : 'border-outline-variant hover:border-primary'
+          ]"
+        >
           <UploadCloud class="w-8 h-8 mx-auto text-primary" />
-          <div class="font-semibold text-on-surface">Drag and drop your file here, or browse</div>
-          <p class="text-[10px] text-muted">Support PDF, PNG, JPG, JSON, SQL, ZIP (Max 50MB)</p>
+          <div class="font-semibold text-on-surface">
+            {{ selectedRawFile ? selectedRawFile.name : 'Drag and drop your file here, or browse' }}
+          </div>
+          <p class="text-[10px] text-muted">
+            {{ selectedRawFile ? `${formatBytes(selectedRawFile.size)} • Click to choose different file` : 'Support PDF, PNG, JPG, JSON, SQL, ZIP (Max 50MB)' }}
+          </p>
         </div>
 
         <UiInput v-model="newFileName" label="Filename with Extension" placeholder="e.g. system_architecture_v2.pdf" required />
@@ -344,7 +377,7 @@
 
       <template #footer>
         <UiButton variant="ghost" @click="openUploadModal = false">Cancel</UiButton>
-        <UiButton variant="primary" :icon="UploadCloud" @click="handleUpload">Confirm Upload</UiButton>
+        <UiButton variant="primary" :icon="UploadCloud" :disabled="!newFileName.trim()" @click="handleUpload">Confirm Upload</UiButton>
       </template>
     </UiModal>
   </div>
@@ -377,14 +410,21 @@ import UiInput from '../../components/ui/UiInput.vue'
 import UiEmptyState from '../../components/ui/UiEmptyState.vue'
 import { useWorkspaceStore } from '../../stores/workspace'
 import { useFileStore } from '../../stores/file'
+import { useToast } from '../../composables/useToast'
 import type { FileCategory } from '../../types'
 
 const workspaceStore = useWorkspaceStore()
 const fileStore = useFileStore()
+const toast = useToast()
 
 const viewMode = ref<'grid' | 'list'>('grid')
 const openUploadModal = ref(false)
 const copied = ref(false)
+const isDragging = ref(false)
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const selectedRawFile = ref<File | null>(null)
+const uploadedDataUrl = ref<string | undefined>(undefined)
+const uploadedTextPreview = ref<string | undefined>(undefined)
 
 const newFileName = ref('')
 const newFileCategory = ref<FileCategory>('Documents')
@@ -404,6 +444,70 @@ onMounted(() => {
 watch(() => workspaceStore.currentWorkspaceId, () => {
   loadFiles()
 })
+
+const formatBytes = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} B`
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
+}
+
+const detectCategoryFromExtension = (ext: string): FileCategory => {
+  const e = ext.toLowerCase()
+  if (['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif'].includes(e)) return 'Images'
+  if (['ts', 'js', 'json', 'css', 'html', 'sql', 'yml', 'yaml', 'txt', 'py', 'sh'].includes(e)) return 'Code'
+  if (['zip', 'tar', 'gz', 'rar', '7z'].includes(e)) return 'Archives'
+  if (['csv', 'xlsx', 'parquet'].includes(e)) return 'Exports'
+  return 'Documents'
+}
+
+const triggerFileBrowse = () => {
+  if (fileInputRef.value) {
+    fileInputRef.value.click()
+  }
+}
+
+const processRawFile = (file: File) => {
+  selectedRawFile.value = file
+  newFileName.value = file.name
+  const ext = file.name.split('.').pop() || 'txt'
+  newFileCategory.value = detectCategoryFromExtension(ext)
+
+  const isText = ['txt', 'json', 'ts', 'js', 'html', 'css', 'sql', 'md', 'yml', 'yaml', 'csv'].includes(ext.toLowerCase())
+  const isImg = ['png', 'jpg', 'jpeg', 'svg', 'webp', 'gif'].includes(ext.toLowerCase())
+
+  if (isImg) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      uploadedDataUrl.value = e.target?.result as string
+      uploadedTextPreview.value = undefined
+    }
+    reader.readAsDataURL(file)
+  } else if (isText) {
+    const reader = new FileReader()
+    reader.onload = (e) => {
+      uploadedTextPreview.value = (e.target?.result as string)?.slice(0, 5000)
+      uploadedDataUrl.value = undefined
+    }
+    reader.readAsText(file)
+  } else {
+    uploadedDataUrl.value = undefined
+    uploadedTextPreview.value = undefined
+  }
+}
+
+const onFileInputChange = (event: Event) => {
+  const target = event.target as HTMLInputElement
+  if (target.files && target.files.length > 0) {
+    processRawFile(target.files[0])
+  }
+}
+
+const onFileDrop = (event: DragEvent) => {
+  isDragging.value = false
+  if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+    processRawFile(event.dataTransfer.files[0])
+  }
+}
 
 const getCategoryCount = (cat: FileCategory | 'All') => {
   if (cat === 'All') return fileStore.files.length
@@ -436,37 +540,73 @@ const resetFilters = () => {
 
 const handleDeleteFile = async (id: string) => {
   await fileStore.deleteFile(id)
+  toast.show('File Deleted', 'File telah dihapus dari workspace repository.', 'success')
 }
 
 const copyFileLink = () => {
   copied.value = true
+  if (fileStore.selectedFile?.name) {
+    navigator.clipboard?.writeText?.(window.location.origin + '/files#' + fileStore.selectedFile.id)
+  }
+  toast.show('Link Copied', 'Tautan file telah disalin ke clipboard.', 'info', 1500)
   setTimeout(() => {
     copied.value = false
   }, 2000)
 }
 
-const simulateDownload = () => {
-  alert(`Mengunduh ${fileStore.selectedFile?.name}...`)
+const handleRealDownload = () => {
+  const file = fileStore.selectedFile
+  if (!file) return
+
+  if (file.url && file.url.startsWith('data:')) {
+    const a = document.createElement('a')
+    a.href = file.url
+    a.download = file.name
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  } else {
+    const content = file.contentPreview || `File: ${file.name}\nProject: ${file.projectName || 'Global'}\nSize: ${file.sizeFormatted}\nUploaded by: ${file.uploadedBy || 'Satria Utama'}`
+    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = file.name
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  toast.show('File Downloaded', `Berhasil mengunduh ${file.name}.`, 'success')
 }
 
 const handleUpload = async () => {
   if (!newFileName.value.trim()) return
   const ext = newFileName.value.split('.').pop() || 'txt'
+  const sizeBytes = selectedRawFile.value ? selectedRawFile.value.size : 1024 * 64
+  const sizeFormatted = formatBytes(sizeBytes)
+
   await fileStore.uploadFile({
     workspaceId: workspaceStore.currentWorkspaceId,
     name: newFileName.value,
     extension: ext,
     category: newFileCategory.value,
     projectName: newFileProject.value,
-    sizeBytes: 1048576,
-    sizeFormatted: '1.0 MB',
+    sizeBytes,
+    sizeFormatted,
     uploadedBy: 'Satria Utama',
-    description: newFileDescription.value || 'Uploaded file document.',
-    contentPreview: 'Mock uploaded file contents ready for preview.'
+    description: newFileDescription.value || 'Uploaded document artifact.',
+    contentPreview: uploadedTextPreview.value || 'Uploaded file contents preserved.',
+    url: uploadedDataUrl.value
   })
 
+  toast.show('File Uploaded', `File "${newFileName.value}" berhasil disimpan ke workspace.`, 'success')
   newFileName.value = ''
   newFileDescription.value = ''
+  selectedRawFile.value = null
+  uploadedDataUrl.value = undefined
+  uploadedTextPreview.value = undefined
   openUploadModal.value = false
 }
 </script>

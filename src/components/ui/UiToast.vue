@@ -1,5 +1,8 @@
 <template>
   <div
+    role="status"
+    aria-live="polite"
+    aria-atomic="true"
     class="fixed bottom-5 right-5 z-50 flex items-center gap-3 px-4 py-3 rounded-xl border bg-[#1a211d] shadow-2xl text-sm transition-all duration-200 animate-bounce-short"
     :class="borderClasses[variant]"
   >

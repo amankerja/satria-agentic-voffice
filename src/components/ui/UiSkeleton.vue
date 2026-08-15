@@ -1,5 +1,6 @@
 <template>
   <div
+    aria-hidden="true"
     class="animate-pulse bg-[#242c27] rounded-lg"
     :class="[width, height]"
   ></div>

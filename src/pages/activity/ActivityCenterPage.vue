@@ -50,10 +50,13 @@
     <!-- Filters & Search Toolbar -->
     <div class="bg-surface-container-low p-3 rounded-xl border border-outline-variant flex flex-col md:flex-row md:items-center justify-between gap-3">
       <!-- Action Filters -->
-      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+      <div role="tablist" aria-label="Activity action filters" class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
         <button
           v-for="act in actionFilters"
           :key="act.value"
+          role="tab"
+          :aria-selected="activityStore.selectedAction === act.value"
+          :aria-label="`Action: ${act.label}`"
           @click="activityStore.selectedAction = act.value"
           :class="[
             'px-2.5 py-1.5 rounded-lg text-xs font-medium transition whitespace-nowrap',
@@ -71,6 +74,7 @@
         <!-- Target Type Select -->
         <select
           v-model="activityStore.selectedTargetType"
+          aria-label="Filter by target type"
           class="bg-surface-container-lowest border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs text-on-surface focus:outline-none focus:border-primary"
         >
           <option value="all">All Targets</option>
@@ -82,10 +86,11 @@
 
         <!-- Search Bar -->
         <div class="relative w-44 sm:w-56">
-          <Search class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" />
+          <Search class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true" />
           <input
             v-model="activityStore.searchQuery"
             type="text"
+            aria-label="Search activity logs"
             placeholder="Search activity..."
             class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-7 pr-2.5 py-1.5 text-xs text-on-surface placeholder-muted focus:outline-none focus:border-primary"
           />

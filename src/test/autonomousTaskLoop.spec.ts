@@ -26,7 +26,7 @@ describe('Phase 3.9 — Autonomous Task Loop & Lifecycle Governance Suite', () =
     it('initializes in Idle state and records initial history', () => {
       const machine = new TaskLifecycleMachine('Idle')
       expect(machine.getState()).toBe('Idle')
-      expect(machine.toTaskStatus()).toBe('Backlog')
+      expect(machine.toTaskStatus()).toBe('Todo')
       expect(machine.toRunStatus()).toBe('Queued')
       expect(machine.getHistory().length).toBe(1)
     })

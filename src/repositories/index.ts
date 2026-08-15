@@ -24,7 +24,10 @@ import type {
   RunLogEntry,
   RunResult,
   TaskReview,
-  ReviewDecision
+  ReviewDecision,
+  AgentMemoryItem,
+  MemoryRecallQuery,
+  Schedule
 } from '../types'
 
 // ============================================================================
@@ -56,13 +59,14 @@ export class WorkspaceRepository {
 }
 
 export class ProjectRepository {
-  async getAll(): Promise<Project[]> {
-    return await dbClient.getAll<Project>('projects')
+  async getAll(includeDeleted = false): Promise<Project[]> {
+    const all = await dbClient.getAll<Project>('projects')
+    return includeDeleted ? all : all.filter((p) => !p.deletedAt)
   }
 
-  async getByWorkspace(workspaceId: string): Promise<Project[]> {
+  async getByWorkspace(workspaceId: string, includeDeleted = false): Promise<Project[]> {
     const all = await dbClient.getAll<Project>('projects')
-    return all.filter((p) => p.workspaceId === workspaceId)
+    return all.filter((p) => p.workspaceId === workspaceId && (includeDeleted || !p.deletedAt))
   }
 
   async getById(id: string): Promise<Project | undefined> {
@@ -82,21 +86,44 @@ export class ProjectRepository {
     }
     return await dbClient.insert<Project>('projects', newPrj)
   }
+
+  async update(id: string, updates: Partial<Project>): Promise<Project | undefined> {
+    return await dbClient.update<Project>('projects', id, {
+      ...updates,
+      updatedAt: new Date().toISOString()
+    })
+  }
+
+  async softDelete(id: string, deletedBy = 'Owner', deleteReason = 'Project deleted'): Promise<boolean> {
+    const res = await dbClient.update<Project>('projects', id, {
+      deletedAt: new Date().toISOString(),
+      deletedBy,
+      deleteReason,
+      status: 'Cancelled',
+      updatedAt: new Date().toISOString()
+    })
+    return !!res
+  }
+
+  async delete(id: string): Promise<boolean> {
+    return await dbClient.delete('projects', id)
+  }
 }
 
 export class TaskRepository {
-  async getAll(): Promise<Task[]> {
-    return await dbClient.getAll<Task>('tasks')
+  async getAll(includeDeleted = false): Promise<Task[]> {
+    const all = await dbClient.getAll<Task>('tasks')
+    return includeDeleted ? all : all.filter((t) => !t.deletedAt)
   }
 
-  async getByWorkspace(workspaceId: string): Promise<Task[]> {
+  async getByWorkspace(workspaceId: string, includeDeleted = false): Promise<Task[]> {
     const all = await dbClient.getAll<Task>('tasks')
-    return all.filter((t) => t.workspaceId === workspaceId)
+    return all.filter((t) => t.workspaceId === workspaceId && (includeDeleted || !t.deletedAt))
   }
 
-  async getByProject(projectId: string): Promise<Task[]> {
+  async getByProject(projectId: string, includeDeleted = false): Promise<Task[]> {
     const all = await dbClient.getAll<Task>('tasks')
-    return all.filter((t) => t.projectId === projectId)
+    return all.filter((t) => t.projectId === projectId && (includeDeleted || !t.deletedAt))
   }
 
   async getById(id: string): Promise<Task | undefined> {
@@ -128,6 +155,17 @@ export class TaskRepository {
       updatedAt: new Date().toISOString()
     }
     return await dbClient.insert<Task>('tasks', newTask)
+  }
+
+  async softDelete(id: string, deletedBy = 'Owner', deleteReason = 'Task deleted'): Promise<boolean> {
+    const res = await dbClient.update<Task>('tasks', id, {
+      deletedAt: new Date().toISOString(),
+      deletedBy,
+      deleteReason,
+      status: 'Cancelled',
+      updatedAt: new Date().toISOString()
+    })
+    return !!res
   }
 
   async delete(id: string): Promise<boolean> {
@@ -503,27 +541,28 @@ export class AssignmentRepository {
 }
 
 export class AgentRunRepository {
-  async getAll(): Promise<AgentRun[]> {
-    return await dbClient.getAll<AgentRun>('agent_runs')
+  async getAll(includeDeleted = false): Promise<AgentRun[]> {
+    const all = await dbClient.getAll<AgentRun>('agent_runs')
+    return includeDeleted ? all : all.filter((r) => !r.deletedAt)
   }
 
   async getById(id: string): Promise<AgentRun | undefined> {
     return await dbClient.getById<AgentRun>('agent_runs', id)
   }
 
-  async getByAssignmentId(assignmentId: string): Promise<AgentRun[]> {
+  async getByAssignmentId(assignmentId: string, includeDeleted = false): Promise<AgentRun[]> {
     const all = await dbClient.getAll<AgentRun>('agent_runs')
-    return all.filter((r) => r.assignmentId === assignmentId)
+    return all.filter((r) => r.assignmentId === assignmentId && (includeDeleted || !r.deletedAt))
   }
 
-  async getByTaskId(taskId: string): Promise<AgentRun[]> {
+  async getByTaskId(taskId: string, includeDeleted = false): Promise<AgentRun[]> {
     const all = await dbClient.getAll<AgentRun>('agent_runs')
-    return all.filter((r) => r.taskId === taskId)
+    return all.filter((r) => r.taskId === taskId && (includeDeleted || !r.deletedAt))
   }
 
-  async getByEmployeeId(employeeId: string): Promise<AgentRun[]> {
+  async getByEmployeeId(employeeId: string, includeDeleted = false): Promise<AgentRun[]> {
     const all = await dbClient.getAll<AgentRun>('agent_runs')
-    return all.filter((r) => r.employeeId === employeeId)
+    return all.filter((r) => r.employeeId === employeeId && (includeDeleted || !r.deletedAt))
   }
 
   async create(run: Omit<AgentRun, 'id' | 'createdAt' | 'updatedAt'>): Promise<AgentRun> {
@@ -538,6 +577,7 @@ export class AgentRunRepository {
     // Update active run on task
     await dbClient.update<Task>('tasks', run.taskId, {
       activeRunId: newRun.id,
+      latestRunId: newRun.id,
       updatedAt: new Date().toISOString()
     })
 
@@ -580,6 +620,21 @@ export class AgentRunRepository {
       }
     }
     return await dbClient.update<AgentRun>('agent_runs', id, updates)
+  }
+
+  async softDelete(id: string, deletedBy = 'Owner', deleteReason = 'Run deleted'): Promise<boolean> {
+    const res = await dbClient.update<AgentRun>('agent_runs', id, {
+      deletedAt: new Date().toISOString(),
+      deletedBy,
+      deleteReason,
+      status: 'Cancelled',
+      updatedAt: new Date().toISOString()
+    })
+    return !!res
+  }
+
+  async delete(id: string): Promise<boolean> {
+    return await dbClient.delete('agent_runs', id)
   }
 }
 
@@ -683,6 +738,193 @@ export class ReviewRepository {
   }
 }
 
+export class ScheduleRepository {
+  async getAll(includeDeleted = false): Promise<Schedule[]> {
+    const all = await dbClient.getAll<Schedule>('schedules')
+    return includeDeleted ? all : all.filter((s) => !s.deletedAt)
+  }
+
+  async getByWorkspace(workspaceId: string, includeDeleted = false): Promise<Schedule[]> {
+    const all = await dbClient.getAll<Schedule>('schedules')
+    return all.filter((s) => s.workspaceId === workspaceId && (includeDeleted || !s.deletedAt))
+  }
+
+  async getByProject(projectId: string, includeDeleted = false): Promise<Schedule[]> {
+    const all = await dbClient.getAll<Schedule>('schedules')
+    return all.filter((s) => s.projectId === projectId && (includeDeleted || !s.deletedAt))
+  }
+
+  async getById(id: string): Promise<Schedule | undefined> {
+    return await dbClient.getById<Schedule>('schedules', id)
+  }
+
+  async create(schedule: Omit<Schedule, 'id' | 'createdAt' | 'updatedAt'>): Promise<Schedule> {
+    const newSchedule: Schedule = {
+      ...schedule,
+      id: `sch-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    return await dbClient.insert<Schedule>('schedules', newSchedule)
+  }
+
+  async update(id: string, updates: Partial<Schedule>): Promise<Schedule | undefined> {
+    return await dbClient.update<Schedule>('schedules', id, {
+      ...updates,
+      updatedAt: new Date().toISOString()
+    })
+  }
+
+  async toggleEnabled(id: string): Promise<Schedule | undefined> {
+    const sch = await dbClient.getById<Schedule>('schedules', id)
+    if (sch) {
+      return await dbClient.update<Schedule>('schedules', id, {
+        enabled: !sch.enabled,
+        updatedAt: new Date().toISOString()
+      })
+    }
+    return undefined
+  }
+
+  async softDelete(id: string, deletedBy = 'Owner', deleteReason = 'Schedule deleted'): Promise<boolean> {
+    const res = await dbClient.update<Schedule>('schedules', id, {
+      deletedAt: new Date().toISOString(),
+      deletedBy,
+      deleteReason,
+      enabled: false,
+      updatedAt: new Date().toISOString()
+    })
+    return !!res
+  }
+
+  async delete(id: string): Promise<boolean> {
+    return await dbClient.delete('schedules', id)
+  }
+}
+
+export class MemoryRepository {
+  async getAll(): Promise<AgentMemoryItem[]> {
+    return await dbClient.getAll<AgentMemoryItem>('memories')
+  }
+
+  async getById(id: string): Promise<AgentMemoryItem | undefined> {
+    return await dbClient.getById<AgentMemoryItem>('memories', id)
+  }
+
+  async getByWorkspace(workspaceId: string): Promise<AgentMemoryItem[]> {
+    const all = await dbClient.getAll<AgentMemoryItem>('memories')
+    return all.filter((m) => m.workspaceId === workspaceId)
+  }
+
+  async getByEmployee(employeeId: string): Promise<AgentMemoryItem[]> {
+    const all = await dbClient.getAll<AgentMemoryItem>('memories')
+    return all.filter((m) => m.employeeId === employeeId || m.scope === 'global')
+  }
+
+  async getByProject(projectId: string): Promise<AgentMemoryItem[]> {
+    const all = await dbClient.getAll<AgentMemoryItem>('memories')
+    return all.filter((m) => m.projectId === projectId || m.scope === 'global')
+  }
+
+  async create(memoryData: Omit<AgentMemoryItem, 'id' | 'createdAt' | 'updatedAt' | 'accessCount'>): Promise<AgentMemoryItem> {
+    const now = new Date().toISOString()
+    const newMemory: AgentMemoryItem = {
+      ...memoryData,
+      id: `mem-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      accessCount: 0,
+      createdAt: now,
+      updatedAt: now
+    }
+    return await dbClient.insert<AgentMemoryItem>('memories', newMemory)
+  }
+
+  async update(id: string, updates: Partial<AgentMemoryItem>): Promise<AgentMemoryItem | undefined> {
+    return await dbClient.update<AgentMemoryItem>('memories', id, {
+      ...updates,
+      updatedAt: new Date().toISOString()
+    })
+  }
+
+  async delete(id: string): Promise<boolean> {
+    return await dbClient.delete('memories', id)
+  }
+
+  async recall(query: MemoryRecallQuery): Promise<AgentMemoryItem[]> {
+    const all = await dbClient.getAll<AgentMemoryItem>('memories')
+    const {
+      workspaceId,
+      employeeId,
+      projectId,
+      queryText = '',
+      tags = [],
+      types,
+      limit = 5,
+      minConfidence = 0.5
+    } = query
+
+    const normalizedQueryTokens = queryText
+      .toLowerCase()
+      .split(/\s+/)
+      .filter((t) => t.length > 2)
+
+    const normalizedTags = tags.map((t) => t.toLowerCase())
+
+    // 1. Filter candidates by workspace and scope
+    const candidates = all.filter((m) => {
+      if (m.workspaceId !== workspaceId) return false
+
+      if (m.scope === 'project' && projectId && m.projectId !== projectId) return false
+      if (m.scope === 'employee' && employeeId && m.employeeId !== employeeId) return false
+      if (m.scope === 'project' && !projectId) return false
+      if (m.scope === 'employee' && !employeeId) return false
+
+      if (types && types.length > 0 && !types.includes(m.type)) return false
+      if (m.confidence < minConfidence) return false
+
+      return true
+    })
+
+    // 2. Score relevance
+    const scored = candidates.map((m) => {
+      let score = (m.importance || 3) * 2 + (m.confidence || 0.8) * 5
+
+      const memoryText = `${m.title} ${m.content}`.toLowerCase()
+      const memoryTags = m.tags.map((t) => t.toLowerCase())
+
+      for (const token of normalizedQueryTokens) {
+        if (m.title.toLowerCase().includes(token)) score += 4
+        else if (memoryText.includes(token)) score += 2
+      }
+
+      for (const tag of normalizedTags) {
+        if (memoryTags.includes(tag)) score += 3
+      }
+
+      if (m.scope === 'employee') score += 3
+      if (m.scope === 'project') score += 2
+
+      return { memory: m, score }
+    })
+
+    // 3. Sort by score descending and take top N
+    scored.sort((a, b) => b.score - a.score)
+    const topMemories = scored.slice(0, limit).map((s) => s.memory)
+
+    // 4. Update access tracking
+    const now = new Date().toISOString()
+    for (const m of topMemories) {
+      await dbClient.update<AgentMemoryItem>('memories', m.id, {
+        accessCount: (m.accessCount || 0) + 1,
+        lastAccessedAt: now
+      })
+      m.accessCount = (m.accessCount || 0) + 1
+      m.lastAccessedAt = now
+    }
+
+    return topMemories
+  }
+}
+
 // Backwards compatibility aliases
 export {
   WorkspaceRepository as MockWorkspaceRepository,
@@ -700,5 +942,7 @@ export {
   AssignmentRepository as MockAssignmentRepository,
   AgentRunRepository as MockAgentRunRepository,
   RunResultRepository as MockRunResultRepository,
-  ReviewRepository as MockReviewRepository
+  ReviewRepository as MockReviewRepository,
+  ScheduleRepository as MockScheduleRepository,
+  MemoryRepository as MockMemoryRepository
 }

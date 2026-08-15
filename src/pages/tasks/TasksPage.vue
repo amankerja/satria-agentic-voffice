@@ -7,31 +7,35 @@
           <h1 class="text-2xl font-bold text-on-surface">Tasks Command Center</h1>
           <UiBadge variant="info" size="sm" class="font-mono">{{ filteredTasks.length }} Tasks</UiBadge>
         </div>
-        <p class="text-xs text-muted mt-1">Kelola seluruh unit pekerjaan di {{ workspaceStore.currentWorkspace?.name }}</p>
+        <p class="text-xs text-muted mt-1">Manage, assign, and track autonomous workforce task lifecycles.</p>
       </div>
 
       <div class="flex items-center gap-3">
         <!-- View Switcher -->
-        <div class="flex items-center bg-surface-container-low p-1 rounded-lg border border-outline-variant">
+        <div role="tablist" aria-label="Task layout view" class="flex items-center bg-surface-container-low p-1 rounded-lg border border-outline-variant">
           <button
+            role="tab"
+            :aria-selected="currentView === 'list'"
             @click="currentView = 'list'"
-            :class="['p-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5', currentView === 'list' ? 'bg-surface-container-high text-primary' : 'text-muted hover:text-on-surface']"
+            :class="['p-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5', currentView === 'list' ? 'bg-surface-container-high text-primary font-bold' : 'text-muted hover:text-on-surface']"
             aria-label="List View"
           >
-            <List class="w-4 h-4" />
+            <List class="w-4 h-4" aria-hidden="true" />
             <span class="hidden sm:inline">List</span>
           </button>
           <button
+            role="tab"
+            :aria-selected="currentView === 'board'"
             @click="currentView = 'board'"
-            :class="['p-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5', currentView === 'board' ? 'bg-surface-container-high text-primary' : 'text-muted hover:text-on-surface']"
+            :class="['p-1.5 rounded-md text-xs font-medium transition flex items-center gap-1.5', currentView === 'board' ? 'bg-surface-container-high text-primary font-bold' : 'text-muted hover:text-on-surface']"
             aria-label="Board View"
           >
-            <Kanban class="w-4 h-4" />
+            <Kanban class="w-4 h-4" aria-hidden="true" />
             <span class="hidden sm:inline">Board</span>
           </button>
         </div>
 
-        <UiButton size="sm" variant="primary" :icon="Plus" @click="openModal = true">
+        <UiButton size="sm" variant="primary" :icon="Plus" @click="showCreateDrawer = true">
           New Task
         </UiButton>
       </div>
@@ -39,10 +43,13 @@
 
     <!-- Filter & Search Bar -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-surface-container-low p-3 rounded-xl border border-outline-variant">
-      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+      <div role="tablist" aria-label="Task status filters" class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
         <button
-          v-for="st in ['All', ...columns]"
+          v-for="st in ['All', ...columns, 'Cancelled']"
           :key="st"
+          role="tab"
+          :aria-selected="statusFilter === st"
+          :aria-label="`Filter ${st}`"
           @click="statusFilter = st"
           :class="[
             'px-2.5 py-1 rounded text-xs font-mono transition whitespace-nowrap',
@@ -54,10 +61,11 @@
       </div>
 
       <div class="relative w-full sm:w-60">
-        <Search class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" />
+        <Search class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true" />
         <input
           v-model="searchQuery"
           type="text"
+          aria-label="Search task by title"
           placeholder="Search task title..."
           class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-7 pr-2.5 py-1 text-xs text-on-surface placeholder-muted focus:outline-none focus:border-primary"
         />
@@ -66,11 +74,13 @@
 
     <!-- LIST VIEW -->
     <div v-if="currentView === 'list'" class="space-y-2">
+      <div v-if="filteredTasks.length === 0" class="p-12 text-center bg-surface-container-low rounded-2xl text-xs text-muted">
+        No tasks match the active filter criteria.
+      </div>
       <div
         v-for="task in filteredTasks"
         :key="task.id"
-        @click="selectedTask = task; openDrawer = true"
-        class="p-3.5 bg-surface-container-low hover:bg-surface-container border border-outline-variant hover:border-outline rounded-xl cursor-pointer flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition shadow-sm"
+        class="p-3.5 bg-surface-container-low hover:bg-surface-container border border-outline-variant hover:border-outline rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 transition shadow-sm"
       >
         <div class="flex items-center gap-3 truncate">
           <div class="p-1 -m-1" @click.stop>
@@ -82,16 +92,36 @@
             />
           </div>
           <div class="truncate">
-            <div :class="['text-xs font-semibold text-on-surface truncate', task.status === 'Done' ? 'line-through opacity-50' : '']">
-              {{ task.title }}
+            <div class="flex items-center gap-2">
+              <router-link
+                :to="`/tasks/${task.id}`"
+                :class="['text-xs font-semibold text-on-surface hover:text-primary transition truncate', task.status === 'Done' ? 'line-through opacity-50' : '']"
+              >
+                {{ task.title }}
+              </router-link>
+              <span
+                v-if="task.type === 'recurring_instance'"
+                class="text-[9px] font-mono text-cyan-400 bg-cyan-500/10 px-1.5 py-0.2 rounded border border-cyan-500/20"
+              >
+                Scheduled
+              </span>
             </div>
-            <div class="text-[10px] text-muted font-mono mt-0.5">{{ task.projectName }} &bull; Due {{ task.dueDate }}</div>
+            <div class="text-[10px] text-muted font-mono mt-0.5 flex items-center gap-2">
+              <span>{{ task.projectName }}</span>
+              <span>&bull;</span>
+              <span class="text-secondary font-medium">{{ task.workerName || task.assigneeName || 'Unassigned' }}</span>
+              <span>&bull;</span>
+              <span>Due {{ task.dueDate || 'No Date' }}</span>
+            </div>
           </div>
         </div>
 
         <div class="flex items-center gap-2 self-end sm:self-auto shrink-0">
           <UiBadge :variant="task.priority === 'High' || task.priority === 'Urgent' ? 'warning' : 'neutral'" size="sm">{{ task.priority }}</UiBadge>
-          <UiBadge :variant="task.status === 'Done' ? 'success' : task.status === 'Blocked' ? 'error' : 'info'" size="sm">{{ task.status }}</UiBadge>
+          <UiBadge :variant="task.status === 'Done' ? 'success' : task.status === 'Cancelled' ? 'error' : task.status === 'Waiting' ? 'warning' : 'info'" size="sm">{{ task.status }}</UiBadge>
+          <router-link :to="`/tasks/${task.id}`" class="p-1 rounded-lg text-muted hover:text-on-surface hover:bg-surface-container-high transition">
+            <ChevronRight class="w-4 h-4" />
+          </router-link>
         </div>
       </div>
     </div>
@@ -108,13 +138,14 @@
           <div
             v-for="task in tasksByStatus(status)"
             :key="task.id"
-            @click="selectedTask = task; openDrawer = true"
-            class="p-3 bg-surface-container-low hover:bg-surface-container border border-outline-variant hover:border-outline rounded-lg cursor-pointer space-y-2 transition shadow-sm"
+            class="p-3 bg-surface-container-low hover:bg-surface-container border border-outline-variant hover:border-outline rounded-lg space-y-2 transition shadow-sm"
           >
-            <div class="text-xs font-semibold text-on-surface line-clamp-2">{{ task.title }}</div>
+            <router-link :to="`/tasks/${task.id}`" class="text-xs font-semibold text-on-surface hover:text-primary transition line-clamp-2 block">
+              {{ task.title }}
+            </router-link>
             <div class="text-[10px] text-muted font-mono">{{ task.projectName }}</div>
             <div class="flex items-center justify-between pt-1 border-t border-outline-variant">
-              <span class="text-[10px] text-on-surface-variant">{{ task.assigneeName }}</span>
+              <span class="text-[10px] text-on-surface-variant">{{ task.workerName || task.assigneeName || 'Unassigned' }}</span>
               <UiBadge :variant="task.priority === 'High' || task.priority === 'Urgent' ? 'warning' : 'neutral'" size="sm">{{ task.priority }}</UiBadge>
             </div>
           </div>
@@ -122,201 +153,42 @@
       </div>
     </div>
 
-    <!-- Task Detail Drawer -->
-    <UiDrawer :open="openDrawer" :title="selectedTask?.title || 'Task Detail'" @close="openDrawer = false">
-      <div v-if="selectedTask" class="space-y-5 text-xs text-on-surface">
-        <div>
-          <span class="text-[10px] font-mono uppercase text-muted">Project</span>
-          <div class="text-sm font-semibold text-primary">{{ selectedTask.projectName }}</div>
-        </div>
-
-        <div>
-          <span class="text-[10px] font-mono uppercase text-muted">Description</span>
-          <p class="text-xs text-on-surface-variant mt-1 bg-surface-container-lowest p-3 rounded-lg border border-outline-variant">
-            {{ selectedTask.description }}
-          </p>
-        </div>
-
-        <div class="grid grid-cols-2 gap-3 font-mono">
-          <div class="p-2.5 bg-surface-container-lowest rounded-lg border border-outline-variant">
-            <div class="text-[10px] text-muted">STATUS</div>
-            <div class="font-semibold text-primary mt-0.5">{{ selectedTask.status }}</div>
-          </div>
-          <div class="p-2.5 bg-surface-container-lowest rounded-lg border border-outline-variant">
-            <div class="text-[10px] text-muted">PRIORITY</div>
-            <div class="font-semibold text-tertiary mt-0.5">{{ selectedTask.priority }}</div>
-          </div>
-        </div>
-
-        <!-- Phase 2 & 3.6: Integrated Inline Agent Execution Workspace -->
-        <InlineAgentWorkspace
-          v-if="selectedTask"
-          :task="selectedTask"
-          @updated="loadData"
-        />
-
-        <!-- Workforce Assignment Details -->
-        <div class="p-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl space-y-2.5">
-          <div class="flex items-center justify-between">
-            <span class="text-[10px] font-mono text-muted uppercase">Assigned Personnel</span>
-            <button
-              @click="openAssignmentDrawer = true"
-              class="text-[11px] text-primary hover:underline font-mono"
-            >
-              {{ selectedTask.assigneeName ? 'Change Agent' : 'Assign Agent' }}
-            </button>
-          </div>
-
-          <div v-if="selectedTask.assigneeName" class="flex items-center gap-2.5 truncate">
-            <img
-              v-if="selectedTask.assigneeAvatar"
-              :src="selectedTask.assigneeAvatar"
-              :alt="selectedTask.assigneeName"
-              class="w-6 h-6 rounded-full object-cover border border-outline"
-            />
-            <div class="truncate">
-              <div class="text-xs font-bold text-on-surface truncate">{{ selectedTask.assigneeName }}</div>
-            </div>
-          </div>
-          <div v-else class="text-xs text-muted">Belum ada agent/employee yang ditugaskan.</div>
-        </div>
-
-        <!-- Interactive Checklist Section -->
-        <div v-if="selectedTask.checklist && selectedTask.checklist.length > 0" class="space-y-2 pt-2 border-t border-outline-variant">
-          <span class="text-[10px] font-mono uppercase text-muted">Checklist ({{ selectedTask.checklist.filter(c => c.completed).length }}/{{ selectedTask.checklist.length }})</span>
-          <div class="space-y-1.5">
-            <div
-              v-for="chk in selectedTask.checklist"
-              :key="chk.id"
-              @click="toggleChecklist(chk)"
-              class="flex items-center gap-2 p-2 rounded-lg bg-surface-container-lowest border border-outline-variant hover:border-outline cursor-pointer transition"
-            >
-              <input
-                type="checkbox"
-                :checked="chk.completed"
-                class="w-3.5 h-3.5 rounded border-outline bg-surface-container-low text-primary cursor-pointer"
-                @click.stop="toggleChecklist(chk)"
-              />
-              <span :class="['text-xs text-on-surface', chk.completed ? 'line-through opacity-50' : '']">{{ chk.title }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Comments Section -->
-        <div class="space-y-2 pt-2 border-t border-outline-variant">
-          <span class="text-[10px] font-mono uppercase text-muted">Activity Comments</span>
-          <div v-if="selectedTask.comments && selectedTask.comments.length > 0" class="space-y-2">
-            <div v-for="c in selectedTask.comments" :key="c.id" class="p-2.5 bg-surface-container-lowest rounded-lg border border-outline-variant space-y-1">
-              <div class="flex items-center justify-between text-[10px] font-mono text-muted">
-                <span class="text-on-surface font-semibold">{{ c.authorName }}</span>
-                <span>{{ c.createdAt }}</span>
-              </div>
-              <p class="text-xs text-on-surface-variant">{{ c.content }}</p>
-            </div>
-          </div>
-          <div class="flex gap-2 pt-1">
-            <input
-              v-model="newCommentText"
-              type="text"
-              placeholder="Write a comment..."
-              @keyup.enter="handleAddComment"
-              class="flex-1 bg-surface-container-lowest border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs text-on-surface focus:outline-none focus:border-primary"
-            />
-            <UiButton size="sm" variant="secondary" @click="handleAddComment">Post</UiButton>
-          </div>
-        </div>
-
-        <div class="space-y-2 pt-3 border-t border-outline-variant">
-          <span class="text-[10px] font-mono uppercase text-muted">Update Task Status</span>
-          <div class="flex flex-wrap gap-2">
-            <button
-              v-for="st in columns"
-              :key="st"
-              @click="updateStatus(selectedTask.id, st)"
-              :class="['px-2.5 py-1 rounded text-xs font-mono transition', selectedTask.status === st ? 'bg-primary-container text-on-primary font-bold' : 'bg-surface-container-high text-on-surface-variant hover:text-on-surface']"
-            >
-              {{ st }}
-            </button>
-          </div>
-        </div>
-      </div>
-    </UiDrawer>
-
-    <!-- Modal Create Task -->
-    <UiModal :open="openModal" title="Create New Task" @close="openModal = false">
-      <div class="space-y-3">
-        <UiInput v-model="title" label="Task Title" placeholder="e.g. Implement API Endpoint" required />
-        <UiInput v-model="projectName" label="Project Name" placeholder="e.g. CRM SaaS Backend Engine" />
-        <UiInput v-model="description" label="Description" placeholder="Brief details about the task..." />
-      </div>
-      <template #footer>
-        <UiButton variant="ghost" @click="openModal = false">Cancel</UiButton>
-        <UiButton variant="primary" @click="handleCreate">Save Task</UiButton>
-      </template>
-    </UiModal>
-
-    <!-- Phase 2: Assignment Drawer -->
-    <AssignmentDrawer
-      v-model="openAssignmentDrawer"
-      :task="selectedTask"
-      @assigned="handleTaskAssigned"
+    <!-- Create Task Drawer -->
+    <CreateTaskDrawer
+      :open="showCreateDrawer"
+      @close="showCreateDrawer = false"
+      @created="loadData"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
-import { Plus, List, Kanban, Search } from '@lucide/vue'
+import { Plus, List, Kanban, Search, ChevronRight } from '@lucide/vue'
 import UiButton from '../../components/ui/UiButton.vue'
 import UiBadge from '../../components/ui/UiBadge.vue'
-import UiDrawer from '../../components/ui/UiDrawer.vue'
-import UiModal from '../../components/ui/UiModal.vue'
-import UiInput from '../../components/ui/UiInput.vue'
-import AssignmentDrawer from '../../components/workforce/AssignmentDrawer.vue'
-import InlineAgentWorkspace from '../../components/workforce/InlineAgentWorkspace.vue'
+import CreateTaskDrawer from '../../components/tasks/CreateTaskDrawer.vue'
 import { useWorkspaceStore } from '../../stores/workspace'
+import { useProjectStore } from '../../stores/project'
 import { useTaskStore } from '../../stores/task'
 import { useToast } from '../../composables/useToast'
-import type { Task, TaskStatus, ChecklistItem, TaskAssignment } from '../../types'
+import type { TaskStatus } from '../../types'
 
-const route = useRoute()
 const workspaceStore = useWorkspaceStore()
+const projectStore = useProjectStore()
 const taskStore = useTaskStore()
 const toast = useToast()
 
 const currentView = ref<'list' | 'board'>('list')
-const openModal = ref(false)
-const openDrawer = ref(false)
-const openAssignmentDrawer = ref(false)
-const selectedTask = ref<Task | null>(null)
-
-const handleTaskAssigned = (assignment: TaskAssignment) => {
-  if (selectedTask.value && selectedTask.value.id === assignment.taskId) {
-    selectedTask.value.assigneeName = assignment.employeeName
-    selectedTask.value.assigneeAvatar = assignment.employeeAvatar
-  }
-  taskStore.fetchTasksByWorkspace(workspaceStore.currentWorkspaceId)
-}
-
-const title = ref('')
-const projectName = ref('')
-const description = ref('')
-const newCommentText = ref('')
+const showCreateDrawer = ref(false)
 const statusFilter = ref('All')
 const searchQuery = ref('')
+const columns: TaskStatus[] = ['Todo', 'In Progress', 'Waiting', 'Review', 'Done']
 
-const columns: TaskStatus[] = ['Backlog', 'In Progress', 'Blocked', 'Done']
-
-const loadData = () => {
-  taskStore.fetchTasksByWorkspace(workspaceStore.currentWorkspaceId)
-  if (route.query.id) {
-    const t = taskStore.tasks.find((item) => item.id === route.query.id)
-    if (t) {
-      selectedTask.value = t
-      openDrawer.value = true
-    }
-  }
+const loadData = async () => {
+  const wsId = workspaceStore.currentWorkspaceId || 'ws-dev'
+  await projectStore.fetchProjectsByWorkspace(wsId)
+  await taskStore.fetchTasksByWorkspace(wsId)
 }
 
 onMounted(() => {
@@ -329,8 +201,12 @@ watch(() => workspaceStore.currentWorkspaceId, () => {
 
 const filteredTasks = computed(() => {
   return taskStore.tasks.filter((t) => {
-    const matchStatus = statusFilter.value === 'All' || t.status === statusFilter.value
-    const matchSearch = searchQuery.value.trim() === '' || t.title.toLowerCase().includes(searchQuery.value.toLowerCase())
+    const matchStatus =
+      statusFilter.value === 'All' ||
+      t.status === statusFilter.value
+    const matchSearch =
+      searchQuery.value.trim() === '' ||
+      t.title.toLowerCase().includes(searchQuery.value.toLowerCase())
     return matchStatus && matchSearch
   })
 })
@@ -340,57 +216,9 @@ const tasksByStatus = (status: TaskStatus) => {
 }
 
 const toggleDone = async (id: string, currentStatus: TaskStatus) => {
-  const newStatus = currentStatus === 'Done' ? 'In Progress' : 'Done'
+  const newStatus: TaskStatus = currentStatus === 'Done' ? 'Todo' : 'Done'
   await taskStore.updateTaskStatus(id, newStatus)
-  toast.show(newStatus === 'Done' ? 'Task Completed' : 'Task In Progress', undefined, 'success')
-}
-
-const updateStatus = async (id: string, status: TaskStatus) => {
-  await taskStore.updateTaskStatus(id, status)
-  if (selectedTask.value && selectedTask.value.id === id) {
-    selectedTask.value.status = status
-  }
-  toast.show(`Status updated to ${status}`, undefined, 'info')
-}
-
-const toggleChecklist = (chk: ChecklistItem) => {
-  chk.completed = !chk.completed
-  toast.show(chk.completed ? 'Checklist item resolved' : 'Checklist item reopened', undefined, 'info', 1500)
-}
-
-const handleAddComment = () => {
-  if (!newCommentText.value.trim() || !selectedTask.value) return
-  if (!selectedTask.value.comments) {
-    selectedTask.value.comments = []
-  }
-  selectedTask.value.comments.push({
-    id: `c-${Date.now()}`,
-    authorName: 'Satria Utama',
-    content: newCommentText.value,
-    createdAt: 'Just now'
-  })
-  newCommentText.value = ''
-  toast.show('Comment posted', undefined, 'success', 2000)
-}
-
-const handleCreate = async () => {
-  if (!title.value.trim()) return
-  await taskStore.createTask({
-    workspaceId: workspaceStore.currentWorkspaceId,
-    projectId: 'prj-satria-ui',
-    projectName: projectName.value || 'SATRIA AI Workforce UI',
-    title: title.value,
-    description: description.value || 'Task baru dari Task Command Center.',
-    status: 'In Progress',
-    priority: 'Medium',
-    assigneeName: 'Satria Utama',
-    dueDate: '2026-08-14',
-    tags: ['TaskCenter']
-  })
-  title.value = ''
-  projectName.value = ''
-  description.value = ''
-  openModal.value = false
-  toast.show('Task Created Successfully', 'Unit kerja baru telah ditambahkan ke workspace.', 'success')
+  toast.success(newStatus === 'Done' ? 'Task Completed' : 'Task reopened as Todo')
 }
 </script>
+

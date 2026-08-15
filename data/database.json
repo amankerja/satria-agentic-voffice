@@ -134,6 +134,26 @@
     {
       "workspaceId": "ws-dev",
       "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Workforce Task 1786795778384",
+      "description": "Automated task for end-to-end workforce assignment and quality gate review.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Satria Utama",
+      "dueDate": "2026-08-15",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786795778493",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T12:09:38.493Z",
+      "updatedAt": "2026-08-15T12:09:38.493Z"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
       "projectName": "HRIS",
       "title": "PRD HRIS",
       "description": "BUATKAN PRD HRIS DAN INSTAL STACK MENGGUNAAKN LARAVEL serta buakan login page dan seederdatanya",
@@ -154,6 +174,689 @@
       "assigneeAvatar": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=256&q=80",
       "activeAssignmentId": "asg-1786776395863",
       "activeRunId": "run-1786776395865"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Golden Path Task 1786791322170",
+      "description": "Automated end-to-end task run verifying full agentic workforce loop.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Satria Utama",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786791322350",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T10:55:22.350Z",
+      "updatedAt": "2026-08-15T10:55:22.350Z"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Golden Path Task 1786791359275",
+      "description": "Automated end-to-end task run verifying full agentic workforce loop.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Alex",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786791359414",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T10:55:59.414Z",
+      "updatedAt": "2026-08-15T10:56:01.899Z",
+      "assigneeId": "emp-alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "activeAssignmentId": "asg-1786791361895"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Golden Path Task 1786791417925",
+      "description": "Automated end-to-end task run verifying full agentic workforce loop.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Alex",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786791418078",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T10:56:58.079Z",
+      "updatedAt": "2026-08-15T10:57:00.565Z",
+      "assigneeId": "emp-alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "activeAssignmentId": "asg-1786791420560",
+      "activeRunId": "run-1786791420564"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Golden Path Task 1786791463843",
+      "description": "Automated end-to-end task run verifying full agentic workforce loop.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Alex",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786791463984",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T10:57:43.984Z",
+      "updatedAt": "2026-08-15T10:57:46.240Z",
+      "assigneeId": "emp-alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "activeAssignmentId": "asg-1786791466234",
+      "activeRunId": "run-1786791466239"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Golden Path Task 1786791508186",
+      "description": "Automated end-to-end task run verifying full agentic workforce loop.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Alex",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786791508339",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T10:58:28.339Z",
+      "updatedAt": "2026-08-15T10:58:30.773Z",
+      "assigneeId": "emp-alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "activeAssignmentId": "asg-1786791510767",
+      "activeRunId": "run-1786791510772"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Golden Path Task 1786791550927",
+      "description": "Automated end-to-end task run verifying full agentic workforce loop.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Alex",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786791551115",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T10:59:11.115Z",
+      "updatedAt": "2026-08-15T10:59:13.724Z",
+      "assigneeId": "emp-alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "activeAssignmentId": "asg-1786791553717",
+      "activeRunId": "run-1786791553723"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Golden Path Task 1786791592477",
+      "description": "Automated end-to-end task run verifying full agentic workforce loop.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Alex",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786791592638",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T10:59:52.638Z",
+      "updatedAt": "2026-08-15T10:59:55.163Z",
+      "assigneeId": "emp-alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "activeAssignmentId": "asg-1786791595157",
+      "activeRunId": "run-1786791595162"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Golden Path Task 1786791634171",
+      "description": "Automated end-to-end task run verifying full agentic workforce loop.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Alex",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786791634321",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:00:34.321Z",
+      "updatedAt": "2026-08-15T11:00:36.757Z",
+      "assigneeId": "emp-alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "activeAssignmentId": "asg-1786791636744"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Golden Path Task 1786791675112",
+      "description": "Automated end-to-end task run verifying full agentic workforce loop.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Alex",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786791675255",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:01:15.255Z",
+      "updatedAt": "2026-08-15T11:01:17.736Z",
+      "assigneeId": "emp-alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "activeAssignmentId": "asg-1786791677733"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Golden Path Task 1786791716446",
+      "description": "Automated end-to-end task run verifying full agentic workforce loop.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Alex",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786791716611",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:01:56.611Z",
+      "updatedAt": "2026-08-15T11:01:59.040Z",
+      "assigneeId": "emp-alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "activeAssignmentId": "asg-1786791719036",
+      "activeRunId": "run-1786791719040"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Golden Path Task 1786791758832",
+      "description": "Automated end-to-end task run verifying full agentic workforce loop.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Alex",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786791758996",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:02:38.996Z",
+      "updatedAt": "2026-08-15T11:02:41.574Z",
+      "assigneeId": "emp-alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "activeAssignmentId": "asg-1786791761567",
+      "activeRunId": "run-1786791761572"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Golden Path Task 1786791806149",
+      "description": "Automated end-to-end task run verifying full agentic workforce loop.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Alex",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786791806326",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:03:26.326Z",
+      "updatedAt": "2026-08-15T11:03:28.640Z",
+      "assigneeId": "emp-alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "activeAssignmentId": "asg-1786791808634",
+      "activeRunId": "run-1786791808639"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Golden Path Task 1786791849947",
+      "description": "Automated end-to-end task run verifying full agentic workforce loop.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Alex",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786791850100",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:04:10.100Z",
+      "updatedAt": "2026-08-15T11:04:12.393Z",
+      "assigneeId": "emp-alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "activeAssignmentId": "asg-1786791852390"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Golden Path Task 1786791889008",
+      "description": "Automated end-to-end task run verifying full agentic workforce loop.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Alex",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786791889176",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:04:49.176Z",
+      "updatedAt": "2026-08-15T11:04:51.842Z",
+      "assigneeId": "emp-alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "activeAssignmentId": "asg-1786791891839"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Golden Path Task 1786791933527",
+      "description": "Automated end-to-end task run verifying full agentic workforce loop.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Alex",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786791933676",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:05:33.676Z",
+      "updatedAt": "2026-08-15T11:05:36.108Z",
+      "assigneeId": "emp-alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "activeAssignmentId": "asg-1786791936106"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA AI Workforce Command",
+      "title": "Audit backend architecture tokens and verify se...",
+      "description": "Audit backend architecture tokens and verify security sandbox boundaries.",
+      "status": "In Progress",
+      "priority": "High",
+      "assigneeName": "Alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "AutoDispatched",
+        "AIWorkforce"
+      ],
+      "id": "tsk-1786791989854",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:06:29.854Z",
+      "updatedAt": "2026-08-15T11:06:29.861Z",
+      "activeRunId": "run-1786791989860"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Workforce Task 1786791990360",
+      "description": "Automated task for end-to-end workforce assignment and quality gate review.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Alex",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786791990550",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:06:30.550Z",
+      "updatedAt": "2026-08-15T11:06:32.909Z",
+      "assigneeId": "emp-alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "activeAssignmentId": "asg-1786791992906"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA AI Workforce Command",
+      "title": "Audit backend architecture tokens and verify se...",
+      "description": "Audit backend architecture tokens and verify security sandbox boundaries.",
+      "status": "In Progress",
+      "priority": "High",
+      "assigneeName": "Alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "AutoDispatched",
+        "AIWorkforce"
+      ],
+      "id": "tsk-1786792029300",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:07:09.300Z",
+      "updatedAt": "2026-08-15T11:07:09.307Z",
+      "activeRunId": "run-1786792029307"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Workforce Task 1786792029827",
+      "description": "Automated task for end-to-end workforce assignment and quality gate review.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Alex",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786792030016",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:07:10.016Z",
+      "updatedAt": "2026-08-15T11:07:12.509Z",
+      "assigneeId": "emp-alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "activeAssignmentId": "asg-1786792032505"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA AI Workforce Command",
+      "title": "Audit backend architecture tokens and verify se...",
+      "description": "Audit backend architecture tokens and verify security sandbox boundaries.",
+      "status": "In Progress",
+      "priority": "High",
+      "assigneeName": "Alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "AutoDispatched",
+        "AIWorkforce"
+      ],
+      "id": "tsk-1786792069084",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:07:49.084Z",
+      "updatedAt": "2026-08-15T11:07:49.092Z",
+      "activeRunId": "run-1786792069091"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Workforce Task 1786792069586",
+      "description": "Automated task for end-to-end workforce assignment and quality gate review.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Alex",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786792069722",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:07:49.722Z",
+      "updatedAt": "2026-08-15T11:07:52.006Z",
+      "assigneeId": "emp-alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "activeAssignmentId": "asg-1786792072003"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA AI Workforce Command",
+      "title": "Audit backend architecture tokens and verify se...",
+      "description": "Audit backend architecture tokens and verify security sandbox boundaries.",
+      "status": "In Progress",
+      "priority": "High",
+      "assigneeName": "Alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "AutoDispatched",
+        "AIWorkforce"
+      ],
+      "id": "tsk-1786792167539",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:09:27.539Z",
+      "updatedAt": "2026-08-15T11:09:27.543Z",
+      "activeRunId": "run-1786792167543"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Workforce Task 1786792167761",
+      "description": "Automated task for end-to-end workforce assignment and quality gate review.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Satria Utama",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786792167820",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:09:27.820Z",
+      "updatedAt": "2026-08-15T11:09:27.820Z"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA AI Workforce Command",
+      "title": "Audit backend architecture tokens and verify se...",
+      "description": "Audit backend architecture tokens and verify security sandbox boundaries.",
+      "status": "In Progress",
+      "priority": "High",
+      "assigneeName": "Alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "AutoDispatched",
+        "AIWorkforce"
+      ],
+      "id": "tsk-1786792213386",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:10:13.386Z",
+      "updatedAt": "2026-08-15T11:10:13.390Z",
+      "activeRunId": "run-1786792213389"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Workforce Task 1786792213893",
+      "description": "Automated task for end-to-end workforce assignment and quality gate review.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Satria Utama",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786792213970",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:10:13.970Z",
+      "updatedAt": "2026-08-15T11:10:13.970Z"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA AI Workforce Command",
+      "title": "Audit backend architecture tokens and verify se...",
+      "description": "Audit backend architecture tokens and verify security sandbox boundaries.",
+      "status": "In Progress",
+      "priority": "High",
+      "assigneeName": "Alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "AutoDispatched",
+        "AIWorkforce"
+      ],
+      "id": "tsk-1786793945950",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:39:05.950Z",
+      "updatedAt": "2026-08-15T11:39:05.953Z",
+      "activeRunId": "run-1786793945953"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Workforce Task 1786793946192",
+      "description": "Automated task for end-to-end workforce assignment and quality gate review.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Satria Utama",
+      "dueDate": "2026-08-15",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786793946249",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:39:06.249Z",
+      "updatedAt": "2026-08-15T11:39:06.249Z"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA AI Workforce Command",
+      "title": "Audit backend architecture tokens and verify se...",
+      "description": "Audit backend architecture tokens and verify security sandbox boundaries.",
+      "status": "In Progress",
+      "priority": "High",
+      "assigneeName": "Alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "AutoDispatched",
+        "AIWorkforce"
+      ],
+      "id": "tsk-1786793981432",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:39:41.432Z",
+      "updatedAt": "2026-08-15T11:39:41.435Z",
+      "activeRunId": "run-1786793981434"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA E2E Pipeline",
+      "title": "E2E Workforce Task 1786793981655",
+      "description": "Automated task for end-to-end workforce assignment and quality gate review.",
+      "status": "In Progress",
+      "priority": "Medium",
+      "assigneeName": "Satria Utama",
+      "dueDate": "2026-08-15",
+      "tags": [
+        "TaskCenter"
+      ],
+      "id": "tsk-1786793981758",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T11:39:41.758Z",
+      "updatedAt": "2026-08-15T11:39:41.758Z"
+    },
+    {
+      "workspaceId": "ws-dev",
+      "projectId": "prj-satria-ui",
+      "projectName": "SATRIA AI Workforce Command",
+      "title": "Audit backend architecture tokens and verify se...",
+      "description": "Audit backend architecture tokens and verify security sandbox boundaries.",
+      "status": "In Progress",
+      "priority": "High",
+      "assigneeName": "Alex",
+      "assigneeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "dueDate": "2026-08-14",
+      "tags": [
+        "AutoDispatched",
+        "AIWorkforce"
+      ],
+      "id": "tsk-1786795778193",
+      "progress": 0,
+      "checklist": [],
+      "comments": [],
+      "createdAt": "2026-08-15T12:09:38.193Z",
+      "updatedAt": "2026-08-15T12:09:38.197Z",
+      "activeRunId": "run-1786795778197"
     },
     {
       "id": "tsk-alex-01",
@@ -1592,6 +2295,312 @@
       "updatedAt": "2026-08-15T06:46:35.863Z"
     },
     {
+      "taskId": "tsk-1786791359414",
+      "taskTitle": "E2E Golden Path Task 1786791359275",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "assignedBy": "Satria Lead / Planner",
+      "skillIds": [
+        "skill-frontend-dev",
+        "skill-planning"
+      ],
+      "priority": "Medium",
+      "status": "Assigned",
+      "id": "asg-1786791361895",
+      "createdAt": "2026-08-15T10:56:01.895Z",
+      "updatedAt": "2026-08-15T10:56:01.896Z"
+    },
+    {
+      "taskId": "tsk-1786791418078",
+      "taskTitle": "E2E Golden Path Task 1786791417925",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "assignedBy": "Satria Lead / Planner",
+      "skillIds": [
+        "skill-frontend-dev",
+        "skill-planning"
+      ],
+      "priority": "Medium",
+      "status": "In Progress",
+      "id": "asg-1786791420560",
+      "createdAt": "2026-08-15T10:57:00.560Z",
+      "updatedAt": "2026-08-15T10:57:00.560Z"
+    },
+    {
+      "taskId": "tsk-1786791463984",
+      "taskTitle": "E2E Golden Path Task 1786791463843",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "assignedBy": "Satria Lead / Planner",
+      "skillIds": [
+        "skill-frontend-dev",
+        "skill-planning"
+      ],
+      "priority": "Medium",
+      "status": "In Progress",
+      "id": "asg-1786791466234",
+      "createdAt": "2026-08-15T10:57:46.234Z",
+      "updatedAt": "2026-08-15T10:57:46.234Z"
+    },
+    {
+      "taskId": "tsk-1786791508339",
+      "taskTitle": "E2E Golden Path Task 1786791508186",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "assignedBy": "Satria Lead / Planner",
+      "skillIds": [
+        "skill-frontend-dev",
+        "skill-planning"
+      ],
+      "priority": "Medium",
+      "status": "In Progress",
+      "id": "asg-1786791510767",
+      "createdAt": "2026-08-15T10:58:30.767Z",
+      "updatedAt": "2026-08-15T10:58:30.767Z"
+    },
+    {
+      "taskId": "tsk-1786791551115",
+      "taskTitle": "E2E Golden Path Task 1786791550927",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "assignedBy": "Satria Lead / Planner",
+      "skillIds": [
+        "skill-frontend-dev",
+        "skill-planning"
+      ],
+      "priority": "Medium",
+      "status": "In Progress",
+      "id": "asg-1786791553717",
+      "createdAt": "2026-08-15T10:59:13.717Z",
+      "updatedAt": "2026-08-15T10:59:13.717Z"
+    },
+    {
+      "taskId": "tsk-1786791592638",
+      "taskTitle": "E2E Golden Path Task 1786791592477",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "assignedBy": "Satria Lead / Planner",
+      "skillIds": [
+        "skill-frontend-dev",
+        "skill-planning"
+      ],
+      "priority": "Medium",
+      "status": "In Progress",
+      "id": "asg-1786791595157",
+      "createdAt": "2026-08-15T10:59:55.157Z",
+      "updatedAt": "2026-08-15T10:59:55.157Z"
+    },
+    {
+      "taskId": "tsk-1786791634321",
+      "taskTitle": "E2E Golden Path Task 1786791634171",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "assignedBy": "Satria Lead / Planner",
+      "skillIds": [
+        "skill-frontend-dev",
+        "skill-planning"
+      ],
+      "priority": "Medium",
+      "status": "Assigned",
+      "id": "asg-1786791636744",
+      "createdAt": "2026-08-15T11:00:36.744Z",
+      "updatedAt": "2026-08-15T11:00:36.744Z"
+    },
+    {
+      "taskId": "tsk-1786791675255",
+      "taskTitle": "E2E Golden Path Task 1786791675112",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "assignedBy": "Satria Lead / Planner",
+      "skillIds": [
+        "skill-frontend-dev",
+        "skill-planning"
+      ],
+      "priority": "Medium",
+      "status": "Assigned",
+      "id": "asg-1786791677733",
+      "createdAt": "2026-08-15T11:01:17.733Z",
+      "updatedAt": "2026-08-15T11:01:17.733Z"
+    },
+    {
+      "taskId": "tsk-1786791716611",
+      "taskTitle": "E2E Golden Path Task 1786791716446",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "assignedBy": "Satria Lead / Planner",
+      "skillIds": [
+        "skill-frontend-dev",
+        "skill-planning"
+      ],
+      "priority": "Medium",
+      "status": "In Progress",
+      "id": "asg-1786791719036",
+      "createdAt": "2026-08-15T11:01:59.036Z",
+      "updatedAt": "2026-08-15T11:01:59.036Z"
+    },
+    {
+      "taskId": "tsk-1786791758996",
+      "taskTitle": "E2E Golden Path Task 1786791758832",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "assignedBy": "Satria Lead / Planner",
+      "skillIds": [
+        "skill-frontend-dev",
+        "skill-planning"
+      ],
+      "priority": "Medium",
+      "status": "In Progress",
+      "id": "asg-1786791761567",
+      "createdAt": "2026-08-15T11:02:41.567Z",
+      "updatedAt": "2026-08-15T11:02:41.567Z"
+    },
+    {
+      "taskId": "tsk-1786791806326",
+      "taskTitle": "E2E Golden Path Task 1786791806149",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "assignedBy": "Satria Lead / Planner",
+      "skillIds": [
+        "skill-frontend-dev",
+        "skill-planning"
+      ],
+      "priority": "Medium",
+      "status": "In Progress",
+      "id": "asg-1786791808634",
+      "createdAt": "2026-08-15T11:03:28.634Z",
+      "updatedAt": "2026-08-15T11:03:28.634Z"
+    },
+    {
+      "taskId": "tsk-1786791850100",
+      "taskTitle": "E2E Golden Path Task 1786791849947",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "assignedBy": "Satria Lead / Planner",
+      "skillIds": [
+        "skill-frontend-dev",
+        "skill-planning"
+      ],
+      "priority": "Medium",
+      "status": "Assigned",
+      "id": "asg-1786791852390",
+      "createdAt": "2026-08-15T11:04:12.390Z",
+      "updatedAt": "2026-08-15T11:04:12.390Z"
+    },
+    {
+      "taskId": "tsk-1786791889176",
+      "taskTitle": "E2E Golden Path Task 1786791889008",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "assignedBy": "Satria Lead / Planner",
+      "skillIds": [
+        "skill-frontend-dev",
+        "skill-planning"
+      ],
+      "priority": "Medium",
+      "status": "Assigned",
+      "id": "asg-1786791891839",
+      "createdAt": "2026-08-15T11:04:51.839Z",
+      "updatedAt": "2026-08-15T11:04:51.839Z"
+    },
+    {
+      "taskId": "tsk-1786791933676",
+      "taskTitle": "E2E Golden Path Task 1786791933527",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "assignedBy": "Satria Lead / Planner",
+      "skillIds": [
+        "skill-frontend-dev",
+        "skill-planning"
+      ],
+      "priority": "Medium",
+      "status": "Assigned",
+      "id": "asg-1786791936106",
+      "createdAt": "2026-08-15T11:05:36.106Z",
+      "updatedAt": "2026-08-15T11:05:36.106Z"
+    },
+    {
+      "taskId": "tsk-1786791990550",
+      "taskTitle": "E2E Workforce Task 1786791990360",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "assignedBy": "Satria Lead / Planner",
+      "skillIds": [
+        "skill-frontend-dev",
+        "skill-planning"
+      ],
+      "priority": "Medium",
+      "status": "Assigned",
+      "id": "asg-1786791992906",
+      "createdAt": "2026-08-15T11:06:32.906Z",
+      "updatedAt": "2026-08-15T11:06:32.906Z"
+    },
+    {
+      "taskId": "tsk-1786792030016",
+      "taskTitle": "E2E Workforce Task 1786792029827",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "assignedBy": "Satria Lead / Planner",
+      "skillIds": [
+        "skill-frontend-dev",
+        "skill-planning"
+      ],
+      "priority": "Medium",
+      "status": "Assigned",
+      "id": "asg-1786792032505",
+      "createdAt": "2026-08-15T11:07:12.505Z",
+      "updatedAt": "2026-08-15T11:07:12.505Z"
+    },
+    {
+      "taskId": "tsk-1786792069722",
+      "taskTitle": "E2E Workforce Task 1786792069586",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "assignedBy": "Satria Lead / Planner",
+      "skillIds": [
+        "skill-frontend-dev",
+        "skill-planning"
+      ],
+      "priority": "Medium",
+      "status": "Assigned",
+      "id": "asg-1786792072003",
+      "createdAt": "2026-08-15T11:07:52.003Z",
+      "updatedAt": "2026-08-15T11:07:52.003Z"
+    },
+    {
       "id": "asg-tsk-alex-01",
       "taskId": "tsk-alex-01",
       "taskTitle": "Design and implement responsive task matrix layout",
@@ -1834,6 +2843,425 @@
       "id": "run-1786785163134",
       "createdAt": "2026-08-15T09:12:43.134Z",
       "updatedAt": "2026-08-15T09:29:59.958Z"
+    },
+    {
+      "assignmentId": "asg-1786791420560",
+      "taskId": "tsk-1786791418078",
+      "taskTitle": "E2E Golden Path Task 1786791417925",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "status": "Failed",
+      "attempt": 1,
+      "currentStep": "Initializing",
+      "progress": 5,
+      "logs": [
+        {
+          "id": "log-1786791420564-init",
+          "timestamp": "6:57:00 PM",
+          "step": "Initializing",
+          "message": "Starting execution run (Attempt #1) for task \"E2E Golden Path Task 1786791417925\".",
+          "level": "info"
+        }
+      ],
+      "startedAt": "2026-08-15T10:57:00.564Z",
+      "id": "run-1786791420564",
+      "createdAt": "2026-08-15T10:57:00.564Z",
+      "updatedAt": "2026-08-15T10:57:00.637Z",
+      "error": "Hermes execution failed: Hermes API error (500): Internal Server Error"
+    },
+    {
+      "assignmentId": "asg-1786791466234",
+      "taskId": "tsk-1786791463984",
+      "taskTitle": "E2E Golden Path Task 1786791463843",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "status": "Failed",
+      "attempt": 1,
+      "currentStep": "Initializing",
+      "progress": 5,
+      "logs": [
+        {
+          "id": "log-1786791466239-init",
+          "timestamp": "6:57:46 PM",
+          "step": "Initializing",
+          "message": "Starting execution run (Attempt #1) for task \"E2E Golden Path Task 1786791463843\".",
+          "level": "info"
+        }
+      ],
+      "startedAt": "2026-08-15T10:57:46.239Z",
+      "id": "run-1786791466239",
+      "createdAt": "2026-08-15T10:57:46.239Z",
+      "updatedAt": "2026-08-15T10:57:46.309Z",
+      "error": "Hermes execution failed: Hermes API error (500): Internal Server Error"
+    },
+    {
+      "assignmentId": "asg-1786791510767",
+      "taskId": "tsk-1786791508339",
+      "taskTitle": "E2E Golden Path Task 1786791508186",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "status": "Running",
+      "attempt": 1,
+      "currentStep": "Initializing",
+      "progress": 5,
+      "logs": [
+        {
+          "id": "log-1786791510772-init",
+          "timestamp": "6:58:30 PM",
+          "step": "Initializing",
+          "message": "Starting execution run (Attempt #1) for task \"E2E Golden Path Task 1786791508186\".",
+          "level": "info"
+        }
+      ],
+      "startedAt": "2026-08-15T10:58:30.772Z",
+      "id": "run-1786791510772",
+      "createdAt": "2026-08-15T10:58:30.772Z",
+      "updatedAt": "2026-08-15T10:58:30.772Z"
+    },
+    {
+      "assignmentId": "asg-1786791553717",
+      "taskId": "tsk-1786791551115",
+      "taskTitle": "E2E Golden Path Task 1786791550927",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "status": "Running",
+      "attempt": 1,
+      "currentStep": "Initializing",
+      "progress": 5,
+      "logs": [
+        {
+          "id": "log-1786791553723-init",
+          "timestamp": "6:59:13 PM",
+          "step": "Initializing",
+          "message": "Starting execution run (Attempt #1) for task \"E2E Golden Path Task 1786791550927\".",
+          "level": "info"
+        }
+      ],
+      "startedAt": "2026-08-15T10:59:13.723Z",
+      "id": "run-1786791553723",
+      "createdAt": "2026-08-15T10:59:13.723Z",
+      "updatedAt": "2026-08-15T10:59:13.723Z"
+    },
+    {
+      "assignmentId": "asg-1786791595157",
+      "taskId": "tsk-1786791592638",
+      "taskTitle": "E2E Golden Path Task 1786791592477",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "status": "Running",
+      "attempt": 1,
+      "currentStep": "Initializing",
+      "progress": 5,
+      "logs": [
+        {
+          "id": "log-1786791595162-init",
+          "timestamp": "6:59:55 PM",
+          "step": "Initializing",
+          "message": "Starting execution run (Attempt #1) for task \"E2E Golden Path Task 1786791592477\".",
+          "level": "info"
+        }
+      ],
+      "startedAt": "2026-08-15T10:59:55.162Z",
+      "id": "run-1786791595162",
+      "createdAt": "2026-08-15T10:59:55.162Z",
+      "updatedAt": "2026-08-15T10:59:55.162Z"
+    },
+    {
+      "assignmentId": "asg-1786791719036",
+      "taskId": "tsk-1786791716611",
+      "taskTitle": "E2E Golden Path Task 1786791716446",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "status": "Running",
+      "attempt": 1,
+      "currentStep": "Initializing",
+      "progress": 5,
+      "logs": [
+        {
+          "id": "log-1786791719040-init",
+          "timestamp": "7:01:59 PM",
+          "step": "Initializing",
+          "message": "Starting execution run (Attempt #1) for task \"E2E Golden Path Task 1786791716446\".",
+          "level": "info"
+        }
+      ],
+      "startedAt": "2026-08-15T11:01:59.040Z",
+      "id": "run-1786791719040",
+      "createdAt": "2026-08-15T11:01:59.040Z",
+      "updatedAt": "2026-08-15T11:01:59.040Z"
+    },
+    {
+      "assignmentId": "asg-1786791761567",
+      "taskId": "tsk-1786791758996",
+      "taskTitle": "E2E Golden Path Task 1786791758832",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "status": "Running",
+      "attempt": 1,
+      "currentStep": "Initializing",
+      "progress": 5,
+      "logs": [
+        {
+          "id": "log-1786791761572-init",
+          "timestamp": "7:02:41 PM",
+          "step": "Initializing",
+          "message": "Starting execution run (Attempt #1) for task \"E2E Golden Path Task 1786791758832\".",
+          "level": "info"
+        }
+      ],
+      "startedAt": "2026-08-15T11:02:41.572Z",
+      "id": "run-1786791761572",
+      "createdAt": "2026-08-15T11:02:41.573Z",
+      "updatedAt": "2026-08-15T11:02:41.573Z"
+    },
+    {
+      "assignmentId": "asg-1786791808634",
+      "taskId": "tsk-1786791806326",
+      "taskTitle": "E2E Golden Path Task 1786791806149",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "status": "Running",
+      "attempt": 1,
+      "currentStep": "Initializing",
+      "progress": 5,
+      "logs": [
+        {
+          "id": "log-1786791808639-init",
+          "timestamp": "7:03:28 PM",
+          "step": "Initializing",
+          "message": "Starting execution run (Attempt #1) for task \"E2E Golden Path Task 1786791806149\".",
+          "level": "info"
+        }
+      ],
+      "startedAt": "2026-08-15T11:03:28.639Z",
+      "id": "run-1786791808639",
+      "createdAt": "2026-08-15T11:03:28.639Z",
+      "updatedAt": "2026-08-15T11:03:28.639Z"
+    },
+    {
+      "assignmentId": "asg-quick-1786791989859",
+      "taskId": "tsk-1786791989854",
+      "taskTitle": "Audit backend architecture tokens and verify se...",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "status": "Running",
+      "attempt": 1,
+      "currentStep": "Initializing",
+      "progress": 5,
+      "logs": [
+        {
+          "id": "log-1786791989860-init",
+          "timestamp": "7:06:29 PM",
+          "step": "Initializing",
+          "message": "Starting execution run (Attempt #1) for task \"Audit backend architecture tokens and verify se...\".",
+          "level": "info"
+        }
+      ],
+      "startedAt": "2026-08-15T11:06:29.860Z",
+      "id": "run-1786791989860",
+      "createdAt": "2026-08-15T11:06:29.860Z",
+      "updatedAt": "2026-08-15T11:06:29.860Z"
+    },
+    {
+      "assignmentId": "asg-quick-1786792029306",
+      "taskId": "tsk-1786792029300",
+      "taskTitle": "Audit backend architecture tokens and verify se...",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "status": "Running",
+      "attempt": 1,
+      "currentStep": "Initializing",
+      "progress": 5,
+      "logs": [
+        {
+          "id": "log-1786792029306-init",
+          "timestamp": "7:07:09 PM",
+          "step": "Initializing",
+          "message": "Starting execution run (Attempt #1) for task \"Audit backend architecture tokens and verify se...\".",
+          "level": "info"
+        }
+      ],
+      "startedAt": "2026-08-15T11:07:09.307Z",
+      "id": "run-1786792029307",
+      "createdAt": "2026-08-15T11:07:09.307Z",
+      "updatedAt": "2026-08-15T11:07:09.307Z"
+    },
+    {
+      "assignmentId": "asg-quick-1786792069091",
+      "taskId": "tsk-1786792069084",
+      "taskTitle": "Audit backend architecture tokens and verify se...",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "status": "Running",
+      "attempt": 1,
+      "currentStep": "Initializing",
+      "progress": 5,
+      "logs": [
+        {
+          "id": "log-1786792069091-init",
+          "timestamp": "7:07:49 PM",
+          "step": "Initializing",
+          "message": "Starting execution run (Attempt #1) for task \"Audit backend architecture tokens and verify se...\".",
+          "level": "info"
+        }
+      ],
+      "startedAt": "2026-08-15T11:07:49.091Z",
+      "id": "run-1786792069091",
+      "createdAt": "2026-08-15T11:07:49.091Z",
+      "updatedAt": "2026-08-15T11:07:49.091Z"
+    },
+    {
+      "assignmentId": "asg-quick-1786792167542",
+      "taskId": "tsk-1786792167539",
+      "taskTitle": "Audit backend architecture tokens and verify se...",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "status": "Running",
+      "attempt": 1,
+      "currentStep": "Initializing",
+      "progress": 5,
+      "logs": [
+        {
+          "id": "log-1786792167543-init",
+          "timestamp": "7:09:27 PM",
+          "step": "Initializing",
+          "message": "Starting execution run (Attempt #1) for task \"Audit backend architecture tokens and verify se...\".",
+          "level": "info"
+        }
+      ],
+      "startedAt": "2026-08-15T11:09:27.543Z",
+      "id": "run-1786792167543",
+      "createdAt": "2026-08-15T11:09:27.543Z",
+      "updatedAt": "2026-08-15T11:09:27.543Z"
+    },
+    {
+      "assignmentId": "asg-quick-1786792213389",
+      "taskId": "tsk-1786792213386",
+      "taskTitle": "Audit backend architecture tokens and verify se...",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "status": "Running",
+      "attempt": 1,
+      "currentStep": "Initializing",
+      "progress": 5,
+      "logs": [
+        {
+          "id": "log-1786792213389-init",
+          "timestamp": "7:10:13 PM",
+          "step": "Initializing",
+          "message": "Starting execution run (Attempt #1) for task \"Audit backend architecture tokens and verify se...\".",
+          "level": "info"
+        }
+      ],
+      "startedAt": "2026-08-15T11:10:13.389Z",
+      "id": "run-1786792213389",
+      "createdAt": "2026-08-15T11:10:13.389Z",
+      "updatedAt": "2026-08-15T11:10:13.389Z"
+    },
+    {
+      "assignmentId": "asg-quick-1786793945953",
+      "taskId": "tsk-1786793945950",
+      "taskTitle": "Audit backend architecture tokens and verify se...",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "status": "Running",
+      "currentStep": "Initializing",
+      "progress": 5,
+      "attempt": 1,
+      "logs": [
+        {
+          "id": "log-1786793945953-init",
+          "timestamp": "7:39:05 PM",
+          "step": "Initializing",
+          "message": "Digital employee Alex runtime initialized for task \"Audit backend architecture tokens and verify se...\".",
+          "level": "info"
+        }
+      ],
+      "startedAt": "2026-08-15T11:39:05.953Z",
+      "id": "run-1786793945953",
+      "createdAt": "2026-08-15T11:39:05.953Z",
+      "updatedAt": "2026-08-15T11:39:05.953Z"
+    },
+    {
+      "assignmentId": "asg-quick-1786793981434",
+      "taskId": "tsk-1786793981432",
+      "taskTitle": "Audit backend architecture tokens and verify se...",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "status": "Running",
+      "currentStep": "Initializing",
+      "progress": 5,
+      "attempt": 1,
+      "logs": [
+        {
+          "id": "log-1786793981434-init",
+          "timestamp": "7:39:41 PM",
+          "step": "Initializing",
+          "message": "Digital employee Alex runtime initialized for task \"Audit backend architecture tokens and verify se...\".",
+          "level": "info"
+        }
+      ],
+      "startedAt": "2026-08-15T11:39:41.434Z",
+      "id": "run-1786793981434",
+      "createdAt": "2026-08-15T11:39:41.434Z",
+      "updatedAt": "2026-08-15T11:39:41.434Z"
+    },
+    {
+      "assignmentId": "asg-quick-1786795778197",
+      "taskId": "tsk-1786795778193",
+      "taskTitle": "Audit backend architecture tokens and verify se...",
+      "employeeId": "emp-alex",
+      "employeeName": "Alex",
+      "employeeAvatar": "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+      "employeeRole": "UI/UX Frontend",
+      "status": "Running",
+      "currentStep": "Initializing",
+      "progress": 5,
+      "attempt": 1,
+      "logs": [
+        {
+          "id": "log-1786795778197-init",
+          "timestamp": "8:09:38 PM",
+          "step": "Initializing",
+          "message": "Digital employee Alex runtime initialized for task \"Audit backend architecture tokens and verify se...\".",
+          "level": "info"
+        }
+      ],
+      "startedAt": "2026-08-15T12:09:38.197Z",
+      "id": "run-1786795778197",
+      "createdAt": "2026-08-15T12:09:38.197Z",
+      "updatedAt": "2026-08-15T12:09:38.198Z",
+      "injectedMemories": []
     }
   ],
   "run_results": [],

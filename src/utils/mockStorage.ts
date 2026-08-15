@@ -21,7 +21,9 @@ export const STORAGE_KEYS = {
   ASSIGNMENTS: 'satria_v1_assignments',
   AGENT_RUNS: 'satria_v1_agent_runs',
   RUN_RESULTS: 'satria_v1_run_results',
-  TASK_REVIEWS: 'satria_v1_task_reviews'
+  TASK_REVIEWS: 'satria_v1_task_reviews',
+  MEMORIES: 'satria_v1_memories',
+  SCHEDULES: 'satria_v1_schedules'
 } as const
 
 function getStorage(): Storage | null {

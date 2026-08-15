@@ -15,7 +15,9 @@ import type {
   TaskAssignment,
   AgentRun,
   RunResult,
-  TaskReview
+  TaskReview,
+  AgentMemoryItem,
+  Schedule
 } from '../types'
 import * as seed from '../database/initialSeed'
 
@@ -36,3 +38,6 @@ export const mockAssignments: TaskAssignment[] = JSON.parse(JSON.stringify(seed.
 export const mockAgentRuns: AgentRun[] = JSON.parse(JSON.stringify(seed.initialAgentRuns))
 export const mockRunResults: RunResult[] = JSON.parse(JSON.stringify(seed.initialRunResults))
 export const mockTaskReviews: TaskReview[] = JSON.parse(JSON.stringify(seed.initialTaskReviews))
+export const mockMemories: AgentMemoryItem[] = JSON.parse(JSON.stringify(seed.initialMemories))
+export const mockSchedules: Schedule[] = JSON.parse(JSON.stringify(seed.initialSchedules))
+

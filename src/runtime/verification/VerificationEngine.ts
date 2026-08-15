@@ -191,7 +191,7 @@ export class VerificationEngine {
     const score = checks.length > 0 ? Math.round((totalPassed / checks.length) * 100) : 100
 
     // Quality Gate Decision Logic:
-    let status: VerificationStatus = 'Pending'
+    let status: VerificationStatus
     if (hasFatalFailure) {
       status = 'Failed'
     } else if (hasWarning || score < 100) {

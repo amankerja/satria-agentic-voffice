@@ -1,5 +1,6 @@
 import type { AgentRunInput } from '../types'
 import { SkillLoader } from './SkillLoader'
+import { MemoryRecallFormatter } from './MemoryRecallFormatter'
 
 export interface BuiltAgentContext {
   systemPrompt: string
@@ -10,6 +11,7 @@ export interface BuiltAgentContext {
     department: string
     toolCount: number
     skillCount: number
+    memoryCount: number
   }
 }
 
@@ -25,10 +27,12 @@ export class ContextBuilder {
       workspacePath,
       taskPrompt,
       acceptanceCriteria = [],
-      instructions
+      instructions,
+      memories = []
     } = input
 
     const skillInstructions = SkillLoader.formatSkillsPrompt(SkillLoader.loadSkills(skills || []))
+    const memoryInstructions = MemoryRecallFormatter.format(memories)
     const toolList =
       tools && tools.length > 0
         ? tools.map((t) => `- ${t.name}: ${t.description} (Access: ${t.permissionLevel})`).join('\n')
@@ -49,6 +53,9 @@ ${toolList}
 
 ### ATTACHED SKILLS & GUIDELINES:
 ${skillInstructions}
+
+### RECALLED AGENT MEMORIES & LESSONS (PAST EXPERIENCE):
+${memoryInstructions}
 
 ### SECURITY & EXECUTION POLICY:
 1. You may ONLY read and write files within the assigned workspace path: "${workspacePath}".
@@ -80,7 +87,8 @@ Please analyze the workspace, plan your approach, execute changes safely, and ve
         employeeRole: employee.roleName,
         department: employee.departmentName,
         toolCount: (tools || []).length,
-        skillCount: (skills || []).length
+        skillCount: (skills || []).length,
+        memoryCount: (memories || []).length
       }
     }
   }

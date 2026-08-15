@@ -93,7 +93,7 @@ export class MockAgentRunner {
       return false
     }
 
-    let progress = initialProgress
+    const progress = initialProgress
     let currentStepIdx = 0
     while (
       currentStepIdx < EXECUTION_STEPS.length - 1 &&

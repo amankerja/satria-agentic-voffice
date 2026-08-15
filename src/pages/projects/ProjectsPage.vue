@@ -1,11 +1,14 @@
 <template>
   <div class="space-y-6">
-    <div class="border-b border-[#242c27] pb-5 flex items-center justify-between">
+    <div class="border-b border-outline-variant pb-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-2xl font-bold text-[#dde4dd]">Projects Directory</h1>
-        <p class="text-xs text-[#86948a] mt-1">Daftar proyek di {{ workspaceStore.currentWorkspace?.name }}</p>
+        <div class="flex items-center gap-2.5">
+          <h1 class="text-2xl font-bold text-on-surface">Projects Directory</h1>
+          <UiBadge variant="info" size="sm" class="font-mono">{{ projectStore.projects.length }} Projects</UiBadge>
+        </div>
+        <p class="text-xs text-muted mt-1">Configure project workspaces, target directory paths, and default assigned workers.</p>
       </div>
-      <UiButton size="sm" variant="primary" :icon="Plus" @click="openModal = true">
+      <UiButton size="sm" variant="primary" :icon="Plus" @click="showCreateModal = true">
         New Project
       </UiButton>
     </div>
@@ -20,49 +23,58 @@
       >
         <template #header>
           <div class="flex items-center justify-between w-full">
-            <span class="font-semibold text-sm text-[#dde4dd] truncate">{{ prj.name }}</span>
-            <UiBadge :variant="prj.status === 'On Track' ? 'success' : 'warning'" size="sm">{{ prj.status }}</UiBadge>
+            <span class="font-bold text-sm text-on-surface truncate">{{ prj.name }}</span>
+            <UiBadge :variant="prj.status === 'Active' ? 'success' : prj.status === 'Completed' ? 'info' : 'warning'" size="sm">{{ prj.status }}</UiBadge>
           </div>
         </template>
-        <p class="text-xs text-[#86948a] mb-4 h-10 line-clamp-2">{{ prj.description }}</p>
+        <p class="text-xs text-muted mb-3 h-9 line-clamp-2">{{ prj.description }}</p>
+
+        <!-- Folder Path & Default Worker -->
+        <div class="space-y-1.5 pb-3 mb-3 border-b border-outline-variant/60 text-xs">
+          <div class="flex items-center gap-1.5 font-mono text-[11px] text-muted truncate">
+            <Folder class="w-3.5 h-3.5 text-primary shrink-0" />
+            <span class="text-on-surface truncate">{{ prj.path }}</span>
+          </div>
+          <div v-if="prj.defaultWorkerName" class="flex items-center gap-1.5 text-[11px] text-muted">
+            <Users class="w-3.5 h-3.5 text-secondary shrink-0" />
+            <span>Default: <strong class="text-on-surface">{{ prj.defaultWorkerName }}</strong></span>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between text-xs font-mono mb-1.5">
+          <span class="text-muted">{{ prj.completedTaskCount || 0 }} / {{ prj.taskCount || 0 }} tasks</span>
+          <span class="text-primary font-bold">{{ prj.progress }}%</span>
+        </div>
         <UiProgress :value="prj.progress" />
       </UiCard>
     </div>
 
-    <!-- Modal Create Project -->
-    <UiModal :open="openModal" title="Create New Project" @close="openModal = false">
-      <div class="space-y-3">
-        <UiInput v-model="name" label="Project Name" placeholder="e.g. Analytics Platform" required />
-        <UiInput v-model="desc" label="Description" placeholder="Ringkasan proyek..." />
-      </div>
-      <template #footer>
-        <UiButton variant="ghost" @click="openModal = false">Cancel</UiButton>
-        <UiButton variant="primary" @click="handleCreate">Save Project</UiButton>
-      </template>
-    </UiModal>
+    <!-- Create Project Modal -->
+    <CreateProjectModal
+      :open="showCreateModal"
+      @close="showCreateModal = false"
+      @created="loadData"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { Plus } from '@lucide/vue'
+import { Plus, Folder, Users } from '@lucide/vue'
 import UiButton from '../../components/ui/UiButton.vue'
 import UiCard from '../../components/ui/UiCard.vue'
 import UiBadge from '../../components/ui/UiBadge.vue'
 import UiProgress from '../../components/ui/UiProgress.vue'
-import UiModal from '../../components/ui/UiModal.vue'
-import UiInput from '../../components/ui/UiInput.vue'
+import CreateProjectModal from '../../components/projects/CreateProjectModal.vue'
 import { useWorkspaceStore } from '../../stores/workspace'
 import { useProjectStore } from '../../stores/project'
 
 const workspaceStore = useWorkspaceStore()
 const projectStore = useProjectStore()
-const openModal = ref(false)
-const name = ref('')
-const desc = ref('')
+const showCreateModal = ref(false)
 
 const loadData = () => {
-  projectStore.fetchProjectsByWorkspace(workspaceStore.currentWorkspaceId)
+  projectStore.fetchProjectsByWorkspace(workspaceStore.currentWorkspaceId || 'ws-dev')
 }
 
 onMounted(() => {
@@ -72,18 +84,5 @@ onMounted(() => {
 watch(() => workspaceStore.currentWorkspaceId, () => {
   loadData()
 })
-
-const handleCreate = async () => {
-  if (!name.value.trim()) return
-  await projectStore.createProject({
-    workspaceId: workspaceStore.currentWorkspaceId,
-    name: name.value,
-    description: desc.value || 'Proyek baru.',
-    status: 'On Track',
-    contributorsCount: 1
-  })
-  name.value = ''
-  desc.value = ''
-  openModal.value = false
-}
 </script>
+

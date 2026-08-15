@@ -30,10 +30,13 @@
     <!-- Filter Pills & Unread Toggle Bar -->
     <div class="bg-surface-container-low p-3 rounded-xl border border-outline-variant flex flex-col sm:flex-row sm:items-center justify-between gap-3">
       <!-- Category Tabs -->
-      <div class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
+      <div role="tablist" aria-label="Notification category tabs" class="flex items-center gap-1.5 overflow-x-auto pb-1 sm:pb-0 scrollbar-none">
         <button
           v-for="cat in categories"
           :key="cat"
+          role="tab"
+          :aria-selected="notificationStore.filterCategory === cat"
+          :aria-label="`Category: ${cat}`"
           @click="notificationStore.filterCategory = cat"
           :class="[
             'px-3 py-1.5 rounded-lg text-xs font-medium transition whitespace-nowrap',
@@ -51,6 +54,7 @@
         <input
           type="checkbox"
           v-model="notificationStore.onlyUnread"
+          aria-label="Filter only unread notifications"
           class="w-3.5 h-3.5 rounded border-outline bg-surface-container-lowest text-primary focus:ring-0 cursor-pointer"
         />
         <span>Only Unread</span>

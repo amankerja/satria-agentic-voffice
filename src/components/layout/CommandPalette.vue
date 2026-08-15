@@ -76,7 +76,8 @@ import {
   UserCheck,
   Wrench,
   PlayCircle,
-  ClipboardCheck
+  ClipboardCheck,
+  ShieldCheck
 } from '@lucide/vue'
 import { useTaskStore } from '../../stores/task'
 import { useProjectStore } from '../../stores/project'
@@ -108,19 +109,23 @@ watch(() => props.open, (val) => {
 
 const navigationItems = [
   { label: 'Go to Home Overview', path: '/', icon: LayoutDashboard },
+  { label: 'Go to Active Work Dashboard', path: '/work', icon: PlayCircle },
+  { label: 'Go to Tasks', path: '/tasks', icon: CheckSquare },
+  { label: 'Go to Projects', path: '/projects', icon: Folder },
   { label: 'Go to Workforce Hub', path: '/workforce', icon: Users },
+  { label: 'Go to Workforce Assignments', path: '/workforce/assignments', icon: CheckSquare },
   { label: 'Go to Employee Directory', path: '/workforce/employees', icon: UserCheck },
+  { label: 'Go to Recurring Schedules', path: '/schedules', icon: Calendar },
   { label: 'Go to Departments', path: '/workforce/departments', icon: Building2 },
   { label: 'Go to Skill Registry', path: '/workforce/skills', icon: Sparkles },
   { label: 'Go to Tool Registry', path: '/workforce/tools', icon: Wrench },
   { label: 'Go to Agent Runs', path: '/runs', icon: PlayCircle },
   { label: 'Go to Task Reviews', path: '/reviews', icon: ClipboardCheck },
   { label: 'Go to Workspace', path: '/workspace', icon: Briefcase },
-  { label: 'Go to Tasks', path: '/tasks', icon: CheckSquare },
-  { label: 'Go to Projects', path: '/projects', icon: Folder },
   { label: 'Go to Calendar', path: '/calendar', icon: Calendar },
   { label: 'Go to Activity', path: '/activity', icon: Activity },
   { label: 'Go to Reports', path: '/reports', icon: BarChart3 },
+  { label: 'Go to Cost & Governance Dashboard', path: '/governance', icon: ShieldCheck },
   { label: 'Go to Settings', path: '/settings', icon: Settings }
 ]
 

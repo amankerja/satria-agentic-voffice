@@ -11,10 +11,13 @@
     </div>
 
     <!-- Multi-file Tabs (if multiple diffs) -->
-    <div v-if="allDiffs.length > 1" class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+    <div v-if="allDiffs.length > 1" role="tablist" aria-label="Modified file diffs" class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
       <button
         v-for="(d, idx) in allDiffs"
         :key="idx"
+        role="tab"
+        :aria-selected="selectedDiffIndex === idx"
+        :aria-label="`Diff for ${d.filePath}`"
         @click="selectedDiffIndex = idx"
         :class="[
           'px-2.5 py-1 rounded text-xs font-mono transition whitespace-nowrap flex items-center gap-1.5 border',
@@ -30,7 +33,7 @@
     </div>
 
     <!-- Active Diff Box -->
-    <div v-if="activeDiff" class="space-y-2">
+    <div v-if="activeDiff" role="region" :aria-label="`Diff viewer for ${activeDiff.filePath}`" class="space-y-2">
       <div class="flex items-center justify-between text-xs font-mono text-muted px-1">
         <span class="text-on-surface font-semibold truncate">{{ activeDiff.filePath }}</span>
         <span class="uppercase text-[10px] px-1.5 py-0.5 rounded bg-surface-container-highest">

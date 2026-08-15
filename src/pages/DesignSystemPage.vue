@@ -100,9 +100,9 @@
           <div class="flex flex-wrap items-center gap-3 bg-surface-container-low p-5 rounded-xl border border-outline-variant">
             <UiBadge variant="success" :icon="CheckCircle2">Success / Healthy</UiBadge>
             <UiBadge variant="warning" :icon="AlertTriangle">Warning / Due Soon</UiBadge>
-            <UiBadge variant="error" :icon="XCircle">Error / Blocked</UiBadge>
+            <UiBadge variant="error" :icon="XCircle">Error / Cancelled</UiBadge>
             <UiBadge variant="info" :icon="Info">Info / In Progress</UiBadge>
-            <UiBadge variant="neutral" dot>Neutral Backlog</UiBadge>
+            <UiBadge variant="neutral" dot>Neutral / Todo</UiBadge>
           </div>
         </section>
 

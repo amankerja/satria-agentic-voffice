@@ -66,7 +66,7 @@ export class HermesClient {
       return await fetch(url, { ...options, signal: controller.signal })
     } catch (err: any) {
       if (err.name === 'AbortError') {
-        throw new Error(`Request timed out after ${timeoutMs}ms: ${url}`)
+        throw new Error(`Request timed out after ${timeoutMs}ms: ${url}`, { cause: err })
       }
       throw err
     } finally {

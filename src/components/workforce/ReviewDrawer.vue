@@ -24,6 +24,8 @@
       <!-- Verification Quality Summary Banner -->
       <div
         v-if="runResult"
+        role="region"
+        aria-label="Quality Gate Verification Summary"
         class="p-4 rounded-xl border space-y-2.5 transition"
         :class="[
           runResult.verificationStatus === 'Passed'
@@ -63,7 +65,7 @@
       </div>
 
       <!-- Generated Result Deliverable Output Box -->
-      <div class="space-y-2">
+      <div class="space-y-2" role="region" aria-label="Deliverable Output">
         <div class="flex items-center justify-between">
           <label class="block text-xs font-semibold text-on-surface">Deliverable Output</label>
           <span class="text-[10px] font-mono text-primary flex items-center gap-1">
@@ -77,7 +79,7 @@
       </div>
 
       <!-- Acceptance Verification Checklist (Fixed: Proper Pass vs Fail state icons) -->
-      <div class="space-y-2.5 p-4 bg-surface-container-low border border-outline-variant rounded-xl">
+      <div class="space-y-2.5 p-4 bg-surface-container-low border border-outline-variant rounded-xl" role="region" aria-label="Acceptance Criteria Checklist">
         <div class="flex items-center justify-between">
           <span class="text-xs font-bold text-on-surface flex items-center gap-1.5">
             <ClipboardCheck class="w-4 h-4 text-primary" />

@@ -2,14 +2,16 @@
   <button
     :type="type"
     :disabled="disabled || loading"
+    :aria-busy="loading || undefined"
+    :aria-disabled="disabled || loading ? 'true' : undefined"
     :class="[
       'inline-flex items-center justify-center gap-2 font-medium transition-all duration-150 rounded-lg cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 select-none',
       sizeClasses[size],
       variantClasses[variant]
     ]"
   >
-    <component :is="icon" v-if="icon && !loading" :class="iconSizes[size]" />
-    <span v-if="loading" class="animate-spin rounded-full border-2 border-current border-t-transparent" :class="spinnerSizes[size]"></span>
+    <component :is="icon" v-if="icon && !loading" :class="iconSizes[size]" aria-hidden="true" />
+    <span v-if="loading" class="animate-spin rounded-full border-2 border-current border-t-transparent" :class="spinnerSizes[size]" aria-hidden="true"></span>
     <slot />
   </button>
 </template>

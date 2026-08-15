@@ -1,0 +1,8 @@
+dist/
+node_modules/
+hris/
+refrensi/
+work-histori/
+public/
+satria-cli.mjs
+*.md

@@ -41,6 +41,7 @@
           v-model="promptText"
           rows="2"
           placeholder="Contoh: Analisis backend project structure dan berikan arsitektur ringkas..."
+          aria-label="Prompt text for AI Workforce Dispatch"
           class="w-full bg-surface-container-lowest text-xs text-on-surface placeholder-muted border border-outline-variant rounded-xl p-3 outline-none focus:border-primary transition resize-none font-sans"
           @keydown.enter.ctrl="handleDispatch"
         ></textarea>
@@ -51,6 +52,7 @@
           <button
             v-for="chip in promptChips"
             :key="chip.label"
+            :aria-label="`Apply prompt template: ${chip.label}`"
             @click="applyChip(chip)"
             class="px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition shrink-0 border border-outline-variant/60"
           >
@@ -64,9 +66,11 @@
         <div class="flex flex-wrap items-center gap-2">
           <!-- Employee Selector -->
           <div class="flex items-center gap-1.5 bg-surface-container-lowest border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs">
-            <span class="text-muted text-[11px]">Agent:</span>
+            <label for="quick-emp-select" class="text-muted text-[11px]">Agent:</label>
             <select
+              id="quick-emp-select"
               v-model="selectedEmployeeId"
+              aria-label="Select digital employee"
               class="bg-transparent text-on-surface font-medium outline-none cursor-pointer text-xs"
             >
               <option v-for="emp in employeeStore.activeEmployees" :key="emp.id" :value="emp.id">
@@ -77,9 +81,11 @@
 
           <!-- Model Selector -->
           <div class="flex items-center gap-1.5 bg-surface-container-lowest border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs font-mono">
-            <span class="text-muted text-[11px]">Model:</span>
+            <label for="quick-model-select" class="text-muted text-[11px]">Model:</label>
             <select
+              id="quick-model-select"
               v-model="aiStore.selectedModel"
+              aria-label="Select AI model"
               @change="aiStore.setModel(aiStore.selectedModel)"
               class="bg-transparent text-primary font-bold outline-none cursor-pointer text-xs max-w-35 truncate"
             >
@@ -91,8 +97,13 @@
 
           <!-- Priority Selector -->
           <div class="flex items-center gap-1.5 bg-surface-container-lowest border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs">
-            <span class="text-muted text-[11px]">Priority:</span>
-            <select v-model="priority" class="bg-transparent text-on-surface font-medium outline-none cursor-pointer text-xs">
+            <label for="quick-priority-select" class="text-muted text-[11px]">Priority:</label>
+            <select
+              id="quick-priority-select"
+              v-model="priority"
+              aria-label="Select task priority"
+              class="bg-transparent text-on-surface font-medium outline-none cursor-pointer text-xs"
+            >
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
               <option value="High">High</option>

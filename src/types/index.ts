@@ -13,7 +13,8 @@ export interface Workspace {
   updatedAt: string
 }
 
-export type ProjectStatus = 'Active' | 'On Track' | 'At Risk' | 'Completed' | 'Archived'
+export type ProjectStatus = 'Draft' | 'Active' | 'Paused' | 'Completed' | 'Cancelled' | 'Archived'
+export type ProjectHealth = 'Healthy' | 'At Risk' | 'Critical'
 
 export interface Milestone {
   id: string
@@ -28,20 +29,40 @@ export interface Project {
   name: string
   description: string
   status: ProjectStatus
+  health?: ProjectHealth
   progress: number
   taskCount: number
   completedTaskCount: number
   contributorsCount: number
   accentColor?: string
   milestones: Milestone[]
-  path?: string
+  path: string
+  defaultWorkerId?: string
+  defaultWorkerName?: string
+  runtimeProfile?: string
   repositoryUrl?: string
   branch?: string
   createdAt: string
   updatedAt: string
+  cancelledAt?: string
+  cancelledBy?: string
+  cancelReason?: string
+  archivedAt?: string
+  deletedAt?: string
+  deletedBy?: string
+  deleteReason?: string
 }
 
-export type TaskStatus = 'Backlog' | 'In Progress' | 'Blocked' | 'Review' | 'Done'
+export type TaskType = 'one_time' | 'project' | 'recurring_instance'
+export type TaskStatus =
+  | 'Draft'
+  | 'Todo'
+  | 'In Progress'
+  | 'Waiting'
+  | 'Review'
+  | 'Done'
+  | 'Cancelled'
+  | 'Archived'
 export type TaskPriority = 'Low' | 'Medium' | 'High' | 'Urgent'
 
 export interface ChecklistItem {
@@ -65,17 +86,24 @@ export interface Task {
   projectName: string
   title: string
   description: string
+  type?: TaskType
   status: TaskStatus
   priority: TaskPriority
   assigneeId?: string
   assigneeName: string
   assigneeAvatar?: string
+  workerId?: string
+  workerName?: string
   requiredSkillIds?: string[]
   optionalSkillIds?: string[]
   acceptanceCriteria?: string[]
   parentTaskId?: string
   dependencyTaskIds?: string[]
+  pathOverride?: string
+  scheduleId?: string
+  instructions?: string
   activeRunId?: string
+  latestRunId?: string
   activeAssignmentId?: string
   dueDate: string
   tags: string[]
@@ -84,6 +112,13 @@ export interface Task {
   comments: TaskComment[]
   createdAt: string
   updatedAt: string
+  cancelledAt?: string
+  cancelledBy?: string
+  cancelReason?: string
+  deletedAt?: string
+  deletedBy?: string
+  deleteReason?: string
+  archivedAt?: string
 }
 
 export type FileCategory = 'Documents' | 'Images' | 'Exports' | 'Archives' | 'Code'
@@ -263,6 +298,8 @@ export interface Employee {
   departmentName: string   // denormalized
   description: string
   status: EmploymentStatus
+  isPrimary?: boolean
+  workerType?: 'digital_worker' | 'human_user'
   workState?: EmployeeWorkState
   supervisorId?: string
   supervisorName?: string
@@ -361,13 +398,25 @@ export interface AgentRun {
   progress: number            // 0 - 100
   logs: RunLogEntry[]
   telemetry?: RuntimeTelemetry
+  runtimeName?: string
+  runtimeStatus?: 'healthy' | 'degraded' | 'offline'
+  workspacePath?: string
+  triggerType?: 'manual' | 'schedule' | 'retry' | 'dependency'
+  parentRunId?: string
   startedAt: string
   completedAt?: string
   durationSeconds?: number
   outputSummary?: string
   error?: string
+  injectedMemories?: AgentMemoryItem[]
   createdAt: string
   updatedAt: string
+  cancelledAt?: string
+  cancelledBy?: string
+  cancelReason?: string
+  deletedAt?: string
+  deletedBy?: string
+  deleteReason?: string
 }
 
 export type VerificationStatus = 'Passed' | 'Failed' | 'Warning' | 'Pending'
@@ -445,5 +494,128 @@ export interface SkillMatchResult {
   isEligible: boolean
   warning?: string
 }
+
+// ==========================================
+// PHASE 3.11 — AGENT MEMORY SUBSYSTEM TYPES
+// ==========================================
+
+export type MemoryType = 'episodic' | 'semantic' | 'procedural' | 'feedback'
+export type MemoryScope = 'global' | 'project' | 'employee'
+
+export interface AgentMemoryItem {
+  id: string
+  workspaceId: string
+  employeeId?: string
+  employeeName?: string
+  projectId?: string
+  projectName?: string
+  runId?: string
+  type: MemoryType
+  scope: MemoryScope
+  title: string
+  content: string
+  tags: string[]
+  confidence: number          // 0.0 - 1.0
+  importance: number          // 1 - 5
+  source: 'autonomous_run' | 'reviewer_feedback' | 'manual_entry' | 'system_rule'
+  accessCount: number
+  lastAccessedAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface MemoryRecallQuery {
+  workspaceId: string
+  employeeId?: string
+  projectId?: string
+  queryText?: string
+  tags?: string[]
+  types?: MemoryType[]
+  limit?: number
+  minConfidence?: number
+}
+
+// ==========================================
+// RECURRING SCHEDULE & ACTIVE WORK READ MODEL
+// ==========================================
+
+export type ScheduleRecurrence = 'once' | 'daily' | 'weekly' | 'monthly' | 'cron'
+
+export interface ScheduleTaskTemplate {
+  title: string
+  description: string
+  workerId?: string
+  workerName?: string
+  priority: TaskPriority
+  instructions?: string
+  pathOverride?: string
+  acceptanceCriteria?: string[]
+  checklist?: ChecklistItem[]
+}
+
+export interface Schedule {
+  id: string
+  workspaceId: string
+  projectId?: string
+  projectName?: string
+  name: string
+  description?: string
+  taskTemplate: ScheduleTaskTemplate
+  recurrence: ScheduleRecurrence
+  cronExpression?: string
+  time?: string
+  dayOfWeek?: string
+  daysOfWeek?: number[]
+  timezone: string
+  enabled: boolean
+  nextRunAt?: string
+  lastRunAt?: string
+  createdAt: string
+  updatedAt: string
+  deletedAt?: string
+  deletedBy?: string
+  deleteReason?: string
+}
+
+export interface ActiveWorkItem {
+  taskId: string
+  taskTitle: string
+  taskType?: TaskType
+  taskStatus: TaskStatus
+  projectId: string
+  projectName: string
+  workerId: string
+  workerName: string
+  workerAvatar: string
+  workerRole: string
+  runId?: string
+  runStatus?: AgentRunStatus
+  attempt?: number
+  progress: number
+  currentStep?: RunStep | string
+  runtime: string
+  path: string
+  startedAt?: string
+  lastActivityAt?: string
+  outputSummary?: string
+  hasPendingApproval?: boolean
+  error?: string
+}
+
+export interface CostEntry {
+  id: string
+  runId: string
+  taskId: string
+  projectId: string
+  workerId: string
+  provider: string
+  model: string
+  tokens: number
+  promptTokens?: number
+  completionTokens?: number
+  costUsd: number
+  timestamp: string
+}
+
 
 

@@ -88,16 +88,21 @@
       <!-- Human-in-the-Loop Intercept Banner (When Approval is Required) -->
       <div
         v-if="pendingApproval"
-        class="p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-pulse shadow-sm"
+        role="alert"
+        aria-live="assertive"
+        class="p-4 bg-amber-500/10 border-2 border-amber-500/50 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md"
       >
         <div class="flex items-center gap-3">
-          <div class="p-2 rounded-lg bg-amber-500/20 text-amber-400">
+          <div class="p-2 rounded-lg bg-amber-500/20 text-amber-400 shrink-0">
             <ShieldAlert class="w-5 h-5" />
           </div>
           <div>
-            <div class="text-sm font-bold text-amber-300">Action Approval Required</div>
-            <div class="text-xs text-on-surface-variant">
-              Agent requested <code class="text-amber-200 font-mono">{{ pendingApproval.toolCall.toolName }}</code>:
+            <div class="text-sm font-bold text-amber-300 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-amber-400 inline-block"></span>
+              Action Approval Required
+            </div>
+            <div class="text-xs text-on-surface-variant mt-0.5">
+              Agent requested <code class="text-amber-200 font-mono font-bold">{{ pendingApproval.toolCall.toolName }}</code>:
               {{ pendingApproval.reason || 'Confirmation required before proceeding.' }}
             </div>
           </div>
@@ -118,12 +123,12 @@
         <div class="flex items-center justify-between">
           <div class="space-y-1">
             <span class="text-xs font-mono text-muted uppercase">Execution Lifecycle Stage</span>
-            <div class="text-sm font-bold text-on-surface flex items-center gap-2">
+            <div class="text-sm font-bold text-on-surface flex items-center gap-2" role="status" aria-live="polite">
               <span
                 :class="[
                   'w-2 h-2 rounded-full',
                   run.status === 'Running'
-                    ? 'bg-primary animate-pulse'
+                    ? 'bg-primary'
                     : run.status === 'Completed'
                     ? 'bg-primary-container'
                     : run.status === 'Waiting'
@@ -138,15 +143,22 @@
           <div class="text-right">
             <span class="text-2xl font-bold font-mono text-primary">{{ run.progress }}%</span>
             <div class="text-[10px] font-mono text-muted">
-              {{ run.durationSeconds ? `${run.durationSeconds}s elapsed` : 'Live session' }}
+              {{ run.attempt > 1 ? `Attempt #${run.attempt} (Retried)` : 'Initial Run' }}
             </div>
           </div>
         </div>
 
-        <!-- Animated Big Progress Bar -->
-        <div class="w-full h-2.5 bg-surface-container-highest rounded-full overflow-hidden">
+        <!-- Progress Bar -->
+        <div
+          role="progressbar"
+          :aria-valuenow="run.progress"
+          aria-valuemin="0"
+          aria-valuemax="100"
+          aria-label="Agent execution progress"
+          class="h-2 w-full bg-surface-container-lowest rounded-full overflow-hidden border border-outline-variant"
+        >
           <div
-            class="h-full bg-primary transition-all duration-300 rounded-full"
+            class="h-full bg-primary rounded-full transition-all duration-500"
             :style="{ width: `${run.progress}%` }"
           ></div>
         </div>
@@ -161,7 +173,7 @@
               isStepPassed(stepName)
                 ? 'bg-primary-container/10 border-primary text-primary font-bold'
                 : isStepActive(stepName)
-                ? 'bg-surface-container-highest border-primary text-on-surface animate-pulse font-bold'
+                ? 'bg-surface-container-highest border-primary text-primary font-bold shadow-sm'
                 : 'bg-surface-container-lowest border-outline-variant text-muted'
             ]"
           >
@@ -330,6 +342,68 @@
         </div>
       </div>
 
+      <!-- Phase 3.11: Recalled Memory Context Injected Panel -->
+      <div class="bg-surface-container-low border border-outline-variant rounded-xl p-5 space-y-3 shadow-sm">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <Brain class="w-4 h-4 text-secondary" />
+            <h3 class="text-sm font-bold text-on-surface">Memory Context Injected into Agent Prompt</h3>
+            <span class="text-xs font-mono text-muted">({{ displayedMemories.length }} memories recalled)</span>
+          </div>
+          <span class="text-[10px] font-mono text-secondary uppercase font-semibold">Subsystem Active</span>
+        </div>
+
+        <div v-if="displayedMemories.length === 0" class="p-4 bg-surface-container-lowest border border-outline-variant rounded-lg text-xs text-muted text-center">
+          No historical memories were recalled for this specific task context.
+        </div>
+
+        <div v-else class="space-y-2.5">
+          <div
+            v-for="(mem, idx) in displayedMemories"
+            :key="mem.id || idx"
+            class="p-3.5 bg-surface-container-lowest border border-outline-variant rounded-lg space-y-2 text-xs"
+          >
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-bold text-on-surface">{{ mem.title }}</span>
+                <UiBadge
+                  :variant="
+                    mem.type === 'episodic'
+                      ? 'success'
+                      : mem.type === 'procedural'
+                      ? 'info'
+                      : mem.type === 'feedback'
+                      ? 'warning'
+                      : 'neutral'
+                  "
+                  size="sm"
+                  class="uppercase font-mono text-[9px]"
+                >
+                  {{ mem.type }}
+                </UiBadge>
+                <UiBadge variant="neutral" size="sm" class="uppercase font-mono text-[9px]">
+                  {{ mem.scope }}
+                </UiBadge>
+              </div>
+              <span class="text-[10px] font-mono text-primary">
+                {{ Math.round(mem.confidence * 100) }}% Confidence &bull; P{{ mem.importance }}
+              </span>
+            </div>
+
+            <div class="font-mono text-[11px] text-on-surface-variant bg-surface-container-low/60 p-2 rounded border border-outline-variant/40">
+              {{ mem.content }}
+            </div>
+
+            <div v-if="mem.tags && mem.tags.length > 0" class="flex items-center gap-1 text-[10px] font-mono text-muted">
+              <span>Tags:</span>
+              <span v-for="t in mem.tags" :key="t" class="px-1 py-0.2 bg-surface-container-high rounded text-on-surface">
+                #{{ t }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Execution Log Stream Terminal Card -->
       <div class="bg-surface-container-low border border-outline-variant rounded-xl p-5 space-y-3 shadow-sm">
         <div class="flex items-center justify-between">
@@ -342,7 +416,13 @@
         </div>
 
         <!-- Terminal Log Box -->
-        <div class="p-4 bg-surface-container-lowest border border-outline-variant rounded-xl font-mono text-xs max-h-80 overflow-y-auto space-y-2.5 scrollbar-thin">
+        <div
+          role="log"
+          aria-live="polite"
+          aria-atomic="false"
+          aria-label="Execution timeline log stream"
+          class="p-4 bg-surface-container-lowest border border-outline-variant rounded-xl font-mono text-xs max-h-80 overflow-y-auto space-y-2.5 scrollbar-thin"
+        >
           <div
             v-for="log in run.logs"
             :key="log.id"
@@ -460,7 +540,8 @@ import {
   Terminal,
   ShieldAlert,
   Cpu,
-  Coins
+  Coins,
+  Brain
 } from '@lucide/vue'
 import UiBadge from '../../components/ui/UiBadge.vue'
 import UiButton from '../../components/ui/UiButton.vue'
@@ -474,13 +555,15 @@ import ArtifactPreviewDrawer from '../../components/workforce/ArtifactPreviewDra
 import DiffViewer from '../../components/workforce/DiffViewer.vue'
 import { useAgentRunStore } from '../../stores/agentRun'
 import { useReviewStore } from '../../stores/review'
+import { useMemoryStore } from '../../stores/memory'
 import { CostCalculator } from '../../runtime'
 import { globalArtifactCollector } from '../../runtime/results/ArtifactCollector'
-import type { AgentRunStatus, RunStep, RunResult, VerificationEvidence } from '../../types'
+import type { AgentRunStatus, RunStep, RunResult, VerificationEvidence, AgentMemoryItem } from '../../types'
 
 const route = useRoute()
 const agentRunStore = useAgentRunStore()
 const reviewStore = useReviewStore()
+const memoryStore = useMemoryStore()
 
 const loading = ref<boolean>(false)
 const isApprovalDrawerOpen = ref<boolean>(false)
@@ -503,6 +586,16 @@ const runId = computed(() => route.params.id as string)
 
 const run = computed(() => {
   return agentRunStore.runs.find((r) => r.id === runId.value) || agentRunStore.currentRun
+})
+
+const displayedMemories = computed<AgentMemoryItem[]>(() => {
+  if (run.value?.injectedMemories && run.value.injectedMemories.length > 0) {
+    return run.value.injectedMemories
+  }
+  if (run.value?.employeeId) {
+    return memoryStore.getMemoriesByEmployee(run.value.employeeId).slice(0, 3)
+  }
+  return []
 })
 
 const pendingApproval = computed(() => {
@@ -594,6 +687,7 @@ onMounted(async () => {
     await agentRunStore.fetchRunById(runId.value)
     const res = await reviewStore.fetchResultByRunId(runId.value)
     runResult.value = res || null
+    await memoryStore.fetchMemories()
   } finally {
     loading.value = false
   }

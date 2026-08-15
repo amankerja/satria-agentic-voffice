@@ -56,7 +56,7 @@
       />
 
       <!-- Live Telemetry Badges -->
-      <div class="grid grid-cols-3 gap-2 text-center text-[10px] font-mono">
+      <div role="region" aria-label="Execution telemetry" class="grid grid-cols-3 gap-2 text-center text-[10px] font-mono">
         <div class="p-2 bg-surface-container-low rounded-lg border border-outline-variant">
           <div class="text-muted">DURATION</div>
           <div class="font-bold text-on-surface mt-0.5">{{ agentRunStore.getRunDuration(currentRun.id) }}s</div>
@@ -74,7 +74,7 @@
       </div>
 
       <!-- In-line Approval Gate if Waiting -->
-      <div v-if="currentRun.status === 'Waiting' && pendingApproval" class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg space-y-2.5">
+      <div v-if="currentRun.status === 'Waiting' && pendingApproval" role="alert" aria-live="assertive" class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg space-y-2.5">
         <div class="flex items-center gap-2 text-amber-300 font-bold text-xs">
           <AlertCircle class="w-4 h-4 shrink-0" />
           <span>Approval Gate: Human Confirmation Required</span>
@@ -94,7 +94,11 @@
           <span>EXECUTION LOGS</span>
           <span>{{ currentRun.logs?.length || 0 }} events</span>
         </div>
-        <div class="bg-surface-container-lowest border border-outline-variant rounded-lg p-2.5 max-h-36 overflow-y-auto font-mono text-[11px] space-y-1 scrollbar-none">
+        <div
+          role="log"
+          aria-label="Agent execution live log stream"
+          class="bg-surface-container-lowest border border-outline-variant rounded-lg p-2.5 max-h-36 overflow-y-auto font-mono text-[11px] space-y-1 scrollbar-none"
+        >
           <div
             v-for="log in currentRun.logs"
             :key="log.id"
@@ -132,7 +136,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { Cpu, Play, AlertCircle, CheckCircle2 } from '@lucide/vue'
 import UiButton from '../ui/UiButton.vue'
 import UiBadge from '../ui/UiBadge.vue'
@@ -155,6 +159,17 @@ const employeeStore = useEmployeeStore()
 const toast = useToast()
 
 const isLoading = ref(false)
+
+onMounted(async () => {
+  await Promise.all([
+    agentRunStore.fetchRuns(),
+    employeeStore.fetchEmployees()
+  ])
+})
+
+watch(() => props.task.id, async () => {
+  await agentRunStore.fetchRuns()
+})
 
 const currentRun = computed(() => {
   // Find run by activeRunId or by taskId

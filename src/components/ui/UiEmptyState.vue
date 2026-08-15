@@ -1,5 +1,8 @@
 <template>
-  <div class="flex flex-col items-center justify-center p-8 text-center border border-dashed border-[#242c27] rounded-xl bg-[#09100c]/50 space-y-3">
+  <div
+    role="status"
+    class="flex flex-col items-center justify-center p-8 text-center border border-dashed border-[#242c27] rounded-xl bg-[#09100c]/50 space-y-3"
+  >
     <div class="p-3 bg-[#161d19] rounded-full border border-[#242c27] text-[#86948a]">
       <component :is="icon || FolderOpen" class="w-8 h-8" />
     </div>

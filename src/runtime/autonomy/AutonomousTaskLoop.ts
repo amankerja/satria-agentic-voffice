@@ -219,6 +219,7 @@ export class AutonomousTaskLoop {
       // HARD RULE: agentRunStore.retryRun() is the SINGLE SOURCE OF TRUTH for retry
       const retriedRun = await agentRunStore.retryRun(this.currentRunId)
       if (retriedRun) {
+        this.currentRunId = retriedRun.id
         this.currentAttempt = retriedRun.attempt
         this.machine.transition('Executing', `Retry attempt #${retriedRun.attempt} started. Directive: ${feedbackDirective.slice(0, 80)}...`)
       }
@@ -229,7 +230,7 @@ export class AutonomousTaskLoop {
     if (classification.category === 'FATAL_SECURITY_VIOLATION' || classification.category === 'MAX_ATTEMPTS_EXCEEDED') {
       this.machine.transition('Blocked', decision.reason)
       if (taskStore) {
-        await taskStore.updateTaskStatus(this.taskId, 'Blocked')
+        await taskStore.updateTaskStatus(this.taskId, 'Waiting')
       }
     } else {
       this.machine.transition('Failed', decision.reason)

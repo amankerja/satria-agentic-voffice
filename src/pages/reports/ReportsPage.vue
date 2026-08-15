@@ -14,10 +14,13 @@
 
       <div class="flex items-center gap-3">
         <!-- Time Range Selector -->
-        <div class="flex items-center bg-surface-container-low p-1 rounded-lg border border-outline-variant">
+        <div role="tablist" aria-label="Report time range selector" class="flex items-center bg-surface-container-low p-1 rounded-lg border border-outline-variant">
           <button
             v-for="range in timeRanges"
             :key="range"
+            role="tab"
+            :aria-selected="selectedRange === range"
+            :aria-label="`Time range: ${range}`"
             @click="selectedRange = range"
             :class="[
               'px-3 py-1.5 rounded-md text-xs font-medium transition',
@@ -32,6 +35,24 @@
           Export
         </UiButton>
       </div>
+    </div>
+
+    <!-- Executive Cost & Governance Dashboard Switcher Banner -->
+    <div class="p-4 bg-surface-container-low border border-primary/30 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shrink-0">
+          <ShieldCheck class="w-5 h-5" />
+        </div>
+        <div>
+          <div class="text-xs font-bold text-on-surface">Executive Cost & Governance Dashboard (PRD 5.1)</div>
+          <p class="text-[11px] text-muted">Aggregated LLM token burn, CostCalculator economics, verification pass-rates, and retry rates for Owners/Directors.</p>
+        </div>
+      </div>
+      <router-link to="/governance">
+        <UiButton size="sm" variant="primary" :icon="ShieldCheck">
+          View Cost & Governance &rarr;
+        </UiButton>
+      </router-link>
     </div>
 
     <!-- 4 High Level Executive KPI Cards -->
@@ -152,13 +173,13 @@
 
         <!-- Chart X-Axis Labels -->
         <div class="flex items-center justify-between text-[10px] font-mono text-muted pt-1 border-t border-outline-variant">
-          <span>08 Aug</span>
-          <span>09 Aug</span>
-          <span>10 Aug</span>
-          <span>11 Aug</span>
-          <span>12 Aug</span>
-          <span>13 Aug</span>
-          <span class="text-primary font-bold">14 Aug (Today)</span>
+          <span
+            v-for="(day, idx) in chartDays"
+            :key="day"
+            :class="idx === chartDays.length - 1 ? 'text-primary font-bold' : ''"
+          >
+            {{ day }}
+          </span>
         </div>
       </div>
 
@@ -215,7 +236,7 @@
               <div class="flex items-center gap-2">
                 <span class="text-sm font-bold text-on-surface">{{ project.name }}</span>
                 <UiBadge
-                  :variant="project.status === 'On Track' || project.status === 'Active' ? 'success' : 'warning'"
+                  :variant="project.status === 'Active' ? 'success' : project.status === 'Completed' ? 'info' : 'warning'"
                   size="sm"
                 >
                   {{ project.status }}
@@ -231,7 +252,7 @@
           </div>
 
           <!-- Progress Bar -->
-          <UiProgress :value="project.progress" :color="project.status === 'At Risk' ? '#fc7c78' : '#10b981'" />
+          <UiProgress :value="project.progress" :color="project.health === 'At Risk' || project.health === 'Critical' ? '#fc7c78' : '#10b981'" />
 
           <!-- Milestones Chips -->
           <div v-if="project.milestones.length > 0" class="flex flex-wrap items-center gap-2 pt-1">
@@ -264,7 +285,8 @@ import {
   CheckCircle2,
   FolderGit2,
   AlertTriangle,
-  TrendingUp
+  TrendingUp,
+  ShieldCheck
 } from '@lucide/vue'
 import UiButton from '../../components/ui/UiButton.vue'
 import UiBadge from '../../components/ui/UiBadge.vue'
@@ -273,10 +295,12 @@ import UiProgress from '../../components/ui/UiProgress.vue'
 import { useWorkspaceStore } from '../../stores/workspace'
 import { useProjectStore } from '../../stores/project'
 import { useTaskStore } from '../../stores/task'
+import { useToast } from '../../composables/useToast'
 
 const workspaceStore = useWorkspaceStore()
 const projectStore = useProjectStore()
 const taskStore = useTaskStore()
+const toast = useToast()
 
 const selectedRange = ref('Last 7 Days')
 const timeRanges = ['Last 7 Days', 'Last 30 Days', 'This Quarter']
@@ -287,17 +311,28 @@ onMounted(() => {
   taskStore.fetchTasksByWorkspace(wsId)
 })
 
+const filteredTasks = computed(() => {
+  if (selectedRange.value === 'This Quarter') return taskStore.tasks
+  const now = new Date().getTime()
+  const days = selectedRange.value === 'Last 7 Days' ? 7 : 30
+  const cutoff = now - days * 24 * 60 * 60 * 1000
+  return taskStore.tasks.filter((t) => {
+    if (!t.createdAt) return true
+    return new Date(t.createdAt).getTime() >= cutoff
+  })
+})
+
 const completedTasksCount = computed(() => {
-  return taskStore.tasks.filter((t) => t.status === 'Done').length
+  return filteredTasks.value.filter((t) => t.status === 'Done').length
 })
 
 const completionRate = computed(() => {
-  if (taskStore.tasks.length === 0) return 0
-  return Math.round((completedTasksCount.value / taskStore.tasks.length) * 100)
+  if (filteredTasks.value.length === 0) return 0
+  return Math.round((completedTasksCount.value / filteredTasks.value.length) * 100)
 })
 
 const blockedCount = computed(() => {
-  return taskStore.tasks.filter((t) => t.status === 'Blocked' || t.priority === 'Urgent').length
+  return filteredTasks.value.filter((t) => t.status === 'Waiting' || t.priority === 'Urgent').length
 })
 
 const averageProjectProgress = computed(() => {
@@ -306,18 +341,32 @@ const averageProjectProgress = computed(() => {
   return Math.round(total / projectStore.projects.length)
 })
 
+const chartDays = computed(() => {
+  const days = []
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    const label =
+      i === 0
+        ? `${d.getDate()} ${d.toLocaleString('en-US', { month: 'short' })} (Today)`
+        : `${d.getDate()} ${d.toLocaleString('en-US', { month: 'short' })}`
+    days.push(label)
+  }
+  return days
+})
+
 const statusBreakdown = computed(() => {
-  const total = taskStore.tasks.length || 1
+  const total = filteredTasks.value.length || 1
   const statuses = [
     { status: 'Done', bgClass: 'bg-primary-container', textColor: 'text-primary' },
     { status: 'In Progress', bgClass: 'bg-secondary', textColor: 'text-secondary' },
-    { status: 'Review', bgClass: 'bg-amber-500', textColor: 'text-amber-500' },
-    { status: 'Blocked', bgClass: 'bg-tertiary-container', textColor: 'text-tertiary-container' },
-    { status: 'Backlog', bgClass: 'bg-muted', textColor: 'text-muted' }
+    { status: 'Review', bgClass: 'bg-cyan-500', textColor: 'text-cyan-400' },
+    { status: 'Waiting', bgClass: 'bg-amber-500', textColor: 'text-amber-400' },
+    { status: 'Todo', bgClass: 'bg-muted', textColor: 'text-muted' }
   ]
 
   return statuses.map((s) => {
-    const count = taskStore.tasks.filter((t) => t.status === s.status).length
+    const count = filteredTasks.value.filter((t) => t.status === s.status).length
     const percentage = Math.round((count / total) * 100)
     return {
       ...s,
@@ -328,6 +377,54 @@ const statusBreakdown = computed(() => {
 })
 
 const exportReport = () => {
-  alert('Laporan metrik SATRIA AI Workforce berhasil diekspor ke CSV & PDF format.')
+  const reportPayload = {
+    workspace: workspaceStore.currentWorkspace?.name || 'Satria Workforce Workspace',
+    exportedAt: new Date().toISOString(),
+    selectedRange: selectedRange.value,
+    metrics: {
+      totalTasks: filteredTasks.value.length,
+      completedTasks: completedTasksCount.value,
+      completionRate: `${completionRate.value}%`,
+      blockedTasks: blockedCount.value,
+      activeProjectsCount: projectStore.projects.length,
+      averageProjectProgress: `${averageProjectProgress.value}%`
+    },
+    projects: projectStore.projects.map((p) => ({
+      id: p.id,
+      name: p.name,
+      status: p.status,
+      progress: p.progress,
+      tasksCount: p.taskCount,
+      completedTaskCount: p.completedTaskCount
+    })),
+    tasks: filteredTasks.value.map((t) => ({
+      id: t.id,
+      title: t.title,
+      projectName: t.projectName,
+      status: t.status,
+      priority: t.priority,
+      assignee: t.assigneeName || 'Unassigned',
+      dueDate: t.dueDate,
+      createdAt: t.createdAt
+    }))
+  }
+
+  const blob = new Blob([JSON.stringify(reportPayload, null, 2)], {
+    type: 'application/json'
+  })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = `SATRIA_Analytics_Report_${selectedRange.value.replace(/\s+/g, '_')}_${new Date().toISOString().split('T')[0]}.json`
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+
+  toast.show(
+    'Analytics Report Exported',
+    `Laporan analitik ${selectedRange.value} berhasil diunduh dalam format JSON.`,
+    'success'
+  )
 }
 </script>

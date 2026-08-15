@@ -19,10 +19,13 @@
     <!-- Main Grid: Left Tabs Sidebar & Right Content Panel -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
       <!-- Left Sub-Navigation Tabs -->
-      <div class="space-y-1">
+      <div role="tablist" aria-label="Settings navigation tabs" class="space-y-1">
         <button
           v-for="tab in tabs"
           :key="tab.id"
+          role="tab"
+          :aria-selected="activeTab === tab.id"
+          :aria-label="tab.label"
           @click="activeTab = tab.id"
           :class="[
             'w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium transition text-left',
@@ -31,7 +34,7 @@
               : 'text-muted hover:text-on-surface hover:bg-surface-container-low/60'
           ]"
         >
-          <component :is="tab.icon" class="w-4 h-4 shrink-0" />
+          <component :is="tab.icon" class="w-4 h-4 shrink-0" aria-hidden="true" />
           <span>{{ tab.label }}</span>
         </button>
       </div>
@@ -190,6 +193,17 @@
             <div class="space-y-4">
               <div class="text-xs font-bold uppercase font-mono tracking-wider text-muted">
                 1. Gateway & LLM Server Endpoints
+              </div>
+
+              <!-- Security Notice Banner -->
+              <div class="p-3.5 bg-surface-container-lowest border border-outline-variant rounded-xl flex items-start gap-3">
+                <Shield class="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                <div class="text-xs space-y-0.5">
+                  <div class="font-bold text-on-surface">Client-Side Secure Storage & Privacy Notice</div>
+                  <p class="text-muted leading-relaxed text-[11px]">
+                    API Keys and endpoint credentials are stored securely in your browser's local storage. Credentials are transmitted directly to your configured local Hermes runtime gateway or AI provider endpoint and are never sent to external telemetry services.
+                  </p>
+                </div>
               </div>
 
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -544,7 +558,94 @@
           </div>
         </UiCard>
 
-        <!-- 7. ABOUT TAB -->
+        <!-- 7. TRASH & SOFT DELETIONS TAB -->
+        <UiCard v-else-if="activeTab === 'trash'" padding="lg">
+          <template #header>
+            <div class="flex items-center justify-between">
+              <div class="space-y-0.5">
+                <h2 class="text-sm font-bold text-on-surface">Trash & Soft-Deleted Items</h2>
+                <p class="text-xs text-muted">Lihat item yang telah dihapus sementara (soft-deleted), pulihkan kembali, atau hapus permanen.</p>
+              </div>
+              <UiButton size="sm" variant="secondary" :icon="RefreshCw" @click="fetchDeletedItems">
+                Refresh Trash
+              </UiButton>
+            </div>
+          </template>
+
+          <div class="space-y-6">
+            <!-- Deleted Tasks -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-bold text-on-surface uppercase tracking-wider font-mono">Deleted Tasks ({{ deletedTasks.length }})</h3>
+              </div>
+              <div v-if="deletedTasks.length === 0" class="p-4 bg-surface-container-lowest rounded-xl border border-outline-variant text-center text-xs text-muted">
+                No deleted tasks in trash.
+              </div>
+              <div v-else class="space-y-2">
+                <div
+                  v-for="item in deletedTasks"
+                  :key="item.id"
+                  class="p-3 bg-surface-container-lowest border border-outline-variant rounded-xl flex items-center justify-between gap-3 text-xs"
+                >
+                  <div class="truncate">
+                    <div class="font-bold text-on-surface truncate">{{ item.title }}</div>
+                    <div class="text-[10px] text-muted font-mono flex items-center gap-2 mt-0.5">
+                      <span>{{ item.projectName }}</span>
+                      <span>&bull;</span>
+                      <span>Deleted: {{ item.deletedAt?.split('T')[0] }}</span>
+                      <span v-if="item.deleteReason">&bull; Reason: {{ item.deleteReason }}</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <UiButton size="sm" variant="secondary" :icon="RotateCcw" @click="handleRestoreTask(item.id)">
+                      Restore
+                    </UiButton>
+                    <UiButton size="sm" variant="danger" :icon="Trash2" @click="handlePermanentDeleteTask(item.id)">
+                      Delete Permanently
+                    </UiButton>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Deleted Projects -->
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <h3 class="text-xs font-bold text-on-surface uppercase tracking-wider font-mono">Deleted Projects ({{ deletedProjects.length }})</h3>
+              </div>
+              <div v-if="deletedProjects.length === 0" class="p-4 bg-surface-container-lowest rounded-xl border border-outline-variant text-center text-xs text-muted">
+                No deleted projects in trash.
+              </div>
+              <div v-else class="space-y-2">
+                <div
+                  v-for="item in deletedProjects"
+                  :key="item.id"
+                  class="p-3 bg-surface-container-lowest border border-outline-variant rounded-xl flex items-center justify-between gap-3 text-xs"
+                >
+                  <div class="truncate">
+                    <div class="font-bold text-on-surface truncate">{{ item.name }}</div>
+                    <div class="text-[10px] text-muted font-mono flex items-center gap-2 mt-0.5">
+                      <span>Path: {{ item.path }}</span>
+                      <span>&bull;</span>
+                      <span>Deleted: {{ item.deletedAt?.split('T')[0] }}</span>
+                      <span v-if="item.deleteReason">&bull; Reason: {{ item.deleteReason }}</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2 shrink-0">
+                    <UiButton size="sm" variant="secondary" :icon="RotateCcw" @click="handleRestoreProject(item.id)">
+                      Restore
+                    </UiButton>
+                    <UiButton size="sm" variant="danger" :icon="Trash2" @click="handlePermanentDeleteProject(item.id)">
+                      Delete Permanently
+                    </UiButton>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </UiCard>
+
+        <!-- 8. ABOUT TAB -->
         <UiCard v-else-if="activeTab === 'about'" padding="lg">
           <template #header>
             <div class="space-y-0.5">
@@ -557,7 +658,7 @@
             <div class="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant space-y-2">
               <div class="flex items-center gap-2">
                 <span class="font-bold text-sm text-primary">SATRIA AI WORKFORCE</span>
-                <UiBadge variant="success" size="sm" class="font-mono">v0.1.0 Phase 3</UiBadge>
+                <UiBadge variant="success" size="sm" class="font-mono">v0.1.0 Phase 4</UiBadge>
               </div>
               <p class="text-on-surface-variant leading-relaxed">
                 "Your Digital Workforce Command Center" — PWA Digital Workspace untuk orkestrasi dan eksekusi AI Agent secara otonom dengan real database, dynamic model switching, dan full observability.
@@ -601,7 +702,9 @@ import {
   Database,
   RotateCcw,
   RefreshCw,
-  Radio
+  Radio,
+  Shield,
+  Trash2
 } from '@lucide/vue'
 import UiButton from '../../components/ui/UiButton.vue'
 import UiCard from '../../components/ui/UiCard.vue'
@@ -611,9 +714,12 @@ import { useSettingsStore } from '../../stores/settings'
 import { useThemeStore } from '../../stores/theme'
 import { useAgentRunStore } from '../../stores/agentRun'
 import { useAiRuntimeConfigStore } from '../../stores/aiRuntimeConfig'
+import { useTaskStore } from '../../stores/task'
+import { useProjectStore } from '../../stores/project'
 import { useToast } from '../../composables/useToast'
 import { clearAllMockStorage } from '../../utils/mockStorage'
 import { dbClient } from '../../database/DatabaseClient'
+import type { Task, Project } from '../../types'
 
 const toast = useToast()
 
@@ -621,6 +727,8 @@ const settingsStore = useSettingsStore()
 const themeStore = useThemeStore()
 const agentRunStore = useAgentRunStore()
 const aiStore = useAiRuntimeConfigStore()
+const taskStore = useTaskStore()
+const projectStore = useProjectStore()
 
 const activeTab = ref('aiRuntime')
 const saveSuccess = ref(false)
@@ -631,9 +739,53 @@ const tabs = [
   { id: 'appearance', label: 'Appearance', icon: Palette },
   { id: 'workspace', label: 'Workspace Prefs', icon: Briefcase },
   { id: 'notifications', label: 'Notifications', icon: Bell },
+  { id: 'trash', label: 'Trash & Storage', icon: Trash2 },
   { id: 'shortcuts', label: 'Shortcuts', icon: Keyboard },
   { id: 'about', label: 'About SATRIA', icon: Info }
 ]
+
+const deletedTasks = ref<Task[]>([])
+const deletedProjects = ref<Project[]>([])
+
+const fetchDeletedItems = async () => {
+  try {
+    const allTasks = await dbClient.getAll<Task>('tasks')
+    deletedTasks.value = allTasks.filter((t) => Boolean(t.deletedAt))
+
+    const allProjects = await dbClient.getAll<Project>('projects')
+    deletedProjects.value = allProjects.filter((p) => Boolean(p.deletedAt))
+  } catch (err) {
+    console.error('Failed to fetch deleted items', err)
+  }
+}
+
+const handleRestoreTask = async (taskId: string) => {
+  await taskStore.restoreTask(taskId)
+  await fetchDeletedItems()
+  toast.success('Task restored successfully.')
+}
+
+const handleRestoreProject = async (projectId: string) => {
+  await projectStore.restoreProject(projectId)
+  await fetchDeletedItems()
+  toast.success('Project restored successfully.')
+}
+
+const handlePermanentDeleteTask = async (taskId: string) => {
+  if (confirm('Permanently delete this task? This action cannot be undone.')) {
+    await taskStore.deleteTask(taskId, false)
+    await fetchDeletedItems()
+    toast.success('Task deleted permanently.')
+  }
+}
+
+const handlePermanentDeleteProject = async (projectId: string) => {
+  if (confirm('Permanently delete this project? This action cannot be undone.')) {
+    await projectStore.deleteProject(projectId, false)
+    await fetchDeletedItems()
+    toast.success('Project deleted permanently.')
+  }
+}
 
 const quickModelPresets = [
   'fast-work-free',

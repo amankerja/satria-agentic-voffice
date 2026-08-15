@@ -2,9 +2,15 @@
   <Teleport to="body">
     <Transition name="fade">
       <div v-if="open" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-surface-container-lowest/80 backdrop-blur-sm" @click.self="closeOnOverlay && $emit('close')">
-        <div class="w-full max-w-lg bg-surface-container-low border border-outline-variant rounded-2xl shadow-2xl p-6 space-y-4 text-on-surface relative animate-in fade-in zoom-in-95 duration-150">
+        <div
+          role="dialog"
+          aria-modal="true"
+          :aria-labelledby="title ? 'modal-title' : undefined"
+          :aria-label="!title ? 'Modal Dialog' : undefined"
+          class="w-full max-w-lg bg-surface-container-low border border-outline-variant rounded-2xl shadow-2xl p-6 space-y-4 text-on-surface relative animate-in fade-in zoom-in-95 duration-150"
+        >
           <div class="flex items-center justify-between border-b border-outline-variant pb-3">
-            <h3 class="text-lg font-semibold text-on-surface">{{ title }}</h3>
+            <h3 id="modal-title" class="text-lg font-semibold text-on-surface">{{ title }}</h3>
             <button
               @click="$emit('close')"
               aria-label="Close modal dialog"

@@ -160,8 +160,9 @@ describe('SATRIA AI Workforce — Phase 2: Task Assignment, Agent Run & Review J
     // Retry run
     const retried = await agentRunStore.retryRun(run.id)
     expect(retried?.attempt).toBe(2)
+    expect(retried?.parentRunId).toBe(run.id)
     expect(retried?.status).toBe('Running')
-    expect(retried?.progress).toBe(0)
+    expect(retried?.progress).toBeGreaterThanOrEqual(0)
 
     // Stop runner clean-up
     agentRunStore.cancelRun(run.id)

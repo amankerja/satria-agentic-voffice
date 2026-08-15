@@ -37,9 +37,29 @@ export function useToast() {
     state.value.visible = false
   }
 
+  function success(message: string, description?: string, duration = 3000) {
+    show(message, description, 'success', duration)
+  }
+
+  function error(message: string, description?: string, duration = 4000) {
+    show(message, description, 'error', duration)
+  }
+
+  function warning(message: string, description?: string, duration = 3500) {
+    show(message, description, 'warning', duration)
+  }
+
+  function info(message: string, description?: string, duration = 3000) {
+    show(message, description, 'info', duration)
+  }
+
   return {
     toastState: state,
     show,
-    hide
+    hide,
+    success,
+    error,
+    warning,
+    info
   }
 }

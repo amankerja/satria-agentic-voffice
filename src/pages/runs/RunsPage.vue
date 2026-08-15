@@ -5,8 +5,8 @@
       <div>
         <div class="flex items-center gap-2.5">
           <h1 class="text-2xl font-bold text-on-surface">Agent Execution Center</h1>
-          <UiBadge variant="success" size="sm" class="font-mono flex items-center gap-1">
-            <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+          <UiBadge variant="success" size="sm" class="font-mono flex items-center gap-1.5" role="status" aria-live="polite">
+            <span class="w-1.5 h-1.5 rounded-full bg-primary"></span>
             {{ agentRunStore.activeRuns.length }} Active Runs
           </UiBadge>
         </div>
@@ -15,7 +15,12 @@
         </p>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex flex-wrap items-center gap-3">
+        <router-link to="/governance">
+          <UiButton size="sm" variant="secondary" :icon="ShieldCheck">
+            Cost & Governance
+          </UiButton>
+        </router-link>
         <router-link to="/reviews">
           <UiButton size="sm" variant="secondary" :icon="CheckCircle2">
             Reviews Center
@@ -286,7 +291,8 @@ import {
   Pause,
   RotateCcw,
   Cpu,
-  Coins
+  Coins,
+  ShieldCheck
 } from '@lucide/vue'
 import UiCard from '../../components/ui/UiCard.vue'
 import UiBadge from '../../components/ui/UiBadge.vue'

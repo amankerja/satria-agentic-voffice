@@ -19,16 +19,26 @@
 
       <!-- Employee Selection -->
       <div class="space-y-2">
-        <label class="block text-xs font-semibold text-on-surface">
+        <label id="select-employee-label" class="block text-xs font-semibold text-on-surface">
           Select Digital Employee <span class="text-error">*</span>
         </label>
-        <div class="space-y-2 max-h-52 overflow-y-auto pr-1 scrollbar-thin">
+        <div
+          role="listbox"
+          aria-labelledby="select-employee-label"
+          class="space-y-2 max-h-52 overflow-y-auto pr-1 scrollbar-thin"
+        >
           <div
             v-for="emp in employeeStore.activeEmployees"
             :key="emp.id"
+            role="option"
+            :aria-selected="selectedEmployeeId === emp.id"
+            :aria-label="`${emp.name}, ${emp.roleName} in ${emp.departmentName}, status: ${emp.workState || 'Idle'}`"
+            tabindex="0"
+            @keydown.enter="selectedEmployeeId = emp.id"
+            @keydown.space.prevent="selectedEmployeeId = emp.id"
             @click="selectedEmployeeId = emp.id"
             :class="[
-              'p-3 rounded-xl border transition cursor-pointer flex items-center justify-between gap-3',
+              'p-3 rounded-xl border transition cursor-pointer flex items-center justify-between gap-3 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
               selectedEmployeeId === emp.id
                 ? 'bg-primary-container/10 border-primary shadow-sm'
                 : 'bg-surface-container-low border-outline-variant hover:border-outline'
@@ -288,6 +298,12 @@ const handleAssignAndStartRun = async () => {
     })
 
     const run = await agentRunStore.startRunFromAssignment(assignment)
+    if (props.task) {
+      props.task.activeRunId = run.id
+      props.task.assigneeId = selectedEmployee.value.id
+      props.task.assigneeName = selectedEmployee.value.name
+      props.task.assigneeAvatar = selectedEmployee.value.avatar
+    }
     toast.show('Agent Run Started', `Run #${run.id} dimulai secara otomatis oleh ${selectedEmployee.value.name}.`, 'success')
     emit('assigned', assignment)
     emit('update:modelValue', false)

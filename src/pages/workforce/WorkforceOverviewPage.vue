@@ -50,7 +50,7 @@
           {{ employeeStore.activeEmployees.length }}
         </div>
         <div class="text-[10px] text-on-surface-variant font-mono mt-0.5">
-          100% Operational
+          {{ operationalPercentage }}% Operational ({{ employeeStore.activeEmployees.length }}/{{ employeeStore.employees.length }})
         </div>
       </UiCard>
 
@@ -252,7 +252,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { computed, onMounted } from 'vue'
 import {
   Users,
   UserCheck,
@@ -276,6 +276,12 @@ const departmentStore = useDepartmentStore()
 const employeeStore = useEmployeeStore()
 const skillStore = useSkillStore()
 const toolStore = useWorkforceToolStore()
+
+const operationalPercentage = computed(() => {
+  const total = employeeStore.employees.length
+  if (total === 0) return 100
+  return Math.round((employeeStore.activeEmployees.length / total) * 100)
+})
 
 onMounted(async () => {
   await Promise.all([

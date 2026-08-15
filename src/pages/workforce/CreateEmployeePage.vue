@@ -18,14 +18,21 @@
     </div>
 
     <!-- Step Progress Bar -->
-    <div class="bg-surface-container-low p-4 rounded-xl border border-outline-variant space-y-2.5">
+    <div
+      role="progressbar"
+      :aria-valuenow="currentStep"
+      aria-valuemin="1"
+      aria-valuemax="7"
+      :aria-label="`Registration step ${currentStep} of 7: ${steps[currentStep - 1].title}`"
+      class="bg-surface-container-low p-4 rounded-xl border border-outline-variant space-y-2.5"
+    >
       <div class="flex items-center justify-between text-xs font-mono">
         <span class="text-primary font-bold">Step {{ currentStep }}: {{ steps[currentStep - 1].title }}</span>
         <span class="text-muted">{{ Math.round((currentStep / 7) * 100) }}% Completed</span>
       </div>
 
       <!-- Segmented Bar -->
-      <div class="grid grid-cols-7 gap-1.5">
+      <div class="grid grid-cols-7 gap-1.5" aria-hidden="true">
         <div
           v-for="s in 7"
           :key="s"

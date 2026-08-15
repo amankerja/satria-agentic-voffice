@@ -123,5 +123,10 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src')
     }
+  },
+  // @ts-expect-error vitest config extension
+  test: {
+    include: ['src/**/*.{test,spec}.ts'],
+    exclude: ['e2e/**', 'node_modules/**']
   }
 })

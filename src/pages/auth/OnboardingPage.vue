@@ -2,9 +2,16 @@
   <div class="min-h-screen bg-surface text-on-surface flex flex-col justify-center items-center p-4 sm:p-6 font-sans">
     <div class="w-full max-w-xl bg-surface-container-low border border-outline-variant rounded-2xl p-6 sm:p-8 space-y-6 shadow-2xl">
       <!-- Step Indicator Bar -->
-      <div class="flex items-center justify-between text-xs font-mono text-muted border-b border-outline-variant pb-4">
+      <div
+        role="progressbar"
+        :aria-valuenow="currentStep"
+        aria-valuemin="1"
+        aria-valuemax="4"
+        :aria-label="`Onboarding step ${currentStep} of 4: ${stepTitles[currentStep - 1]}`"
+        class="flex items-center justify-between text-xs font-mono text-muted border-b border-outline-variant pb-4"
+      >
         <div class="flex items-center gap-2">
-          <span class="w-5 h-5 rounded-full bg-primary-container text-on-primary font-bold flex items-center justify-center text-[10px]">
+          <span class="w-5 h-5 rounded-full bg-primary-container text-on-primary font-bold flex items-center justify-center text-[10px]" aria-hidden="true">
             {{ currentStep }}
           </span>
           <span class="font-bold text-on-surface">STEP {{ currentStep }} OF 4</span>
@@ -29,15 +36,19 @@
         <div class="bg-surface-container-lowest p-4 rounded-xl border border-outline-variant space-y-2 text-xs text-muted font-mono">
           <div class="flex items-center gap-2 text-primary">
             <Check class="w-3.5 h-3.5" />
-            <span>Dark-First Enterprise UI (Geist + JetBrains Mono)</span>
+            <span>Autonomous Workforce Runtime (Hermes Gateway & Simulation)</span>
           </div>
           <div class="flex items-center gap-2 text-primary">
             <Check class="w-3.5 h-3.5" />
-            <span>Mock Repository Data Layer (Zero backend runtime needed)</span>
+            <span>Automated Multi-Evidence Verification & Quality Gate</span>
           </div>
           <div class="flex items-center gap-2 text-primary">
             <Check class="w-3.5 h-3.5" />
-            <span>Installable Offline PWA Support</span>
+            <span>Executive Cost Governance & Live Token Telemetry</span>
+          </div>
+          <div class="flex items-center gap-2 text-primary">
+            <Check class="w-3.5 h-3.5" />
+            <span>Installable Offline PWA & Enterprise Command Layer</span>
           </div>
         </div>
       </div>

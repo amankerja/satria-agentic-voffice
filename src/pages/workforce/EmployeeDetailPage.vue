@@ -65,11 +65,15 @@
       </div>
     </div>
 
-    <!-- 8 Tabs Navigation -->
-    <div class="flex items-center gap-1 border-b border-outline-variant overflow-x-auto scrollbar-none pb-px">
+    <!-- 9 Tabs Navigation -->
+    <div role="tablist" aria-label="Employee profile tabs" class="flex items-center gap-1 border-b border-outline-variant overflow-x-auto scrollbar-none pb-px">
       <button
         v-for="tab in tabs"
         :key="tab.id"
+        role="tab"
+        :aria-selected="activeTab === tab.id"
+        :aria-controls="`tabpanel-${tab.id}`"
+        :aria-label="tab.label"
         @click="activeTab = tab.id"
         :class="[
           'px-4 py-2.5 text-xs font-medium border-b-2 transition whitespace-nowrap flex items-center gap-2',
@@ -78,7 +82,7 @@
             : 'border-transparent text-muted hover:text-on-surface hover:bg-surface-container-low/50'
         ]"
       >
-        <component :is="tab.icon" class="w-4 h-4" />
+        <component :is="tab.icon" class="w-4 h-4" aria-hidden="true" />
         <span>{{ tab.label }}</span>
         <span v-if="tab.count !== undefined" class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-surface-container-high">
           {{ tab.count }}
@@ -195,29 +199,23 @@
                   s.priority === 'P0' ? 'bg-primary-container text-on-primary' : s.priority === 'P1' ? 'bg-secondary/20 text-secondary border border-secondary/30' : 'bg-surface-container-high text-muted'
                 ]"
               >
-                {{ s.priority }} ({{ s.priority === 'P0' ? 'Essential' : s.priority === 'P1' ? 'Useful' : 'Optional' }})
+                {{ s.priority }}
               </span>
             </div>
 
-            <!-- Install command if external -->
-            <div v-if="getSkillInstallCmd(s.skillId)" class="p-2 bg-surface-container-lowest border border-outline-variant rounded-lg font-mono text-[10px] text-muted flex items-center justify-between gap-2">
-              <span class="truncate">{{ getSkillInstallCmd(s.skillId) }}</span>
-              <button
-                @click="copyText(getSkillInstallCmd(s.skillId)!)"
-                class="text-primary hover:underline shrink-0 text-[9px]"
-              >
+            <!-- Install command copy if external -->
+            <div v-if="getSkillInstallCmd(s.skillId)" class="bg-surface-container-lowest p-2 rounded-lg border border-outline-variant flex items-center justify-between gap-2 font-mono text-[10px]">
+              <span class="text-muted truncate">{{ getSkillInstallCmd(s.skillId) }}</span>
+              <button @click="copyText(getSkillInstallCmd(s.skillId)!)" class="text-primary hover:underline shrink-0">
                 Copy
               </button>
             </div>
           </div>
 
-          <div class="pt-2 border-t border-outline-variant flex items-center justify-between text-xs font-mono">
-            <span class="text-[10px] text-muted">Assigned: {{ s.assignedAt }}</span>
-            <button
-              @click="handleRemoveSkill(s.skillId)"
-              class="text-[10px] text-tertiary hover:underline font-sans"
-            >
-              Remove
+          <div class="flex items-center justify-between pt-2 border-t border-outline-variant text-[10px] font-mono text-muted">
+            <span>Assigned: {{ s.assignedAt }}</span>
+            <button @click="handleRemoveSkill(s.skillId)" class="text-error hover:underline">
+              Detach Skill
             </button>
           </div>
         </div>
@@ -228,8 +226,8 @@
     <div v-else-if="activeTab === 'tools'" class="space-y-4">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-sm font-bold text-on-surface">Allocated Workforce Tools</h2>
-          <p class="text-xs text-muted">Perlengkapan alat kerja digital yang dapat dioperasikan oleh {{ employee?.name }}</p>
+          <h2 class="text-sm font-bold text-on-surface">Allocated Workforce Toolset</h2>
+          <p class="text-xs text-muted">Perangkat, sandboxed execution permissions, dan tool akses</p>
         </div>
 
         <UiButton size="sm" variant="primary" :icon="Plus" @click="openAddToolModal = true">
@@ -237,51 +235,52 @@
         </UiButton>
       </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div
           v-for="toolId in employee?.toolIds"
           :key="toolId"
-          class="p-4 bg-surface-container-low border border-outline-variant rounded-xl space-y-2.5 flex flex-col justify-between"
+          class="p-4 bg-surface-container-low border border-outline-variant hover:border-outline rounded-xl space-y-3 shadow-sm transition"
         >
-          <div class="space-y-1.5">
-            <div class="flex items-center justify-between">
-              <span class="text-xs font-bold text-on-surface">{{ getTool(toolId)?.name || toolId }}</span>
-              <Wrench class="w-3.5 h-3.5 text-secondary" />
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <h3 class="text-xs font-bold text-on-surface">{{ getTool(toolId)?.name || toolId }}</h3>
+              <p class="text-[10px] text-muted mt-0.5">{{ getTool(toolId)?.description }}</p>
             </div>
-            <p class="text-[11px] text-on-surface-variant leading-relaxed">
-              {{ getTool(toolId)?.description }}
-            </p>
+            <UiBadge
+              :variant="getTool(toolId)?.permissionLevel === 'admin' ? 'error' : getTool(toolId)?.permissionLevel === 'write' ? 'warning' : 'info'"
+              size="sm"
+              class="font-mono text-[9px] uppercase"
+            >
+              {{ getTool(toolId)?.permissionLevel || 'read' }}
+            </UiBadge>
           </div>
 
-          <div class="pt-2 border-t border-outline-variant flex items-center justify-between font-mono text-[10px]">
-            <span class="text-primary uppercase">{{ getTool(toolId)?.permissionLevel }} access</span>
-            <button
-              @click="handleRemoveTool(toolId)"
-              class="text-tertiary hover:underline font-sans"
-            >
-              Remove
+          <div class="flex items-center justify-between pt-2 border-t border-outline-variant text-[10px] font-mono text-muted">
+            <span>Category: {{ getTool(toolId)?.category || 'System' }}</span>
+            <button @click="handleRemoveTool(toolId)" class="text-error hover:underline">
+              Revoke Access
             </button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- TAB 5: WORK (ACTIVE ASSIGNMENTS & QUEUE) -->
+    <!-- TAB 5: WORK (TASK ASSIGNMENTS) -->
     <div v-else-if="activeTab === 'work'" class="space-y-4">
       <div class="flex items-center justify-between">
         <div>
-          <h2 class="text-sm font-bold text-on-surface">Assigned Work Queue</h2>
-          <p class="text-xs text-muted">Daftar paket pekerjaan dan penugasan yang dialokasikan</p>
+          <h2 class="text-sm font-bold text-on-surface">Assigned Task Assignments</h2>
+          <p class="text-xs text-muted">Daftar penugasan unit kerja aktif dan riwayat delegasi</p>
         </div>
         <router-link to="/tasks">
-          <UiButton size="sm" variant="primary">Assign New Task</UiButton>
+          <UiButton size="sm" variant="secondary">Open Task Center</UiButton>
         </router-link>
       </div>
 
       <div v-if="employeeAssignments.length === 0" class="p-8 text-center bg-surface-container-low border border-outline-variant rounded-xl space-y-2">
         <Briefcase class="w-8 h-8 text-muted mx-auto" />
-        <div class="text-xs font-bold text-on-surface">No Assigned Tasks</div>
-        <p class="text-[11px] text-muted">Karyawan ini belum memiliki tugas yang ditugaskan.</p>
+        <div class="text-xs font-bold text-on-surface">No Active Work Assigned</div>
+        <p class="text-[11px] text-muted">Karyawan ini belum menerima penugasan task dari planner.</p>
       </div>
 
       <div v-else class="space-y-2.5">
@@ -292,7 +291,6 @@
         >
           <div class="space-y-1 truncate">
             <div class="flex items-center gap-2">
-              <span class="text-xs font-mono font-bold text-primary">#{{ asg.id }}</span>
               <UiBadge :variant="asg.status === 'Completed' ? 'success' : asg.status === 'In Progress' ? 'info' : 'neutral'" size="sm">
                 {{ asg.status }}
               </UiBadge>
@@ -362,7 +360,116 @@
       </div>
     </div>
 
-    <!-- TAB 7: ACTIVITY -->
+    <!-- TAB 7: MEMORY (AGENT MEMORY & RECALL LEDGER) -->
+    <div v-else-if="activeTab === 'memory'" class="space-y-4">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <h2 class="text-sm font-bold text-on-surface">Agent Memory & Experience Ledger</h2>
+          <p class="text-xs text-muted">Memori episodik, aturan semantik, SOP prosedural, dan arahan reviewer yang tersimpan</p>
+        </div>
+        <UiButton size="sm" variant="primary" :icon="Plus" @click="openAddMemoryModal = true">
+          Add Memory
+        </UiButton>
+      </div>
+
+      <!-- Filter and Search Bar -->
+      <div class="flex flex-col sm:flex-row items-center gap-2">
+        <div class="relative flex-1 w-full">
+          <Search class="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
+          <input
+            v-model="memorySearch"
+            type="text"
+            placeholder="Search memories, lessons, or tags..."
+            class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-9 pr-3 py-1.5 text-xs text-on-surface placeholder:text-muted focus:outline-none focus:border-primary"
+          />
+        </div>
+        <div class="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+          <button
+            v-for="typeOption in ['All', 'semantic', 'procedural', 'episodic', 'feedback']"
+            :key="typeOption"
+            @click="memoryTypeFilter = typeOption"
+            :class="[
+              'px-2.5 py-1 rounded-lg text-[11px] font-mono capitalize transition whitespace-nowrap',
+              memoryTypeFilter === typeOption
+                ? 'bg-primary text-surface-container-lowest font-bold'
+                : 'bg-surface-container-low border border-outline-variant text-on-surface-variant hover:text-on-surface'
+            ]"
+          >
+            {{ typeOption }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Memories List -->
+      <div v-if="filteredEmployeeMemories.length === 0" class="p-8 text-center bg-surface-container-low border border-outline-variant rounded-xl space-y-2">
+        <Brain class="w-8 h-8 text-muted mx-auto" />
+        <div class="text-xs font-bold text-on-surface">No Memories Found</div>
+        <p class="text-[11px] text-muted">Belum ada memori yang cocok dengan kriteria pencarian.</p>
+      </div>
+
+      <div v-else class="space-y-3">
+        <div
+          v-for="mem in filteredEmployeeMemories"
+          :key="mem.id"
+          class="p-4 bg-surface-container-low border border-outline-variant hover:border-outline rounded-xl space-y-3 transition"
+        >
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="text-xs font-bold text-on-surface">{{ mem.title }}</span>
+              <UiBadge
+                :variant="
+                  mem.type === 'episodic'
+                    ? 'success'
+                    : mem.type === 'procedural'
+                    ? 'info'
+                    : mem.type === 'feedback'
+                    ? 'warning'
+                    : 'neutral'
+                "
+                size="sm"
+                class="uppercase font-mono text-[10px]"
+              >
+                {{ mem.type }}
+              </UiBadge>
+              <UiBadge variant="neutral" size="sm" class="uppercase font-mono text-[10px]">
+                {{ mem.scope }}
+              </UiBadge>
+            </div>
+            <div class="flex items-center gap-2 text-[10px] font-mono text-muted">
+              <span class="text-primary font-semibold">{{ Math.round(mem.confidence * 100) }}% Confidence</span>
+              <span>&bull;</span>
+              <span>Importance: P{{ mem.importance }}</span>
+              <button class="text-error hover:bg-error/10 p-1 rounded" @click="handleDeleteMemory(mem.id)">
+                <Trash2 class="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
+          <p class="text-xs text-on-surface-variant font-mono bg-surface-container-lowest p-2.5 rounded-lg border border-outline-variant/60">
+            {{ mem.content }}
+          </p>
+
+          <div class="flex flex-wrap items-center justify-between gap-2 text-[10px] font-mono text-muted">
+            <div class="flex items-center gap-1.5 flex-wrap">
+              <span class="text-muted">Tags:</span>
+              <span
+                v-for="tg in mem.tags"
+                :key="tg"
+                class="px-1.5 py-0.5 bg-surface-container-high rounded text-[10px] text-on-surface"
+              >
+                #{{ tg }}
+              </span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span>Recalled {{ mem.accessCount || 0 }}x</span>
+              <span v-if="mem.lastAccessedAt">&bull; Last: {{ new Date(mem.lastAccessedAt).toLocaleDateString() }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 8: ACTIVITY -->
     <div v-else-if="activeTab === 'activity'" class="space-y-4">
       <UiCard padding="lg">
         <div class="text-center py-10 space-y-3">
@@ -380,7 +487,7 @@
       </UiCard>
     </div>
 
-    <!-- TAB 8: SETTINGS -->
+    <!-- TAB 9: SETTINGS -->
     <div v-else-if="activeTab === 'settings'" class="space-y-6">
       <UiCard padding="lg">
         <template #header>
@@ -424,6 +531,71 @@
         </div>
       </UiCard>
     </div>
+
+    <!-- MODAL: ADD MEMORY -->
+    <UiModal :open="openAddMemoryModal" title="Inject Digital Employee Memory" @close="openAddMemoryModal = false">
+      <div class="space-y-3">
+        <UiInput v-model="newMemoryForm.title" label="Memory Title" placeholder="e.g. Code Review Standard" required />
+        
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-on-surface-variant mb-1">Memory Type</label>
+            <select
+              v-model="newMemoryForm.type"
+              class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 text-xs text-on-surface focus:outline-none focus:border-primary"
+            >
+              <option value="procedural">Procedural (SOP & Steps)</option>
+              <option value="semantic">Semantic (Rule & Knowledge)</option>
+              <option value="episodic">Episodic (Past Experience)</option>
+              <option value="feedback">Feedback (Reviewer Directive)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-on-surface-variant mb-1">Scope</label>
+            <select
+              v-model="newMemoryForm.scope"
+              class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 text-xs text-on-surface focus:outline-none focus:border-primary"
+            >
+              <option value="employee">Employee Specific</option>
+              <option value="global">Workspace Global</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-medium text-on-surface-variant mb-1">Directive / Memory Content</label>
+          <textarea
+            v-model="newMemoryForm.content"
+            rows="3"
+            placeholder="Describe the lesson or operational rule to be recalled by the agent..."
+            class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg p-3 text-xs text-on-surface focus:outline-none focus:border-primary"
+          ></textarea>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <UiInput v-model="newMemoryForm.tags" label="Tags (comma separated)" placeholder="e.g. ui, tailwind, security" />
+          <div>
+            <label class="block text-xs font-medium text-on-surface-variant mb-1">Importance (1 - 5)</label>
+            <select
+              v-model.number="newMemoryForm.importance"
+              class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-3 py-2 text-xs text-on-surface focus:outline-none focus:border-primary"
+            >
+              <option :value="1">P1 (Low)</option>
+              <option :value="2">P2 (Normal)</option>
+              <option :value="3">P3 (Medium)</option>
+              <option :value="4">P4 (High)</option>
+              <option :value="5">P5 (Critical / Strict)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+      <template #footer>
+        <UiButton variant="ghost" @click="openAddMemoryModal = false">Cancel</UiButton>
+        <UiButton variant="primary" :disabled="!newMemoryForm.title || !newMemoryForm.content" @click="confirmAddMemory">
+          Save Memory
+        </UiButton>
+      </template>
+    </UiModal>
 
     <!-- MODAL: ADD SKILL -->
     <UiModal :open="openAddSkillModal" title="Assign Skill from Registry" @close="openAddSkillModal = false">
@@ -499,7 +671,10 @@ import {
   Save,
   Plus,
   Briefcase,
-  PlayCircle
+  PlayCircle,
+  Brain,
+  Search,
+  Trash2
 } from '@lucide/vue'
 import UiButton from '../../components/ui/UiButton.vue'
 import UiBadge from '../../components/ui/UiBadge.vue'
@@ -512,8 +687,9 @@ import { useSkillStore } from '../../stores/skill'
 import { useWorkforceToolStore } from '../../stores/workforceTool'
 import { useAssignmentStore } from '../../stores/assignment'
 import { useAgentRunStore } from '../../stores/agentRun'
+import { useMemoryStore } from '../../stores/memory'
 import { useToast } from '../../composables/useToast'
-import type { EmploymentStatus, SkillPriority } from '../../types'
+import type { EmploymentStatus, SkillPriority, MemoryType, MemoryScope, AgentRun } from '../../types'
 
 const route = useRoute()
 const departmentStore = useDepartmentStore()
@@ -522,11 +698,16 @@ const skillStore = useSkillStore()
 const toolStore = useWorkforceToolStore()
 const assignmentStore = useAssignmentStore()
 const agentRunStore = useAgentRunStore()
+const memoryStore = useMemoryStore()
 const toast = useToast()
 
 const activeTab = ref('overview')
 const openAddSkillModal = ref(false)
 const openAddToolModal = ref(false)
+const openAddMemoryModal = ref(false)
+
+const memoryTypeFilter = ref('All')
+const memorySearch = ref('')
 
 const defaultAvatar = 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80'
 
@@ -541,7 +722,24 @@ const employeeAssignments = computed(() => {
 })
 
 const employeeRuns = computed(() => {
-  return agentRunStore.runs.filter((r) => r.employeeId === empId.value)
+  return agentRunStore.runs.filter((r: AgentRun) => r.employeeId === empId.value)
+})
+
+const employeeMemories = computed(() => {
+  return memoryStore.getMemoriesByEmployee(empId.value)
+})
+
+const filteredEmployeeMemories = computed(() => {
+  return employeeMemories.value.filter((m) => {
+    const matchType = memoryTypeFilter.value === 'All' || m.type === memoryTypeFilter.value
+    const q = memorySearch.value.trim().toLowerCase()
+    const matchSearch =
+      q === '' ||
+      m.title.toLowerCase().includes(q) ||
+      m.content.toLowerCase().includes(q) ||
+      m.tags.some((t) => t.toLowerCase().includes(q))
+    return matchType && matchSearch
+  })
 })
 
 const currentWorkState = computed(() => {
@@ -573,6 +771,16 @@ const newSkillForm = ref({
   priority: 'P1' as SkillPriority
 })
 
+const newMemoryForm = ref({
+  title: '',
+  content: '',
+  type: 'procedural' as MemoryType,
+  scope: 'employee' as MemoryScope,
+  tags: '',
+  confidence: 0.95,
+  importance: 4
+})
+
 onMounted(async () => {
   await Promise.all([
     departmentStore.fetchDepartments(),
@@ -581,7 +789,8 @@ onMounted(async () => {
     skillStore.fetchSkills(),
     toolStore.fetchTools(),
     assignmentStore.fetchAssignments(),
-    agentRunStore.fetchRuns()
+    agentRunStore.fetchRuns(),
+    memoryStore.fetchMemories()
   ])
 
   if (employee.value) {
@@ -598,6 +807,7 @@ const tabs = computed(() => [
   { id: 'tools', label: 'Tools', icon: Wrench, count: employee.value?.toolIds.length || 0 },
   { id: 'work', label: 'Work', icon: Briefcase, count: employeeAssignments.value.length },
   { id: 'runs', label: 'Runs', icon: PlayCircle, count: employeeRuns.value.length },
+  { id: 'memory', label: 'Memory', icon: Brain, count: employeeMemories.value.length },
   { id: 'activity', label: 'Activity', icon: Activity },
   { id: 'settings', label: 'Settings', icon: Settings }
 ])
@@ -685,6 +895,39 @@ const handleSaveSettings = async () => {
     description: editForm.value.description,
     status: editForm.value.status
   })
-  toast.show('Changes Saved', 'Profil karyawan berhasil diperbarui.', 'success')
+  toast.show('Profile Updated', 'Perubahan profil karyawan berhasil disimpan.', 'success')
+}
+
+const confirmAddMemory = async () => {
+  if (!newMemoryForm.value.title.trim() || !newMemoryForm.value.content.trim()) return
+  const tagList = newMemoryForm.value.tags
+    .split(',')
+    .map((t) => t.trim().toLowerCase())
+    .filter(Boolean)
+
+  await memoryStore.createMemory({
+    workspaceId: 'ws-dev',
+    employeeId: newMemoryForm.value.scope === 'employee' ? empId.value : undefined,
+    employeeName: newMemoryForm.value.scope === 'employee' ? employee.value?.name : undefined,
+    type: newMemoryForm.value.type,
+    scope: newMemoryForm.value.scope,
+    title: newMemoryForm.value.title,
+    content: newMemoryForm.value.content,
+    tags: tagList.length > 0 ? tagList : ['guideline'],
+    confidence: newMemoryForm.value.confidence,
+    importance: newMemoryForm.value.importance,
+    source: 'manual_entry'
+  })
+
+  openAddMemoryModal.value = false
+  newMemoryForm.value.title = ''
+  newMemoryForm.value.content = ''
+  newMemoryForm.value.tags = ''
+  toast.show('Memory Saved', 'Agent experience memory has been persisted.', 'success')
+}
+
+const handleDeleteMemory = async (id: string) => {
+  await memoryStore.deleteMemory(id)
+  toast.show('Memory Removed', 'Agent memory item was deleted.', 'info')
 }
 </script>

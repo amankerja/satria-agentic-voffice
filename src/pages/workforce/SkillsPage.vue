@@ -21,10 +21,13 @@
     <div class="bg-surface-container-low p-3.5 rounded-xl border border-outline-variant space-y-3">
       <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         <!-- Category Filter Pills -->
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
+        <div role="tablist" aria-label="Skill categories" class="flex items-center gap-1.5 overflow-x-auto pb-1 lg:pb-0 scrollbar-none">
           <button
             v-for="cat in ['All', ...categories]"
             :key="cat"
+            role="tab"
+            :aria-selected="selectedCategory === cat"
+            :aria-label="`Category: ${cat}`"
             @click="selectedCategory = cat"
             :class="[
               'px-3 py-1.5 rounded-lg text-xs font-mono transition whitespace-nowrap',
@@ -41,6 +44,7 @@
         <div class="flex flex-col sm:flex-row sm:items-center gap-2.5">
           <select
             v-model="selectedSource"
+            aria-label="Filter by skill source"
             class="bg-surface-container-lowest border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs text-on-surface focus:outline-none focus:border-primary"
           >
             <option value="All">All Sources</option>
@@ -50,6 +54,7 @@
 
           <select
             v-model="selectedStatus"
+            aria-label="Filter by skill status"
             class="bg-surface-container-lowest border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs text-on-surface focus:outline-none focus:border-primary"
           >
             <option value="All">All Statuses</option>
@@ -59,10 +64,11 @@
           </select>
 
           <div class="relative w-full sm:w-60">
-            <Search class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" />
+            <Search class="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted" aria-hidden="true" />
             <input
               v-model="searchQuery"
               type="text"
+              aria-label="Search skills by name, repository, or tag"
               placeholder="Search skill, repo, tag..."
               class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg pl-7 pr-2.5 py-1.5 text-xs text-on-surface placeholder-muted focus:outline-none focus:border-primary"
             />

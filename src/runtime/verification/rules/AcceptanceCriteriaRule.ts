@@ -87,7 +87,7 @@ export class AcceptanceCriteriaRule {
       // Keyword extraction: take significant words from criterion (length > 3)
       const keywords = name
         .toLowerCase()
-        .split(/[\s,.:;()/\-]+/)
+        .split(/[\s,.:;()/-]+/)
         .filter((w) => w.length > 3)
 
       // A criterion is considered verified if at least half of its keywords appear in output

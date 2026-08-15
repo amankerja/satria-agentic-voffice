@@ -48,7 +48,7 @@ export class ArtifactCollector {
 
     if (output && (toolName.includes('write') || toolName.includes('create') || toolName.includes('generate'))) {
       const matchUri = output.match(/file:\/\/\/(.+?\.[a-zA-Z0-9]+)/i)
-      const matchPath = output.match(/(?:file|saved to|created at|written to)\s+([^\n\(\)]+?\.[a-zA-Z0-9]+)/i)
+      const matchPath = output.match(/(?:file|saved to|created at|written to)\s+([^\n()]+?\.[a-zA-Z0-9]+)/i)
       
       const rawPath = matchUri ? matchUri[1] : matchPath ? matchPath[1].trim() : null
       if (rawPath) {

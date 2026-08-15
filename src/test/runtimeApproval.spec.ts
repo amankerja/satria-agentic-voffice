@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { setActivePinia, createPinia } from 'pinia'
 import { useAgentRunStore } from '../stores/agentRun'
+import { useTaskStore } from '../stores/task'
 import { useNotificationStore } from '../stores/notification'
 import { useActivityStore } from '../stores/activity'
 import { RuntimeFactory } from '../runtime'
@@ -284,10 +285,24 @@ describe('SATRIA AI Workforce — Phase 3.5: Approval Gate & Human-in-the-Loop',
   it('retrying a run purges stale approval requests and restarts attempts', async () => {
     const runStore = useAgentRunStore()
 
+    const taskStore = useTaskStore()
+    const task = await taskStore.createTask({
+      workspaceId: 'ws-dev',
+      projectId: 'prj-satria-ui',
+      projectName: 'Satria UI',
+      title: 'Configure CORS Policy',
+      description: 'Configure CORS policy for backend',
+      status: 'Todo',
+      priority: 'Medium',
+      assigneeName: 'Bima',
+      dueDate: '2026-08-30',
+      tags: ['Backend']
+    })
+
     const run = await runStore.createRun({
-      id: 'asg-apprv-06',
-      taskId: 'tsk-apprv-06',
-      taskTitle: 'Configure CORS Policy',
+      id: 'asg-test-retry-01',
+      taskId: task.id,
+      taskTitle: task.title,
       employeeId: 'emp-bima',
       employeeName: 'Bima',
       employeeAvatar: '',
@@ -315,6 +330,9 @@ describe('SATRIA AI Workforce — Phase 3.5: Approval Gate & Human-in-the-Loop',
     }
 
     const retried = await runStore.retryRun(run.id)
+    expect(retried).toBeDefined()
+    expect(retried?.id).not.toBe(run.id)
+    expect(retried?.parentRunId).toBe(run.id)
     expect(retried?.attempt).toBe(2)
     expect(runStore.getPendingApproval(run.id)).toBeUndefined()
   })
