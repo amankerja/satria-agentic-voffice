@@ -1,152 +1,161 @@
 <template>
-  <div class="p-4 sm:p-5 bg-surface-container-low border border-outline-variant rounded-2xl shadow-lg relative overflow-hidden space-y-4">
+  <div class="p-4 sm:p-5 bg-surface-container-low border border-outline-variant rounded-xl flex flex-col justify-between h-full relative overflow-hidden space-y-4 shadow-sm">
     <!-- Subtle Background Glow -->
-    <div class="absolute -right-10 -top-10 w-48 h-48 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -right-8 -top-8 w-40 h-40 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
 
-    <!-- Header -->
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <div class="w-7 h-7 rounded-lg bg-primary/20 border border-primary/40 flex items-center justify-center text-primary">
+    <!-- Header Section -->
+    <div class="flex items-center justify-between pb-3 border-b border-outline-variant/60">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-primary shadow-sm shrink-0">
           <Zap class="w-4 h-4" />
         </div>
         <div>
-          <h2 class="text-sm font-bold text-on-surface flex items-center gap-2">
-            <span>Quick AI Workforce Dispatch</span>
-            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">Fast Track</span>
-          </h2>
-          <p class="text-[11px] text-muted">Ketik instruksi pekerjaan, pilih digital employee, dan eksekusi langsung dalam 1 klik.</p>
+          <div class="flex items-center gap-2">
+            <h3 class="text-sm font-bold text-on-surface leading-none">Quick Dispatch</h3>
+            <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 leading-none">Fast Track</span>
+          </div>
+          <p class="text-[11px] text-muted mt-1 leading-none">Eksekusi tugas langsung ke AI worker dalam 1 klik</p>
         </div>
       </div>
 
       <!-- Runtime Mode Toggle Badge -->
-      <div class="hidden sm:flex items-center gap-1.5 bg-surface-container-lowest px-2.5 py-1 rounded-lg border border-outline-variant text-[11px] font-mono">
-        <span class="text-muted">Runtime:</span>
-        <button
-          @click="toggleRuntime"
-          :class="[
-            'px-2 py-0.5 rounded font-bold transition flex items-center gap-1',
-            agentRunStore.runtimeMode === 'hermes' ? 'bg-primary/20 text-primary' : 'bg-surface-container text-muted'
-          ]"
-        >
-          <span class="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
-          {{ agentRunStore.runtimeMode === 'hermes' ? 'Hermes Native' : 'Simulation' }}
-        </button>
-      </div>
+      <button
+        @click="toggleRuntime"
+        class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-mono border transition shrink-0"
+        :class="agentRunStore.runtimeMode === 'hermes' ? 'bg-primary/10 border-primary/30 text-primary hover:bg-primary/20' : 'bg-surface-container border-outline-variant text-muted hover:text-on-surface'"
+        :title="`Runtime aktif: ${agentRunStore.runtimeMode === 'hermes' ? 'Hermes Native Gateway' : 'Simulation Runner'}. Klik untuk beralih.`"
+      >
+        <span class="w-1.5 h-1.5 rounded-full bg-primary" :class="agentRunStore.runtimeMode === 'hermes' ? 'animate-pulse' : 'opacity-40'"></span>
+        <span>{{ agentRunStore.runtimeMode === 'hermes' ? 'Hermes' : 'Mock' }}</span>
+      </button>
     </div>
 
-    <!-- Main Input Box -->
-    <div class="space-y-3">
-      <div class="relative">
+    <!-- Main Prompt Input Area -->
+    <div class="space-y-2 flex-1">
+      <div class="relative bg-surface-container-lowest border border-outline-variant rounded-xl p-3 focus-within:border-primary/60 focus-within:ring-1 focus-within:ring-primary/20 transition group">
         <textarea
           v-model="promptText"
-          rows="2"
-          placeholder="Contoh: Analisis backend project structure dan berikan arsitektur ringkas..."
+          rows="3"
+          placeholder="Ketik instruksi tugas (contoh: Audit arsitektur backend dan verifikasi boundary sandbox)..."
           aria-label="Prompt text for AI Workforce Dispatch"
-          class="w-full bg-surface-container-lowest text-xs text-on-surface placeholder-muted border border-outline-variant rounded-xl p-3 outline-none focus:border-primary transition resize-none font-sans"
+          class="w-full bg-transparent text-xs text-on-surface placeholder-muted outline-none resize-none font-sans leading-relaxed"
           @keydown.enter.ctrl="handleDispatch"
         ></textarea>
 
-        <!-- Quick Prompts Chips -->
-        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 mt-1 scrollbar-none text-[11px]">
-          <span class="text-muted font-mono shrink-0">Contoh:</span>
-          <button
-            v-for="chip in promptChips"
-            :key="chip.label"
-            :aria-label="`Apply prompt template: ${chip.label}`"
-            @click="applyChip(chip)"
-            class="px-2 py-0.5 rounded bg-surface-container hover:bg-surface-container-high text-on-surface-variant hover:text-primary transition shrink-0 border border-outline-variant/60"
-          >
-            {{ chip.label }}
-          </button>
+        <!-- Chips & Keyboard Shortcut Hint -->
+        <div class="flex items-center justify-between pt-2 border-t border-outline-variant/40 mt-1 text-[11px]">
+          <div class="flex items-center gap-1.5 overflow-x-auto scrollbar-none py-0.5 max-w-[80%]">
+            <span class="text-muted text-[10px] font-mono shrink-0">Contoh:</span>
+            <button
+              v-for="chip in promptChips"
+              :key="chip.label"
+              :aria-label="`Apply prompt: ${chip.label}`"
+              @click="applyChip(chip)"
+              class="px-2 py-0.5 rounded-md bg-surface-container hover:bg-surface-container-high hover:text-primary text-[11px] text-on-surface-variant transition shrink-0 border border-outline-variant/60"
+            >
+              {{ chip.label }}
+            </button>
+          </div>
+
+          <span class="text-[10px] font-mono text-muted shrink-0 hidden sm:inline ml-2">
+            Ctrl+Enter
+          </span>
         </div>
       </div>
+    </div>
 
-      <!-- Controls Row: Employee Picker, Project, & Dispatch Button -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-2 border-t border-outline-variant/60">
-        <div class="flex flex-wrap items-center gap-2">
-          <!-- Employee Selector -->
-          <div class="flex items-center gap-1.5 bg-surface-container-lowest border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs">
-            <label for="quick-emp-select" class="text-muted text-[11px]">Agent:</label>
+    <!-- Parameter Config Grid (Prevents Overflow/Truncation) -->
+    <div class="space-y-3 pt-1">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <!-- Employee Selector -->
+        <div class="space-y-1">
+          <label for="quick-emp-select" class="text-[10px] font-medium text-muted uppercase tracking-wider block">Agent</label>
+          <div class="relative">
             <select
               id="quick-emp-select"
               v-model="selectedEmployeeId"
               aria-label="Select digital employee"
-              class="bg-transparent text-on-surface font-medium outline-none cursor-pointer text-xs"
+              class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs text-on-surface font-medium outline-none focus:border-primary transition appearance-none cursor-pointer pr-7"
             >
-              <option v-for="emp in employeeStore.activeEmployees" :key="emp.id" :value="emp.id">
+              <option v-for="emp in employeeStore.activeEmployees" :key="emp.id" :value="emp.id" class="bg-surface-container-low text-on-surface">
                 {{ emp.name }} ({{ emp.roleName }})
               </option>
             </select>
+            <ChevronDown class="w-3.5 h-3.5 text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
+        </div>
 
-          <!-- Model Selector -->
-          <div class="flex items-center gap-1.5 bg-surface-container-lowest border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs font-mono">
-            <label for="quick-model-select" class="text-muted text-[11px]">Model:</label>
+        <!-- AI Model Selector -->
+        <div class="space-y-1">
+          <label for="quick-model-select" class="text-[10px] font-medium text-muted uppercase tracking-wider block">Model</label>
+          <div class="relative">
             <select
               id="quick-model-select"
               v-model="aiStore.selectedModel"
               aria-label="Select AI model"
               @change="aiStore.setModel(aiStore.selectedModel)"
-              class="bg-transparent text-primary font-bold outline-none cursor-pointer text-xs max-w-35 truncate"
+              class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs text-primary font-mono font-semibold outline-none focus:border-primary transition appearance-none cursor-pointer pr-7"
             >
-              <option v-for="m in aiStore.availableModels" :key="m" :value="m" class="bg-surface-container-low text-on-surface">
+              <option v-for="m in aiStore.availableModels" :key="m" :value="m" class="bg-surface-container-low text-on-surface font-sans">
                 {{ m }}
               </option>
             </select>
+            <ChevronDown class="w-3.5 h-3.5 text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
+        </div>
 
-          <!-- Priority Selector -->
-          <div class="flex items-center gap-1.5 bg-surface-container-lowest border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs">
-            <label for="quick-priority-select" class="text-muted text-[11px]">Priority:</label>
+        <!-- Priority Selector -->
+        <div class="space-y-1">
+          <label for="quick-priority-select" class="text-[10px] font-medium text-muted uppercase tracking-wider block">Priority</label>
+          <div class="relative">
             <select
               id="quick-priority-select"
               v-model="priority"
               aria-label="Select task priority"
-              class="bg-transparent text-on-surface font-medium outline-none cursor-pointer text-xs"
+              class="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs text-on-surface font-medium outline-none focus:border-primary transition appearance-none cursor-pointer pr-7"
             >
               <option value="Low">Low</option>
               <option value="Medium">Medium</option>
               <option value="High">High</option>
               <option value="Urgent">Urgent</option>
             </select>
+            <ChevronDown class="w-3.5 h-3.5 text-muted absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
-
-        <UiButton
-          variant="primary"
-          size="md"
-          :icon="Play"
-          :loading="isDispatching"
-          :disabled="!promptText.trim()"
-          @click="handleDispatch"
-          class="shrink-0 font-bold"
-        >
-          ⚡ Launch & Execute
-        </UiButton>
       </div>
+
+      <!-- Action Button (Full Width, Never Truncates) -->
+      <UiButton
+        variant="primary"
+        size="md"
+        :loading="isDispatching"
+        :disabled="!promptText.trim()"
+        @click="handleDispatch"
+        class="w-full justify-center font-bold shadow-md shadow-primary/10 gap-2 h-10 text-xs"
+      >
+        <Zap class="w-4 h-4" />
+        <span>Launch & Execute</span>
+      </UiButton>
     </div>
 
     <!-- Active Run Inline Monitor (if dispatched recently) -->
     <div
       v-if="latestDispatchedRun"
-      class="mt-3 p-3.5 bg-surface-container-lowest border border-primary/30 rounded-xl space-y-3 animate-in fade-in duration-200"
+      class="mt-2 p-3 bg-surface-container-lowest border border-primary/30 rounded-xl space-y-2.5 animate-in fade-in duration-200"
     >
       <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2.5">
+        <div class="flex items-center gap-2">
           <div class="w-2 h-2 rounded-full bg-primary animate-ping"></div>
-          <span class="text-xs font-bold text-on-surface">{{ latestDispatchedRun.taskTitle }}</span>
+          <span class="text-xs font-bold text-on-surface truncate max-w-48">{{ latestDispatchedRun.taskTitle }}</span>
           <UiBadge :variant="latestDispatchedRun.status === 'Completed' ? 'success' : latestDispatchedRun.status === 'Waiting' ? 'warning' : 'info'" size="sm">
             {{ latestDispatchedRun.status }}
           </UiBadge>
         </div>
 
-        <div class="flex items-center gap-3 text-[11px] font-mono text-muted">
-          <span>Tokens: <strong class="text-primary">{{ latestDispatchedRun.telemetry?.totalTokens || 0 }}</strong></span>
-          <span>Cost: <strong class="text-primary">{{ latestDispatchedRun.telemetry?.estimatedCostUsd ? `$${latestDispatchedRun.telemetry.estimatedCostUsd.toFixed(4)}` : 'N/A' }}</strong></span>
-          <router-link :to="`/runs/${latestDispatchedRun.id}`" class="text-primary hover:underline font-sans font-medium">
-            Open Full View &rarr;
-          </router-link>
-        </div>
+        <router-link :to="`/runs/${latestDispatchedRun.id}`" class="text-primary hover:underline text-[11px] font-medium flex items-center gap-1">
+          <span>View Run</span>
+          <ArrowRight class="w-3 h-3" />
+        </router-link>
       </div>
 
       <!-- Live progress bar -->
@@ -159,14 +168,14 @@
       </div>
 
       <!-- Inline Approval Gate if waiting -->
-      <div v-if="latestDispatchedRun.status === 'Waiting' && pendingApproval" class="p-3 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center justify-between gap-3">
+      <div v-if="latestDispatchedRun.status === 'Waiting' && pendingApproval" class="p-2.5 bg-amber-500/10 border border-amber-500/30 rounded-lg flex items-center justify-between gap-2">
         <div class="text-xs">
           <div class="font-bold text-amber-300">Approval Diperlukan</div>
-          <div class="text-[11px] text-muted">Action: {{ pendingApproval.toolCall.toolName }}</div>
+          <div class="text-[10px] text-muted truncate max-w-40">Action: {{ pendingApproval.toolCall.toolName }}</div>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1.5 shrink-0">
           <UiButton size="sm" variant="danger" @click="resolveApproval(false)">Reject</UiButton>
-          <UiButton size="sm" variant="primary" @click="resolveApproval(true)">Approve & Resume</UiButton>
+          <UiButton size="sm" variant="primary" @click="resolveApproval(true)">Approve</UiButton>
         </div>
       </div>
     </div>
@@ -175,7 +184,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { Zap, Play } from '@lucide/vue'
+import { Zap, ChevronDown, ArrowRight } from '@lucide/vue'
 import UiButton from '../ui/UiButton.vue'
 import UiBadge from '../ui/UiBadge.vue'
 import UiProgress from '../ui/UiProgress.vue'
@@ -202,17 +211,17 @@ const latestDispatchedRunId = ref<string | null>(null)
 
 const promptChips = [
   {
-    label: '🔍 Audit Backend Architecture',
+    label: '🔍 Audit Backend',
     prompt: 'Analisis backend project structure dan buat ringkasan arsitektur.',
     roleMatch: 'role-backend-api'
   },
   {
-    label: '⚡ Optimize API & DB Queries',
+    label: '⚡ Optimasi Query',
     prompt: 'Optimasi query performa database dan audit connection pool.',
     roleMatch: 'role-backend-api'
   },
   {
-    label: '🎨 Audit UI Design Tokens',
+    label: '🎨 Design Tokens',
     prompt: 'Verifikasi konsistensi Tailwind design tokens dan responsive layout.',
     roleMatch: 'role-frontend-ui'
   }

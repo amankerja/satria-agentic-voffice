@@ -328,18 +328,7 @@
 
       <!-- Right 1 Col: Quick Dispatch Bar -->
       <div>
-        <UiCard>
-          <template #header>
-            <div class="flex items-center justify-between w-full">
-              <span class="font-semibold text-sm text-on-surface flex items-center gap-2">
-                <Zap class="w-4 h-4 text-secondary" />
-                Quick Dispatch Launcher
-              </span>
-            </div>
-          </template>
-
-          <QuickDispatchBar />
-        </UiCard>
+        <QuickDispatchBar />
       </div>
     </div>
 
