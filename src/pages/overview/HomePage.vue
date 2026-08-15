@@ -54,6 +54,9 @@
       </div>
     </div>
 
+    <!-- Side Hustle Business Operations Engine (3-Step Practical Flow) -->
+    <SideHustleOpsBanner />
+
     <!-- 1. TOP PRIORITY: LIVE ACTIVE WORK IN PROGRESS & NEEDS ATTENTION -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Left 2 Cols: Live Active Work -->
@@ -368,6 +371,7 @@ import UiEmptyState from '../../components/ui/UiEmptyState.vue'
 import QuickDispatchBar from '../../components/workforce/QuickDispatchBar.vue'
 import CreateTaskDrawer from '../../components/tasks/CreateTaskDrawer.vue'
 import CreateProjectModal from '../../components/projects/CreateProjectModal.vue'
+import SideHustleOpsBanner from '../../components/content/SideHustleOpsBanner.vue'
 import { useWorkspaceStore } from '../../stores/workspace'
 import { useProjectStore } from '../../stores/project'
 import { useTaskStore } from '../../stores/task'

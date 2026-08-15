@@ -30,6 +30,9 @@
       </div>
     </div>
 
+    <!-- Side Hustle Business Operations Engine (3-Step Practical Flow) -->
+    <SideHustleOpsBanner />
+
     <!-- 5 KPI Cards -->
     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3">
       <div class="rounded-2xl border border-surface-container-high/60 bg-surface-container-low p-4 space-y-1">
@@ -296,6 +299,7 @@ import ContentCalendarView from '../../components/content/ContentCalendarView.vu
 import DataAnalysisTab from '../../components/content/DataAnalysisTab.vue'
 import SocialConnectionsTab from '../../components/content/SocialConnectionsTab.vue'
 import CreateContentDrawer from '../../components/content/CreateContentDrawer.vue'
+import SideHustleOpsBanner from '../../components/content/SideHustleOpsBanner.vue'
 
 const contentStore = useContentStore()
 const dataReviewStore = useDataReviewStore()

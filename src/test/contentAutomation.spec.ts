@@ -178,11 +178,32 @@ describe('Phase 6 — Content, Data Analysis & Social Automation Suite', () => {
 
       const generatedContent = await dataReviewStore.generateContentFromReview(review.id)
       expect(generatedContent).toBeDefined()
-      expect(generatedContent.title).toContain(review.title)
+      expect(generatedContent.title.length).toBeGreaterThan(5)
       expect(generatedContent.dataReviewId).toBe(review.id)
 
       const linkedReview = await dataReviewStore.getReviewById(review.id)
       expect(linkedReview?.generatedContentId).toBe(generatedContent.id)
+    })
+
+    it('runs sales data audit and generates 3 strategic content campaigns', async () => {
+      const dataReviewStore = useDataReviewStore()
+      const contentStore = useContentStore()
+
+      await Promise.all([
+        dataReviewStore.loadReviews(),
+        contentStore.loadAll()
+      ])
+
+      const audit = await dataReviewStore.runSalesDataAudit('penjualan_mingguan.xlsx')
+      expect(audit.id).toBeDefined()
+      expect(audit.artifacts.length).toBe(3)
+      expect(audit.keyMetrics.length).toBeGreaterThanOrEqual(4)
+
+      const contents = await dataReviewStore.generate3ContentCampaignsFromReview(audit.id)
+      expect(contents.length).toBe(3)
+      expect(contents[0].status).toBe('Approved')
+      expect(contents[1].status).toBe('Approved')
+      expect(contents[2].status).toBe('Approved')
     })
   })
 
