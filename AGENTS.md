@@ -48,14 +48,24 @@ SATRIA AI Workforce is an enterprise-grade agentic AI workforce operating layer 
   - Sub-Phase 4.6: Owner Mid-Run Controls (Stop run resets to Backlog, Change Worker mid-run with cascading run cancellation and restart, Add Directive mid-run, Cancel Task with active run cascade, Cancel Project with task & schedule cascade) ✅
   - Sub-Phase 4.7: Safe Delete & Soft Deletion Lifecycle (`deletedAt`, `deletedBy`, `deleteReason` audit trail on Task, Project, Schedule, Run) ✅
   - Sub-Phase 4.8: Simple First UI Navigation (Main: Home, Active Work, Tasks, Projects, Workers, Calendar, Reports, Settings; Collapsible Advanced: Runs, Schedules, Files, Reviews, Governance, Registries) ✅
-  - Sub-Phase 4.9: QA & Validation (201 Vitest tests pass across 30 suites, vue-tsc 0 errors, ESLint 0 errors, production build verified) ✅
+  - Sub-Phase 4.9: QA & Validation (217 Vitest tests pass across 32 suites, vue-tsc 0 errors, ESLint 0 errors, production build verified) ✅
 - **Phase 4.1 (Audit Corrections & Simplification):** 100% Complete ✅
-  - Disentangled Cancel vs Delete vs Archive across Project, Task, Schedule, and Run (no `deletedAt` on cancel) ✅
-  - Normalized `TaskStatus` to `'Draft' | 'Todo' | 'In Progress' | 'Waiting' | 'Review' | 'Done' | 'Cancelled'` ✅
+  - Strict 3-way permanent separation contract: Cancel (`status = 'Cancelled'`), Archive (`status = 'Archived'`, `archivedAt`), Delete (`deletedAt`) — Cancel and Archive never set `deletedAt` ✅
+  - Normalized `TaskStatus` to `'Draft' | 'Todo' | 'In Progress' | 'Waiting' | 'Review' | 'Done' | 'Cancelled' | 'Archived'` ✅
   - Decoupled `ProjectStatus` (`Draft`, `Active`, `Paused`, `Completed`, `Cancelled`, `Archived`) and `ProjectHealth` (`Healthy`, `At Risk`, `Critical`) ✅
   - Standardized Stop Run to set Task to `Todo` (clearing `activeRunId`), enabling Run Again / Change Worker / Cancel Task ✅
-  - Removed all hard-coded production path fallbacks (dynamic Task override -> Project path -> Workspace Project resolution) ✅
-  - Dynamic 4 primary workers spotlight on Home based on `isPrimary` / `workerType` ✅
+  - Removed all hard-coded production path fallbacks (dynamic Task override -> Project path -> FAIL) ✅
+  - Removed all hard-coded production worker fallbacks (Worker -> Template -> Project Default -> Error) ✅
+  - Implemented Scheduler Idempotency via `executionKey` (`schedule:id:timestamp` guarantees 1 Task & 1 Run per occurrence) ✅
+  - Implemented Duplicate Run Protection & Execution Lock (`task.activeRunId` mutex rejects double-clicks and concurrent executions) ✅
+  - Implemented Hermes Crash Recovery System (`HermesRecoveryService`, orphan run detection, probe status, safe bounded recovery before retry) ✅
+  - Implemented Run State Persistence & Heartbeat Monitoring (`runId`, `taskId`, `status`, `runtime`, `workspacePath`, `startedAt`, `lastHeartbeatAt`, `attempt`, `parentRunId` persisted to IndexedDB; stale heartbeat threshold detection) ✅
+  - Implemented Workspace Lock Subsystem (`WorkspaceLockService`, `workspacePath -> activeRunId`, conflict policies `wait`, `stop_existing`, `allow_concurrent` preventing file collision) ✅
+  - Implemented Immutable Cost Ledger (`CostEntry`, `MockCostLedgerRepository`, `costLedgerStore` decoupled from mutable run telemetry) ✅
+  - Implemented Reinforced Audit Trail (`AuditLogEntry`, `MockAuditLogRepository`, immutable logging of all Owner operations, read-only UI) ✅
+  - Implemented Service-Level RBAC Permission Enforcement (`AuthorizationService`, `assertPermission`, `Owner` vs `Worker` vs `Viewer`) ✅
+  - Implemented Full Workspace Backup & Restore Subsystem (`BackupService`, `SatriaBackupBundle` multi-entity JSON serialization, schema validation, and database state restoration) ✅
+  - Dynamic primary workers spotlight on Home based on `isPrimary` / `workerType` ✅
   - Trash & Storage management tab under Settings with Restore & Permanent Delete actions ✅
 
 Archived blueprints & execution plans in `work-histori/` (see `work-histori/INDEX.md`):
@@ -87,6 +97,7 @@ Archived blueprints & execution plans in `work-histori/` (see `work-histori/INDE
 - `work-histori/23_PHASE3_11_AGENT_MEMORY_SUB_SYSTEM_REPORT.md`
 - `work-histori/24_PHASE4_BUSINESS_LOGIC_UI_REFINEMENT_SPEC.md`
 - `work-histori/25_PHASE4_1_AUDIT_CORRECTION_AND_SIMPLIFICATION_REPORT.md`
+- `work-histori/26_FINAL_PRODUCTION_QUALITY_GATE_AND_FAILURE_REPORT.md`
 
 ---
 
@@ -99,8 +110,8 @@ npm run preview      # preview production build
 npm run typecheck    # vue-tsc --noEmit (strict mode)
 npm run lint         # ESLint flat config validation (src/ & e2e/)
 npm run format       # Prettier code formatting
-npm run test:unit    # Vitest unit & integration test run (201 tests across 30 suites)
-npm run test:e2e     # Playwright E2E smoke test suite
+npm run test:unit    # Vitest unit & integration test run (231 tests across 34 suites)
+npm run test:e2e     # Playwright E2E smoke test suite (3 test journeys)
 ```
 
 **Required order:** `typecheck` → `lint` → `test:unit` → `build`

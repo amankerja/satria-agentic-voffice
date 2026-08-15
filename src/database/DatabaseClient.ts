@@ -48,7 +48,9 @@ import type {
   UserProfile,
   UserSettings,
   AgentMemoryItem,
-  Schedule
+  Schedule,
+  CostEntry,
+  AuditLogEntry
 } from '../types'
 import { STORAGE_KEYS, saveStoredCollection } from '../utils/mockStorage'
 import * as mockArrays from '../mocks/mockData'
@@ -71,6 +73,8 @@ export interface FullDatabaseState {
   notifications: NotificationItem[]
   memories: AgentMemoryItem[]
   schedules: Schedule[]
+  cost_entries: CostEntry[]
+  audit_logs: AuditLogEntry[]
   user_profile: UserProfile
   user_settings: UserSettings
 }
@@ -79,7 +83,7 @@ export type StoreName = keyof FullDatabaseState
 
 class SatriaDatabaseClient {
   private dbName = 'satria_ai_workforce_db'
-  private dbVersion = 5
+  private dbVersion = 6
   private db: IDBDatabase | null = null
   private memoryCache: FullDatabaseState
   private initialized = false
@@ -109,6 +113,8 @@ class SatriaDatabaseClient {
       notifications: JSON.parse(JSON.stringify(initialNotifications)),
       memories: JSON.parse(JSON.stringify(initialMemories)),
       schedules: JSON.parse(JSON.stringify(initialSchedules)),
+      cost_entries: [],
+      audit_logs: [],
       user_profile: JSON.parse(JSON.stringify(initialUser)),
       user_settings: JSON.parse(JSON.stringify(initialUserSettings))
     }
@@ -158,6 +164,8 @@ class SatriaDatabaseClient {
       notifications: { array: mockArrays.mockNotifications, key: STORAGE_KEYS.NOTIFICATIONS },
       memories: { array: mockArrays.mockMemories, key: STORAGE_KEYS.MEMORIES },
       schedules: { array: mockArrays.mockSchedules, key: STORAGE_KEYS.SCHEDULES },
+      cost_entries: {},
+      audit_logs: {},
       user_profile: {},
       user_settings: {}
     }
@@ -198,6 +206,8 @@ class SatriaDatabaseClient {
           'notifications',
           'memories',
           'schedules',
+          'cost_entries',
+          'audit_logs',
           'user_profile',
           'user_settings'
         ]
@@ -456,6 +466,25 @@ class SatriaDatabaseClient {
     }
     this.scheduleDiskSync()
     return JSON.parse(JSON.stringify(merged))
+  }
+
+  public async replaceStoreData<T extends { id: string }>(storeName: StoreName, items: T[]): Promise<void> {
+    await this.init()
+    ;(this.memoryCache as any)[storeName] = JSON.parse(JSON.stringify(items))
+    if (this.db && this.db.objectStoreNames.contains(storeName)) {
+      try {
+        const tx = this.db.transaction(storeName, 'readwrite')
+        const os = tx.objectStore(storeName)
+        os.clear()
+        for (const item of items) {
+          os.put(item)
+        }
+      } catch (err) {
+        console.warn(`[SatriaDB] IndexedDB replaceStoreData failed for ${storeName}:`, err)
+      }
+    }
+    this.syncMockArrays()
+    this.scheduleDiskSync()
   }
 
   public async resetToDefaults(): Promise<void> {

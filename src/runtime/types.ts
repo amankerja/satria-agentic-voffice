@@ -117,4 +117,5 @@ export interface AgentRuntime {
   retry(runId: string, attempt: number): Promise<void>
   respondApproval(runId: string, approvalId: string, approved: boolean, feedback?: string): Promise<void>
   checkHealth(): Promise<{ healthy: boolean; latencyMs: number; message: string }>
+  probeRunStatus?(runId: string): Promise<{ active: boolean; status?: string; details?: string }>
 }

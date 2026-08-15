@@ -1,6 +1,7 @@
 import type { AgentRuntimeResult, RuntimeTelemetry } from '../types'
 import type { RunResultDiff } from '../../types'
 import { ArtifactCollector, globalArtifactCollector } from './ArtifactCollector'
+import { SecuritySanitizer } from '../security/SecuritySanitizer'
 
 export interface IngestionBuffer {
   runId: string
@@ -48,7 +49,7 @@ export class ResultIngestor {
   public appendOutputDelta(runId: string, delta: string): void {
     if (!delta) return
     const buf = this.getOrCreateBuffer(runId)
-    buf.outputDeltas.push(delta)
+    buf.outputDeltas.push(SecuritySanitizer.sanitizeText(delta))
   }
 
   /**
@@ -57,7 +58,7 @@ export class ResultIngestor {
   public setFullOutput(runId: string, output: string): void {
     if (!output) return
     const buf = this.getOrCreateBuffer(runId)
-    buf.outputDeltas = [output]
+    buf.outputDeltas = [SecuritySanitizer.sanitizeText(output)]
   }
 
   /**
@@ -73,8 +74,8 @@ export class ResultIngestor {
     const buf = this.getOrCreateBuffer(runId)
     buf.toolExecutions.push({
       toolName,
-      output,
-      diff,
+      output: output ? SecuritySanitizer.sanitizeText(output) : undefined,
+      diff: diff ? SecuritySanitizer.sanitizeText(diff) : undefined,
       success,
       timestamp: new Date().toISOString()
     })
@@ -122,7 +123,7 @@ export class ResultIngestor {
    */
   public recordError(runId: string, error: string): void {
     const buf = this.getOrCreateBuffer(runId)
-    buf.errors.push(error)
+    buf.errors.push(SecuritySanitizer.sanitizeText(error))
   }
 
   /**

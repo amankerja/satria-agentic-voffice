@@ -7,6 +7,7 @@ import type {
 } from '../types'
 import type { RunStep, RunLogEntry, AgentRunStatus } from '../../types'
 import { globalMockRunner } from '../../services/mockAgentRunner'
+import { sanitizeRuntimeEvent } from '../security/RuntimeEventSanitizer'
 
 export class MockRuntimeAdapter implements AgentRuntime {
   public readonly mode: RuntimeMode = 'mock'
@@ -20,7 +21,7 @@ export class MockRuntimeAdapter implements AgentRuntime {
     this.listeners.set(runId, onEvent)
     this.startTimestamps.set(runId, performance.now())
 
-    onEvent({
+    onEvent(sanitizeRuntimeEvent({
       type: 'run:started',
       runId,
       timestamp: new Date().toISOString(),
@@ -33,7 +34,7 @@ export class MockRuntimeAdapter implements AgentRuntime {
         message: `[Mock Runtime] Initialized environment for ${input.employee.name} (${input.employee.roleName}).`,
         level: 'info'
       }
-    })
+    }))
 
     globalMockRunner.start(
       runId,
@@ -55,7 +56,7 @@ export class MockRuntimeAdapter implements AgentRuntime {
             estimatedCostUsd: 0.0
           }
 
-          onEvent({
+          onEvent(sanitizeRuntimeEvent({
             type: 'progress:updated',
             runId,
             timestamp: new Date().toISOString(),
@@ -63,7 +64,7 @@ export class MockRuntimeAdapter implements AgentRuntime {
             step,
             log,
             telemetry
-          })
+          }))
         },
         onStatusChange: (status: AgentRunStatus) => {
           const startTime = this.startTimestamps.get(runId) || performance.now()
@@ -83,33 +84,33 @@ export class MockRuntimeAdapter implements AgentRuntime {
           }
 
           if (status === 'Completed') {
-            onEvent({
+            onEvent(sanitizeRuntimeEvent({
               type: 'run:completed',
               runId,
               timestamp: new Date().toISOString(),
               step: 'Completing',
               progress: 100,
               telemetry
-            })
+            }))
           } else if (status === 'Cancelled') {
-            onEvent({
+            onEvent(sanitizeRuntimeEvent({
               type: 'run:cancelled',
               runId,
               timestamp: new Date().toISOString()
-            })
+            }))
           } else if (status === 'Failed') {
-            onEvent({
+            onEvent(sanitizeRuntimeEvent({
               type: 'run:failed',
               runId,
               timestamp: new Date().toISOString(),
               error: 'Execution terminated unexpectedly.'
-            })
+            }))
           } else if (status === 'Waiting') {
-            onEvent({
+            onEvent(sanitizeRuntimeEvent({
               type: 'run:paused',
               runId,
               timestamp: new Date().toISOString()
-            })
+            }))
           }
         }
       }
@@ -120,11 +121,11 @@ export class MockRuntimeAdapter implements AgentRuntime {
     globalMockRunner.pause(runId)
     const listener = this.listeners.get(runId)
     if (listener) {
-      listener({
+      listener(sanitizeRuntimeEvent({
         type: 'run:paused',
         runId,
         timestamp: new Date().toISOString()
-      })
+      }))
     }
   }
 
@@ -151,7 +152,7 @@ export class MockRuntimeAdapter implements AgentRuntime {
   async respondApproval(runId: string, approvalId: string, approved: boolean, feedback?: string): Promise<void> {
     const listener = this.listeners.get(runId)
     if (listener) {
-      listener({
+      listener(sanitizeRuntimeEvent({
         type: 'approval:resolved',
         runId,
         timestamp: new Date().toISOString(),
@@ -164,7 +165,7 @@ export class MockRuntimeAdapter implements AgentRuntime {
             : `[Approval Rejected] Action ${approvalId} denied by user: ${feedback || 'No feedback specified'}.`,
           level: approved ? 'info' : 'warn'
         }
-      })
+      }))
       if (approved) {
         globalMockRunner.resume(runId)
       } else {
@@ -178,6 +179,15 @@ export class MockRuntimeAdapter implements AgentRuntime {
       healthy: true,
       latencyMs: 1,
       message: 'Mock Runtime is active and healthy (In-Memory Engine).'
+    }
+  }
+
+  async probeRunStatus(runId: string): Promise<{ active: boolean; status?: string; details?: string }> {
+    const isRunning = globalMockRunner.isRunnerActive(runId)
+    return {
+      active: isRunning,
+      status: isRunning ? 'running' : 'inactive',
+      details: isRunning ? 'Mock runner active in memory' : 'No active mock runner process found'
     }
   }
 }

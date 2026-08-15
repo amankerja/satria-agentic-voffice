@@ -17,7 +17,7 @@
             <CheckCircle2 class="w-4 h-4 text-primary shrink-0" />
             <div>
               <div class="text-xs font-medium text-on-surface">Target Workspace Folder</div>
-              <div class="text-[10px] font-mono text-muted">{{ folderPath || 'C:/Projects/AI AGENTIC UI' }}</div>
+              <div class="text-[10px] font-mono text-muted">{{ folderPath || 'Path not configured' }}</div>
             </div>
           </div>
           <span class="text-[10px] font-mono text-primary font-semibold bg-primary/10 px-2 py-0.5 rounded-full">Ready</span>

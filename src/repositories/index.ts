@@ -27,7 +27,9 @@ import type {
   ReviewDecision,
   AgentMemoryItem,
   MemoryRecallQuery,
-  Schedule
+  Schedule,
+  CostEntry,
+  AuditLogEntry
 } from '../types'
 
 // ============================================================================
@@ -925,6 +927,61 @@ export class MemoryRepository {
   }
 }
 
+export class CostLedgerRepository {
+  async getAll(): Promise<CostEntry[]> {
+    return await dbClient.getAll<CostEntry>('cost_entries')
+  }
+
+  async getByWorkspace(workspaceId: string): Promise<CostEntry[]> {
+    const all = await this.getAll()
+    return all.filter((c) => c.workspaceId === workspaceId)
+  }
+
+  async getByProject(projectId: string): Promise<CostEntry[]> {
+    const all = await this.getAll()
+    return all.filter((c) => c.projectId === projectId)
+  }
+
+  async getByRun(runId: string): Promise<CostEntry[]> {
+    const all = await this.getAll()
+    return all.filter((c) => c.runId === runId)
+  }
+
+  async create(entry: Omit<CostEntry, 'id' | 'createdAt' | 'timestamp'>): Promise<CostEntry> {
+    const now = new Date().toISOString()
+    const newEntry: CostEntry = {
+      ...entry,
+      id: `cost-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      createdAt: now,
+      timestamp: now
+    }
+    await dbClient.insert<CostEntry>('cost_entries', newEntry)
+    return newEntry
+  }
+}
+
+export class AuditLogRepository {
+  async getAll(): Promise<AuditLogEntry[]> {
+    const all = await dbClient.getAll<AuditLogEntry>('audit_logs')
+    return all.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+  }
+
+  async getByEntity(entity: string, entityId?: string): Promise<AuditLogEntry[]> {
+    const all = await this.getAll()
+    return all.filter((a) => a.entity === entity && (!entityId || a.entityId === entityId))
+  }
+
+  async log(entry: Omit<AuditLogEntry, 'id' | 'timestamp'>): Promise<AuditLogEntry> {
+    const newEntry: AuditLogEntry = {
+      ...entry,
+      id: `audit-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
+      timestamp: new Date().toISOString()
+    }
+    await dbClient.insert<AuditLogEntry>('audit_logs', newEntry)
+    return newEntry
+  }
+}
+
 // Backwards compatibility aliases
 export {
   WorkspaceRepository as MockWorkspaceRepository,
@@ -944,5 +1001,7 @@ export {
   RunResultRepository as MockRunResultRepository,
   ReviewRepository as MockReviewRepository,
   ScheduleRepository as MockScheduleRepository,
-  MemoryRepository as MockMemoryRepository
+  MemoryRepository as MockMemoryRepository,
+  CostLedgerRepository as MockCostLedgerRepository,
+  AuditLogRepository as MockAuditLogRepository
 }

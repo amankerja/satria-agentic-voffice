@@ -18,6 +18,42 @@
       </div>
     </div>
 
+    <!-- Observability Status Bar -->
+    <div class="flex flex-wrap items-center gap-2.5 p-3 rounded-xl bg-surface-container-low border border-outline-variant text-xs">
+      <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-container-lowest border border-outline-variant font-mono">
+        <span
+          class="w-2 h-2 rounded-full"
+          :class="obsStore.runtimeHealth === 'healthy' || obsStore.runtimeHealth === 'mock' ? 'bg-primary' : 'bg-red-400'"
+        ></span>
+        <span class="text-on-surface font-medium">{{ obsStore.runtimeHealth === 'mock' ? 'Mock Runtime' : 'Hermes Healthy' }}</span>
+      </div>
+
+      <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-container-lowest border border-outline-variant font-mono">
+        <span
+          class="w-2 h-2 rounded-full"
+          :class="obsStore.schedulerHealth === 'healthy' ? 'bg-primary' : 'bg-amber-400'"
+        ></span>
+        <span class="text-on-surface font-medium">Scheduler {{ obsStore.schedulerHealth === 'healthy' ? 'Healthy' : 'Standby' }}</span>
+      </div>
+
+      <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-container-lowest border border-outline-variant font-mono">
+        <Activity class="w-3.5 h-3.5 text-primary" />
+        <span class="text-on-surface font-medium">{{ obsStore.activeRunsCount }} Active Runs</span>
+      </div>
+
+      <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-container-lowest border border-outline-variant font-mono">
+        <ShieldCheck class="w-3.5 h-3.5" :class="obsStore.orphanRunsCount > 0 ? 'text-amber-400' : 'text-primary'" />
+        <span :class="obsStore.orphanRunsCount > 0 ? 'text-amber-400 font-bold' : 'text-on-surface font-medium'">
+          {{ obsStore.orphanRunsCount }} Orphan Runs
+        </span>
+      </div>
+
+      <div v-if="obsStore.activeWorkspaceLocksCount > 0" class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-container-lowest border border-outline-variant font-mono ml-auto">
+        <Lock class="w-3.5 h-3.5 text-secondary" />
+        <span class="text-secondary font-medium">{{ obsStore.activeWorkspaceLocksCount }} Locked Path</span>
+      </div>
+    </div>
+
     <!-- 1. TOP PRIORITY: LIVE ACTIVE WORK IN PROGRESS & NEEDS ATTENTION -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
       <!-- Left 2 Cols: Live Active Work -->
@@ -331,7 +367,10 @@ import {
   Zap,
   Calendar,
   AlertTriangle,
-  ExternalLink
+  ExternalLink,
+  Activity,
+  ShieldCheck,
+  Lock
 } from '@lucide/vue'
 import UiButton from '../../components/ui/UiButton.vue'
 import UiCard from '../../components/ui/UiCard.vue'
@@ -347,6 +386,7 @@ import { useAgentRunStore } from '../../stores/agentRun'
 import { useReviewStore } from '../../stores/review'
 import { useActiveWorkStore } from '../../stores/activeWork'
 import { useEmployeeStore } from '../../stores/employee'
+import { useObservabilityStore } from '../../stores/observability'
 import type { TaskStatus, TaskPriority } from '../../types'
 
 const workspaceStore = useWorkspaceStore()
@@ -356,6 +396,7 @@ const agentRunStore = useAgentRunStore()
 const reviewStore = useReviewStore()
 const activeWorkStore = useActiveWorkStore()
 const employeeStore = useEmployeeStore()
+const obsStore = useObservabilityStore()
 
 const showCreateTask = ref(false)
 const showCreateProject = ref(false)

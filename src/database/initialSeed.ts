@@ -1,3 +1,11 @@
+/**
+ * SATRIA AI WORKFORCE — INITIAL SEED DATASET [DEMO ONLY]
+ *
+ * NOTE: This file provides offline demo / staging seed records for initial database bootstrapping
+ * and developer exploration. All records here are mock demonstration fixtures and must NEVER
+ * contain production secrets, live provider keys, or production environment credentials.
+ */
+
 import type {
   Workspace,
   Project,

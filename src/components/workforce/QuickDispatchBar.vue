@@ -261,11 +261,14 @@ const handleDispatch = async () => {
 
   isDispatching.value = true
   try {
-    const emp = employeeStore.employees.find((e) => e.id === selectedEmployeeId.value) || employeeStore.activeEmployees[0]
-    
+    const emp =
+      employeeStore.employees.find((e) => e.id === selectedEmployeeId.value) ||
+      employeeStore.activeEmployees[0] ||
+      employeeStore.employees[0]
+
     // 1. Create Task in store
     const createdTask = await taskStore.createTask({
-      workspaceId: workspaceStore.currentWorkspaceId,
+      workspaceId: workspaceStore.currentWorkspaceId || 'ws-dev',
       projectId: 'prj-satria-ui',
       projectName: 'SATRIA AI Workforce Command',
       title: promptText.value.length > 50 ? promptText.value.substring(0, 47) + '...' : promptText.value,
@@ -283,12 +286,12 @@ const handleDispatch = async () => {
       id: `asg-quick-${Date.now()}`,
       taskId: createdTask.id,
       taskTitle: createdTask.title,
-      employeeId: emp.id,
-      employeeName: emp.name,
-      employeeAvatar: emp.avatar,
-      employeeRole: emp.roleName,
+      employeeId: emp?.id || 'emp-bima',
+      employeeName: emp?.name || 'Bima',
+      employeeAvatar: emp?.avatar || '',
+      employeeRole: emp?.roleName || 'Backend API',
       assignedBy: 'Lead Developer (Quick Action)',
-      skillIds: emp.skills?.map((s) => s.skillId) || [],
+      skillIds: emp?.skills?.map((s) => s.skillId) || [],
       priority: priority.value,
       status: 'In Progress' as const,
       createdAt: new Date().toISOString(),

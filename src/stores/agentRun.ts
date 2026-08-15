@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import type {
   AgentRun,
+  AgentRunStatus,
   TaskAssignment,
   Employee,
   RunLogEntry
@@ -21,8 +22,15 @@ import type { AgentRunInput, RuntimeEvent, RuntimeMode, ApprovalRequest } from '
 import { VerificationEngine } from '../runtime/verification/VerificationEngine'
 import { AcceptanceCriteriaRule } from '../runtime/verification/rules/AcceptanceCriteriaRule'
 import { globalResultIngestor } from '../runtime/results/ResultIngestor'
+import { sanitizeRuntimeEvent } from '../runtime/security/RuntimeEventSanitizer'
+import { HermesRecoveryService, type OrphanRunReport } from '../runtime/recovery/HermesRecoveryService'
+import { globalWorkspaceLock } from '../services/WorkspaceLockService'
 import { useActivityStore } from './activity'
 import { useNotificationStore } from './notification'
+import { useCostLedgerStore } from './costLedger'
+import { useAuditLogStore } from './auditLog'
+import { useTaskStore } from './task'
+import { AuthorizationService } from '../services/AuthorizationService'
 
 export const useAgentRunStore = defineStore('agentRun', () => {
   const runRepo = new MockAgentRunRepository()
@@ -33,6 +41,8 @@ export const useAgentRunStore = defineStore('agentRun', () => {
   const projectRepo = new MockProjectRepository()
   const assignmentRepo = new MockAssignmentRepository()
   const memoryRepo = new MockMemoryRepository()
+  const costLedgerStore = useCostLedgerStore()
+  const auditLogStore = useAuditLogStore()
 
   const runs = ref<AgentRun[]>([])
   const currentRun = ref<AgentRun | null>(null)
@@ -95,39 +105,125 @@ export const useAgentRunStore = defineStore('agentRun', () => {
     return await runRepo.getByTaskId(taskId)
   }
 
-  async function createRun(assignment: TaskAssignment, attempt: number = 1): Promise<AgentRun> {
-    const newRun = await runRepo.create({
-      assignmentId: assignment.id,
-      taskId: assignment.taskId,
-      taskTitle: assignment.taskTitle,
-      employeeId: assignment.employeeId,
-      employeeName: assignment.employeeName,
-      employeeAvatar: assignment.employeeAvatar,
-      employeeRole: assignment.employeeRole,
-      status: 'Running',
-      currentStep: 'Initializing',
-      progress: 5,
-      attempt,
-      logs: [
-        {
-          id: `log-${Date.now()}-init`,
-          timestamp: new Date().toLocaleTimeString(),
-          step: 'Initializing',
-          message: `Digital employee ${assignment.employeeName} runtime initialized for task "${assignment.taskTitle}".`,
-          level: 'info'
-        }
-      ],
-      startedAt: new Date().toISOString()
-    })
+  const activeTaskLocks = new Set<string>()
+  const activeRunnerLocks = new Set<string>()
+  const activeHeartbeats = new Map<string, ReturnType<typeof setInterval>>()
 
-    runs.value.unshift(newRun)
-    currentRun.value = newRun
-    return newRun
+  async function createRun(assignment: TaskAssignment, attempt: number = 1): Promise<AgentRun> {
+    const taskId = assignment.taskId
+
+    // 1. In-memory execution lock to prevent rapid concurrent double-triggers (<100ms)
+    if (taskId && activeTaskLocks.has(taskId)) {
+      const activeRun = runs.value.find(
+        (r) => r.taskId === taskId && ['Queued', 'Starting', 'Running', 'Waiting', 'Verifying'].includes(r.status)
+      )
+      if (activeRun) {
+        console.warn(`[AgentRunStore] Task ${taskId} is currently executing run ${activeRun.id}. Rejecting duplicate start.`)
+        currentRun.value = activeRun
+        return activeRun
+      }
+    }
+
+    if (taskId) {
+      activeTaskLocks.add(taskId)
+    }
+
+    try {
+      // 2. Check Task activeRunId execution lock in Database / Store
+      if (taskId) {
+        const task = await taskRepo.getById(taskId)
+        if (task?.activeRunId) {
+          const existingRun = runs.value.find((r) => r.id === task.activeRunId) || (await runRepo.getById(task.activeRunId))
+          const activeStatuses: AgentRunStatus[] = ['Queued', 'Starting', 'Running', 'Waiting', 'Verifying']
+          if (existingRun && activeStatuses.includes(existingRun.status)) {
+            console.warn(
+              `[AgentRunStore] Duplicate Run Protection: Task "${taskId}" already has an active run ${existingRun.id} (status: ${existingRun.status}). Rejecting duplicate start.`
+            )
+            currentRun.value = existingRun
+            return existingRun
+          }
+        }
+      }
+
+      AuthorizationService.assertPermission('Owner', 'run:start', 'Start Agent Run')
+      const nowIso = new Date().toISOString()
+      const newRun = await runRepo.create({
+        assignmentId: assignment.id,
+        taskId: assignment.taskId,
+        taskTitle: assignment.taskTitle,
+        employeeId: assignment.employeeId,
+        employeeName: assignment.employeeName,
+        employeeAvatar: assignment.employeeAvatar,
+        employeeRole: assignment.employeeRole,
+        status: 'Running',
+        currentStep: 'Initializing',
+        progress: 5,
+        attempt,
+        runtime: runtimeMode.value,
+        workspacePath: undefined,
+        logs: [
+          {
+            id: `log-${Date.now()}-init`,
+            timestamp: new Date().toLocaleTimeString(),
+            step: 'Initializing',
+            message: `Digital employee ${assignment.employeeName} runtime initialized for task "${assignment.taskTitle}".`,
+            level: 'info'
+          }
+        ],
+        startedAt: nowIso,
+        lastHeartbeatAt: nowIso
+      })
+
+      // Lock task with newly created runId immediately
+      if (taskId) {
+        await taskRepo.update(taskId, {
+          activeRunId: newRun.id,
+          latestRunId: newRun.id,
+          status: 'In Progress'
+        })
+        const taskStore = useTaskStore()
+        const t = taskStore.tasks.find((tk) => tk.id === taskId)
+        if (t) {
+          t.activeRunId = newRun.id
+          t.latestRunId = newRun.id
+          t.status = 'In Progress'
+        }
+      }
+
+      runs.value.unshift(newRun)
+      currentRun.value = newRun
+
+      await auditLogStore.logAction({
+        actor: 'Owner',
+        entity: 'Run',
+        entityId: newRun.id,
+        action: 'Run Started',
+        reason: `Started Run #${newRun.id} for "${newRun.taskTitle}" with worker ${newRun.employeeName}`,
+        metadata: { taskId: newRun.taskId, attempt: newRun.attempt, workerId: newRun.employeeId }
+      })
+
+      return newRun
+    } finally {
+      if (taskId) {
+        setTimeout(() => {
+          activeTaskLocks.delete(taskId)
+        }, 300)
+      }
+    }
   }
 
   async function startLiveRunner(runId: string) {
+    if (activeRunnerLocks.has(runId)) {
+      console.warn(`[AgentRunStore] Live runner already active for run ${runId}. Ignoring duplicate launch.`)
+      return
+    }
+    activeRunnerLocks.add(runId)
+
     const targetRun = runs.value.find((r) => r.id === runId)
-    if (!targetRun) return
+    if (!targetRun) {
+      activeRunnerLocks.delete(runId)
+      return
+    }
 
     // 1. Fetch Task
     const task = await taskRepo.getById(targetRun.taskId)
@@ -188,6 +284,22 @@ export const useAgentRunStore = defineStore('agentRun', () => {
       )
     }
 
+    // 5.1 Check Workspace Lock (Prevents concurrent filesystem conflicts)
+    const lockResult = await globalWorkspaceLock.acquireLock(resolvedWorkspacePath, {
+      workspacePath: resolvedWorkspacePath,
+      activeRunId: runId,
+      taskId: targetRun.taskId,
+      taskTitle: targetRun.taskTitle,
+      workerName: targetRun.employeeName,
+      lockedAt: new Date().toISOString()
+    })
+
+    if (!lockResult.acquired) {
+      throw new Error(
+        `WORKSPACE LOCKED: Directory "${resolvedWorkspacePath}" is currently locked by Run #${lockResult.currentLock?.activeRunId} (${lockResult.currentLock?.workerName} working on "${lockResult.currentLock?.taskTitle}"). Please wait for it to finish or stop existing run.`
+      )
+    }
+
     const retryFeedback = retryFeedbackMap.value[runId]
     const resolvedInstructions = retryFeedback
       ? `${assignment.instructions || ''}\n\n[REVISION / RETRY DIRECTIVE]:\n${retryFeedback}`.trim()
@@ -229,15 +341,65 @@ export const useAgentRunStore = defineStore('agentRun', () => {
       memories: recalledMemories
     }
 
+    targetRun.workspacePath = resolvedWorkspacePath
+    targetRun.runtime = runtimeMode.value
+    targetRun.lastHeartbeatAt = new Date().toISOString()
+    await runRepo.update(runId, {
+      workspacePath: resolvedWorkspacePath,
+      runtime: runtimeMode.value,
+      lastHeartbeatAt: targetRun.lastHeartbeatAt
+    })
+
+    // Setup active heartbeat ticker (persists heartbeat timestamp every 3 seconds to DB)
+    if (activeHeartbeats.has(runId)) {
+      clearInterval(activeHeartbeats.get(runId)!)
+    }
+    const hbTicker = setInterval(async () => {
+      const run = runs.value.find((r) => r.id === runId)
+      if (run && ['Starting', 'Running', 'Verifying', 'Waiting'].includes(run.status)) {
+        const hbNow = new Date().toISOString()
+        run.lastHeartbeatAt = hbNow
+        await runRepo.update(runId, { lastHeartbeatAt: hbNow })
+      } else {
+        clearInterval(hbTicker)
+        activeHeartbeats.delete(runId)
+      }
+    }, 3000)
+    activeHeartbeats.set(runId, hbTicker)
+
     const runtime = RuntimeFactory.getRuntime(runtimeMode.value)
     const activityStore = useActivityStore()
     const notificationStore = useNotificationStore()
 
-    await runtime.start(input, async (event: RuntimeEvent) => {
+    await runtime.start(input, async (rawEvent: RuntimeEvent) => {
+      // ── MANDATORY SANITIZATION BOUNDARY ──
+      // Every runtime event passes through this single choke-point.
+      const event = sanitizeRuntimeEvent(rawEvent)
+      const eventNow = new Date().toISOString()
+      targetRun.lastHeartbeatAt = eventNow
+
       if (event.type === 'telemetry:updated') {
         if (event.telemetry) {
           targetRun.telemetry = event.telemetry
-          await runRepo.update(runId, { telemetry: event.telemetry })
+          await runRepo.update(runId, { telemetry: event.telemetry, lastHeartbeatAt: eventNow })
+
+          // Record to immutable cost ledger
+          if ((event.telemetry.estimatedCostUsd || 0) > 0 || (event.telemetry.totalTokens || 0) > 0) {
+            await costLedgerStore.recordCost({
+              workspaceId: 'ws-dev',
+              runId: targetRun.id,
+              taskId: targetRun.taskId,
+              projectId: task?.projectId,
+              workerId: targetRun.employeeId,
+              provider: event.telemetry.provider || 'Anthropic',
+              model: event.telemetry.model || 'claude-3-5-sonnet',
+              tokens: event.telemetry.totalTokens || 0,
+              inputTokens: event.telemetry.promptTokens || 0,
+              outputTokens: event.telemetry.completionTokens || 0,
+              cachedTokens: event.telemetry.cachedTokens || 0,
+              costUsd: event.telemetry.estimatedCostUsd || 0
+            })
+          }
         }
       } else if (event.type === 'progress:updated') {
         if (event.progress !== undefined) targetRun.progress = event.progress
@@ -247,7 +409,8 @@ export const useAgentRunStore = defineStore('agentRun', () => {
         await runRepo.update(runId, {
           progress: targetRun.progress,
           currentStep: targetRun.currentStep,
-          telemetry: targetRun.telemetry
+          telemetry: targetRun.telemetry,
+          lastHeartbeatAt: eventNow
         })
       } else if (event.type === 'approval:required') {
         targetRun.status = 'Waiting'
@@ -488,10 +651,67 @@ export const useAgentRunStore = defineStore('agentRun', () => {
         targetRun.status = 'Waiting'
         await runRepo.update(runId, { status: 'Waiting' })
       }
+
+      if (['run:completed', 'run:failed', 'run:cancelled'].includes(event.type)) {
+        if (targetRun.workspacePath) {
+          globalWorkspaceLock.releaseLock(targetRun.workspacePath, runId)
+        }
+        if (activeHeartbeats.has(runId)) {
+          clearInterval(activeHeartbeats.get(runId)!)
+          activeHeartbeats.delete(runId)
+        }
+        activeRunnerLocks.delete(runId)
+      }
     })
   }
 
   async function startRunFromAssignment(assignment: TaskAssignment) {
+    const run = await createRun(assignment, 1)
+    await startLiveRunner(run.id)
+    return run
+  }
+
+  async function startRunWithWorker(params: {
+    taskId: string
+    employeeId: string
+    mode?: RuntimeMode
+    taskPromptOverride?: string
+  }) {
+    const task = await taskRepo.getById(params.taskId)
+    if (!task) {
+      throw new Error(`Task "${params.taskId}" not found.`)
+    }
+
+    if (task.activeRunId) {
+      const activeRun = runs.value.find((r) => r.id === task.activeRunId) || (await runRepo.getById(task.activeRunId))
+      if (activeRun && ['Starting', 'Running', 'Verifying', 'Waiting'].includes(activeRun.status)) {
+        throw new Error(`Task "${task.title}" is already running an active execution (Run #${activeRun.id}).`)
+      }
+    }
+
+    const employee = await employeeRepo.getById(params.employeeId)
+    if (!employee) {
+      throw new Error(`Employee "${params.employeeId}" not found.`)
+    }
+
+    if (params.mode) {
+      setRuntimeMode(params.mode)
+    }
+
+    const assignment = await assignmentRepo.create({
+      taskId: task.id,
+      taskTitle: task.title,
+      employeeId: employee.id,
+      employeeName: employee.name,
+      employeeAvatar: employee.avatar,
+      employeeRole: employee.roleName,
+      assignedBy: 'Owner',
+      skillIds: employee.skills.map((s) => s.skillId),
+      priority: task.priority || 'High',
+      status: 'In Progress',
+      instructions: params.taskPromptOverride || task.description
+    })
+
     const run = await createRun(assignment, 1)
     await startLiveRunner(run.id)
     return run
@@ -518,13 +738,31 @@ export const useAgentRunStore = defineStore('agentRun', () => {
   }
 
   function cancelRun(runId: string) {
+    AuthorizationService.assertPermission('Owner', 'run:cancel', 'Cancel Agent Run')
+    if (activeHeartbeats.has(runId)) {
+      clearInterval(activeHeartbeats.get(runId)!)
+      activeHeartbeats.delete(runId)
+    }
+    activeRunnerLocks.delete(runId)
     const run = runs.value.find((r) => r.id === runId)
     if (run) {
+      if (run.workspacePath) {
+        globalWorkspaceLock.releaseLock(run.workspacePath, runId)
+      }
       const runtime = RuntimeFactory.getRuntime(runtimeMode.value)
       runtime.cancel(runId)
       run.status = 'Cancelled'
       delete pendingApprovals.value[runId]
       runRepo.update(runId, { status: 'Cancelled' })
+
+      auditLogStore.logAction({
+        actor: 'Owner',
+        entity: 'Run',
+        entityId: runId,
+        action: 'Run Cancelled',
+        reason: 'Cancelled by user',
+        metadata: { taskId: run.taskId, taskTitle: run.taskTitle }
+      })
     }
   }
 
@@ -532,6 +770,7 @@ export const useAgentRunStore = defineStore('agentRun', () => {
    * Single Source of Truth for Retry Lifecycle Contract with Feedback Propagation
    */
   async function retryRun(runId: string, reviewerComment?: string) {
+    AuthorizationService.assertPermission('Owner', 'run:retry', 'Retry Agent Run')
     const previousRun = runs.value.find((r) => r.id === runId)
     if (!previousRun) return null
 
@@ -630,6 +869,13 @@ export const useAgentRunStore = defineStore('agentRun', () => {
         activeRunId: newRun.id,
         latestRunId: newRun.id
       })
+      const taskStore = useTaskStore()
+      const t = taskStore.tasks.find((tk) => tk.id === previousRun.taskId)
+      if (t) {
+        t.activeRunId = newRun.id
+        t.latestRunId = newRun.id
+        t.status = 'In Progress'
+      }
     }
 
     if (reviewerComment) {
@@ -655,6 +901,15 @@ export const useAgentRunStore = defineStore('agentRun', () => {
       action: 'updated',
       targetType: 'task',
       targetTitle: `Retried Run #${newRun.id} (Attempt #${nextAttempt}, parent #${previousRun.id})`
+    })
+
+    await auditLogStore.logAction({
+      actor: 'Owner',
+      entity: 'Run',
+      entityId: newRun.id,
+      action: 'Run Retried',
+      reason: reviewerComment || 'Retrying execution after failure',
+      metadata: { parentRunId: previousRun.id, attempt: nextAttempt, taskId: newRun.taskId }
     })
 
     await startLiveRunner(newRun.id)
@@ -783,8 +1038,18 @@ export const useAgentRunStore = defineStore('agentRun', () => {
   })
 
   async function stopRun(runId: string, reason = 'Stopped by owner', cancelTask = false) {
+    AuthorizationService.assertPermission('Owner', 'run:stop', 'Stop Agent Run')
+    if (activeHeartbeats.has(runId)) {
+      clearInterval(activeHeartbeats.get(runId)!)
+      activeHeartbeats.delete(runId)
+    }
+    activeRunnerLocks.delete(runId)
+
     const run = runs.value.find((r) => r.id === runId)
     if (run) {
+      if (run.workspacePath) {
+        globalWorkspaceLock.releaseLock(run.workspacePath, runId)
+      }
       const runtime = RuntimeFactory.getRuntime(runtimeMode.value)
       await runtime.cancel(runId)
       const now = new Date().toISOString()
@@ -810,6 +1075,16 @@ export const useAgentRunStore = defineStore('agentRun', () => {
         activeRunId: undefined
       })
 
+      const taskStore = useTaskStore()
+      const t = taskStore.tasks.find((tk) => tk.id === run.taskId)
+      if (t) {
+        t.status = targetTaskStatus
+        t.activeRunId = undefined
+        t.cancelledAt = cancelTask ? now : undefined
+        t.cancelledBy = cancelTask ? 'Owner' : undefined
+        t.cancelReason = cancelTask ? reason : undefined
+      }
+
       const activityStore = useActivityStore()
       await activityStore.logActivity({
         workspaceId: 'ws-dev',
@@ -817,6 +1092,15 @@ export const useAgentRunStore = defineStore('agentRun', () => {
         action: 'updated',
         targetType: 'task',
         targetTitle: `Stopped execution Run #${runId}: ${reason}`
+      })
+
+      await auditLogStore.logAction({
+        actor: 'Owner',
+        entity: 'Run',
+        entityId: runId,
+        action: 'Run Stopped',
+        reason,
+        metadata: { taskId: run.taskId, cancelTask }
       })
     }
     return run
@@ -827,6 +1111,7 @@ export const useAgentRunStore = defineStore('agentRun', () => {
     newEmployeeId: string,
     restartImmediately = true
   ): Promise<AgentRun | undefined> {
+    AuthorizationService.assertPermission('Owner', 'task:change_worker', 'Change Worker Mid-Run')
     const run = runs.value.find((r) => r.id === runId)
     if (!run) return undefined
 
@@ -842,6 +1127,15 @@ export const useAgentRunStore = defineStore('agentRun', () => {
       assigneeAvatar: newEmployee.avatar,
       workerId: newEmployee.id,
       workerName: newEmployee.name
+    })
+
+    await auditLogStore.logAction({
+      actor: 'Owner',
+      entity: 'Run',
+      entityId: runId,
+      action: 'Worker Changed',
+      reason: `Reassigned worker from ${run.employeeName} to ${newEmployee.name}`,
+      metadata: { previousWorkerId: run.employeeId, newWorkerId: newEmployee.id, restartImmediately }
     })
 
     if (restartImmediately) {
@@ -914,6 +1208,7 @@ export const useAgentRunStore = defineStore('agentRun', () => {
   }
 
   async function addInstructionMidRun(runId: string, additionalInstruction: string) {
+    AuthorizationService.assertPermission('Owner', 'run:add_instruction', 'Add Directive Mid-Run')
     const run = runs.value.find((r) => r.id === runId)
     if (!run) return false
 
@@ -937,7 +1232,16 @@ export const useAgentRunStore = defineStore('agentRun', () => {
       actorName: 'Owner',
       action: 'updated',
       targetType: 'task',
-      targetTitle: `Added mid-run instruction to Run #${runId}`
+      targetTitle: `Added directive to Run #${runId}: "${additionalInstruction}"`
+    })
+
+    await auditLogStore.logAction({
+      actor: 'Owner',
+      entity: 'Run',
+      entityId: runId,
+      action: 'Instruction Added',
+      reason: additionalInstruction,
+      metadata: { instruction: additionalInstruction, taskId: run.taskId }
     })
 
     return true
@@ -951,6 +1255,72 @@ export const useAgentRunStore = defineStore('agentRun', () => {
     }
     runs.value = runs.value.filter((r) => r.id !== runId)
     return true
+  }
+
+  const recoveryService = new HermesRecoveryService(runRepo, taskRepo)
+
+  async function detectOrphanRuns(): Promise<OrphanRunReport[]> {
+    return await recoveryService.detectOrphanRuns(activeTaskLocks)
+  }
+
+  async function recoverOrphanRun(
+    report: OrphanRunReport,
+    action: 'mark_failed' | 'retry' | 'resume',
+    directive?: string
+  ) {
+    const result = await recoveryService.recoverOrphan(
+      report,
+      action,
+      directive,
+      (oldRunId, feedback) => retryRun(oldRunId, feedback)
+    )
+
+    if (result.oldRun) {
+      const idx = runs.value.findIndex((r) => r.id === result.oldRun?.id)
+      if (idx !== -1) {
+        runs.value[idx] = { ...result.oldRun }
+      }
+    }
+
+    if (result.newRun) {
+      const idx = runs.value.findIndex((r) => r.id === result.newRun?.id)
+      if (idx === -1) {
+        runs.value.unshift(result.newRun)
+      } else {
+        runs.value[idx] = { ...result.newRun }
+      }
+      currentRun.value = result.newRun
+    }
+
+    return result
+  }
+
+  async function performBootRecovery(): Promise<{ recoveredCount: number; reports: OrphanRunReport[] }> {
+    const reports = await detectOrphanRuns()
+    if (reports.length === 0) {
+      return { recoveredCount: 0, reports: [] }
+    }
+
+    let count = 0
+    for (const report of reports) {
+      // Mark as failed and reset task to Waiting (Safe bounded recovery without runaway loops)
+      await recoverOrphanRun(report, 'mark_failed')
+      count++
+    }
+
+    if (count > 0) {
+      const notifStore = useNotificationStore()
+      await notifStore.createNotification({
+        workspaceId: 'ws-dev',
+        title: 'Crash Recovery Triggered',
+        message: `Detected and safely recovered ${count} unfinished run(s) from previous session.`,
+        priority: 'important',
+        category: 'System',
+        read: false
+      })
+    }
+
+    return { recoveredCount: count, reports }
   }
 
   return {
@@ -978,6 +1348,7 @@ export const useAgentRunStore = defineStore('agentRun', () => {
     fetchRunsByTask,
     createRun,
     startRunFromAssignment,
+    startRunWithWorker,
     startLiveRunner,
     pauseRun,
     resumeRun,
@@ -987,7 +1358,10 @@ export const useAgentRunStore = defineStore('agentRun', () => {
     addInstructionMidRun,
     deleteRun,
     retryRun,
-    respondApproval
+    respondApproval,
+    detectOrphanRuns,
+    recoverOrphanRun,
+    performBootRecovery
   }
 })
 

@@ -101,6 +101,7 @@ export interface Task {
   dependencyTaskIds?: string[]
   pathOverride?: string
   scheduleId?: string
+  executionKey?: string
   instructions?: string
   activeRunId?: string
   latestRunId?: string
@@ -398,12 +399,14 @@ export interface AgentRun {
   progress: number            // 0 - 100
   logs: RunLogEntry[]
   telemetry?: RuntimeTelemetry
+  runtime?: string
   runtimeName?: string
   runtimeStatus?: 'healthy' | 'degraded' | 'offline'
   workspacePath?: string
   triggerType?: 'manual' | 'schedule' | 'retry' | 'dependency'
   parentRunId?: string
   startedAt: string
+  lastHeartbeatAt?: string
   completedAt?: string
   durationSeconds?: number
   outputSummary?: string
@@ -606,16 +609,114 @@ export interface CostEntry {
   id: string
   runId: string
   taskId: string
-  projectId: string
-  workerId: string
+  projectId?: string
+  workspaceId: string
+  workerId?: string
   provider: string
-  model: string
+  model?: string
+  inputTokens?: number
+  outputTokens?: number
+  cachedTokens?: number
   tokens: number
-  promptTokens?: number
-  completionTokens?: number
   costUsd: number
+  createdAt: string
   timestamp: string
 }
 
+export interface AuditLogEntry {
+  id: string
+  actor: string
+  timestamp: string
+  entity: 'Project' | 'Task' | 'Run' | 'Schedule' | 'Worker' | 'Workspace' | 'System'
+  entityId: string
+  action:
+    | 'Task Created'
+    | 'Task Edited'
+    | 'Worker Changed'
+    | 'Instruction Added'
+    | 'Run Started'
+    | 'Run Stopped'
+    | 'Run Cancelled'
+    | 'Run Retried'
+    | 'Task Cancelled'
+    | 'Task Archived'
+    | 'Task Deleted'
+    | 'Project Created'
+    | 'Project Edited'
+    | 'Project Cancelled'
+    | 'Project Archived'
+    | 'Project Deleted'
+    | 'Schedule Created'
+    | 'Schedule Disabled'
+    | 'Schedule Enabled'
+    | 'Schedule Deleted'
+    | 'Schedule Triggered'
+    | 'Workspace Locked'
+    | 'Workspace Unlocked'
+    | 'Backup Exported'
+    | 'Backup Restored'
+    | string
+  reason?: string
+  metadata?: Record<string, any>
+}
 
+export type WorkspaceLockConflictPolicy = 'wait' | 'stop_existing' | 'allow_concurrent'
 
+export interface WorkspaceLock {
+  workspacePath: string
+  activeRunId: string
+  taskId: string
+  taskTitle: string
+  workerName: string
+  lockedAt: string
+}
+
+export type UserRole = 'Owner' | 'Worker' | 'Viewer'
+
+export type PermissionType =
+  | 'project:create'
+  | 'project:edit'
+  | 'project:cancel'
+  | 'project:archive'
+  | 'project:delete'
+  | 'task:create'
+  | 'task:edit'
+  | 'task:cancel'
+  | 'task:archive'
+  | 'task:delete'
+  | 'task:change_worker'
+  | 'task:view'
+  | 'run:start'
+  | 'run:stop'
+  | 'run:cancel'
+  | 'run:retry'
+  | 'run:delete'
+  | 'run:add_instruction'
+  | 'run:execute'
+  | 'run:update_result'
+  | 'schedule:create'
+  | 'schedule:toggle'
+  | 'schedule:delete'
+  | 'schedule:trigger'
+  | 'memory:manage'
+  | 'backup:export'
+  | 'backup:restore'
+
+export interface SatriaBackupBundle {
+  version: string
+  exportedAt: string
+  exportedBy: string
+  workspaceId: string
+  data: {
+    projects: Project[]
+    tasks: Task[]
+    runs: AgentRun[]
+    schedules: Schedule[]
+    employees: Employee[]
+    departments: Department[]
+    costEntries: CostEntry[]
+    auditLogs: AuditLogEntry[]
+    memories: AgentMemoryItem[]
+    workspacePathReferences: { projectId: string; path: string }[]
+  }
+}

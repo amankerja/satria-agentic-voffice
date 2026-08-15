@@ -8,6 +8,7 @@ import { HermesClient } from './HermesClient'
 import { HermesMapper } from './HermesMapper'
 import { AgentRuntimeError } from '../RuntimeError'
 import { globalResultIngestor } from '../results/ResultIngestor'
+import { sanitizeRuntimeEvent } from '../security/RuntimeEventSanitizer'
 import type { HermesExecution } from './hermesContract'
 
 export interface HermesRunState {
@@ -70,7 +71,7 @@ export class HermesRuntimeAdapter implements AgentRuntime {
     }
     this.runs.set(satriaRunId, state)
 
-    onEvent({
+    onEvent(sanitizeRuntimeEvent({
       type: 'run:started',
       runId: satriaRunId,
       timestamp: new Date().toISOString(),
@@ -83,7 +84,7 @@ export class HermesRuntimeAdapter implements AgentRuntime {
         message: `Connecting to Hermes Agent Runtime for ${input.employee.name} (${input.employee.roleName})...`,
         level: 'info'
       }
-    })
+    }))
 
     try {
       const payload = HermesMapper.toHermesPayload(input)
@@ -155,19 +156,19 @@ export class HermesRuntimeAdapter implements AgentRuntime {
             runState.status = 'waiting_approval'
           }
 
-          onEvent(event)
+          onEvent(sanitizeRuntimeEvent(event))
         },
         (err: any) => {
           const runState = this.runs.get(satriaRunId)
           if (!runState) return
           runState.status = 'failed'
           this.cleanupRun(satriaRunId)
-          onEvent({
+          onEvent(sanitizeRuntimeEvent({
             type: 'run:failed',
             runId: satriaRunId,
             timestamp: new Date().toISOString(),
             error: `Hermes streaming connection interrupted: ${err?.message || 'Network error'}`
-          })
+          }))
         }
       )
 
@@ -180,7 +181,7 @@ export class HermesRuntimeAdapter implements AgentRuntime {
         this.cleanupRun(satriaRunId)
       }
 
-      onEvent({
+      onEvent(sanitizeRuntimeEvent({
         type: 'run:failed',
         runId: satriaRunId,
         timestamp: new Date().toISOString(),
@@ -192,7 +193,7 @@ export class HermesRuntimeAdapter implements AgentRuntime {
           message: errorMsg,
           level: 'error'
         }
-      })
+      }))
       throw new AgentRuntimeError('NETWORK_FAILURE', errorMsg, satriaRunId, true, e)
     }
   }
@@ -218,11 +219,11 @@ export class HermesRuntimeAdapter implements AgentRuntime {
 
     await this.client.stopRun(targetId)
     run.status = 'paused'
-    run.listener({
+    run.listener(sanitizeRuntimeEvent({
       type: 'run:paused',
       runId,
       timestamp: new Date().toISOString()
-    })
+    }))
   }
 
   async resume(runId: string): Promise<void> {
@@ -264,12 +265,12 @@ export class HermesRuntimeAdapter implements AgentRuntime {
 
     if (attempt > 3) {
       if (listener) {
-        listener({
+        listener(sanitizeRuntimeEvent({
           type: 'run:failed',
           runId,
           timestamp: new Date().toISOString(),
           error: `Maximum retry limit of 3 attempts exceeded for run ${runId}.`
-        })
+        }))
       }
       return
     }
@@ -313,7 +314,7 @@ export class HermesRuntimeAdapter implements AgentRuntime {
     }
 
     if (run) {
-      run.listener({
+      run.listener(sanitizeRuntimeEvent({
         type: 'approval:resolved',
         runId,
         timestamp: new Date().toISOString(),
@@ -326,7 +327,7 @@ export class HermesRuntimeAdapter implements AgentRuntime {
             : `[Hermes Approval Rejected] Action ${approvalId} rejected: ${feedback || 'No feedback'}`,
           level: approved ? 'info' : 'warn'
         }
-      })
+      }))
 
       if (!approved) {
         run.status = 'cancelled'
@@ -345,6 +346,39 @@ export class HermesRuntimeAdapter implements AgentRuntime {
       message: res.ok
         ? `Hermes Agent Runtime is ONLINE (v${res.version || '1.0.0'}, Latency: ${res.latencyMs}ms).`
         : `Hermes Agent Runtime is OFFLINE (${res.error || 'Connection refused'}).`
+    }
+  }
+
+  async probeRunStatus(runId: string): Promise<{ active: boolean; status?: string; details?: string }> {
+    const runState = this.runs.get(runId)
+    const targetId = runState?.hermesRunId || runState?.sessionId || runId
+
+    // 1. Check health of Hermes gateway first
+    const health = await this.client.healthCheck(3000)
+    if (!health.ok) {
+      return {
+        active: false,
+        status: 'runtime_offline',
+        details: `Hermes runtime gateway is unreachable: ${health.error || 'Connection refused'}`
+      }
+    }
+
+    // 2. Query Hermes run status API
+    try {
+      const statusRes = await this.client.getRunStatus(targetId, 5000)
+      const rawStatus = (statusRes?.status || '').toLowerCase()
+      const isAlive = ['running', 'started', 'in_progress', 'working', 'waiting_approval'].includes(rawStatus)
+      return {
+        active: isAlive,
+        status: statusRes?.status || 'unknown',
+        details: `Hermes reports status: ${statusRes?.status || 'unknown'}`
+      }
+    } catch (err: any) {
+      return {
+        active: false,
+        status: 'not_found_or_dead',
+        details: `Session probing failed: ${err.message || 'Run not found on runtime'}`
+      }
     }
   }
 }

@@ -711,6 +711,8 @@ describe('SATRIA AI WORKFORCE — Business Logic & UI Refinement Suite (§86)', 
     const archivedTask = await taskStore.archiveTask(task.id)
     expect(archivedTask?.status).toBe('Archived')
     expect(archivedTask?.archivedAt).toBeDefined()
+    expect(archivedTask?.deletedAt).toBeUndefined()
+    expect(archivedTask?.cancelledAt).toBeUndefined()
 
     const prj = await projectStore.createProject({
       workspaceId: 'ws-dev',
@@ -724,5 +726,224 @@ describe('SATRIA AI WORKFORCE — Business Logic & UI Refinement Suite (§86)', 
     const archivedPrj = await projectStore.archiveProject(prj.id)
     expect(archivedPrj?.status).toBe('Archived')
     expect(archivedPrj?.archivedAt).toBeDefined()
+    expect(archivedPrj?.deletedAt).toBeUndefined()
+    expect(archivedPrj?.cancelledAt).toBeUndefined()
+  })
+
+  it('Scenario 19: Strict Worker Resolution throws error when no worker is configured on Schedule or Project', async () => {
+    const scheduleStore = useScheduleStore()
+
+    const unassignedSchedule = await scheduleStore.createSchedule({
+      workspaceId: 'ws-dev',
+      name: 'Unassigned Recurring Schedule',
+      recurrence: 'daily',
+      timezone: 'Asia/Jakarta',
+      enabled: true,
+      taskTemplate: {
+        title: 'Task with no worker',
+        description: 'No worker specified anywhere',
+        priority: 'Medium'
+      }
+    })
+
+    // Must throw error when attempting to dispatch without worker
+    await expect(
+      scheduleStore.triggerAndDispatchSchedule(unassignedSchedule.id, true)
+    ).rejects.toThrow('No worker configured for this scheduled task.')
+  })
+
+  it('Scenario 20: Scheduler Idempotency guarantees 1 Task Instance and 1 initial Run per scheduled occurrence (executionKey)', async () => {
+    const scheduleStore = useScheduleStore()
+    const taskStore = useTaskStore()
+
+    const schedule = await scheduleStore.createSchedule({
+      workspaceId: 'ws-dev',
+      projectId: 'prj-satria-ui',
+      projectName: 'Satria UI',
+      name: 'Marketing Social Digest',
+      recurrence: 'daily',
+      timezone: 'Asia/Jakarta',
+      enabled: true,
+      taskTemplate: {
+        title: 'Generate Marketing Digest',
+        description: 'Collect social engagement and summarize',
+        priority: 'Medium',
+        workerId: 'emp-maya',
+        workerName: 'Maya',
+        pathOverride: 'C:/Projects/AI AGENTIC UI'
+      }
+    })
+
+    const fixedScheduledFor = '2026-08-17T08:00:00+08:00'
+    const expectedKey = `schedule:${schedule.id}:${fixedScheduledFor}`
+
+    // 1st Trigger
+    const firstDispatch = await scheduleStore.triggerAndDispatchSchedule(
+      schedule.id,
+      true,
+      fixedScheduledFor
+    )
+    expect(firstDispatch).toBeDefined()
+    expect(firstDispatch?.task.executionKey).toBe(expectedKey)
+    expect(firstDispatch?.run).toBeDefined()
+
+    // 2nd Trigger with the EXACT SAME scheduled occurrence timestamp
+    const secondDispatch = await scheduleStore.triggerAndDispatchSchedule(
+      schedule.id,
+      true,
+      fixedScheduledFor
+    )
+    expect(secondDispatch).toBeDefined()
+
+    // Must return the SAME Task instance without creating a duplicate task
+    expect(secondDispatch?.task.id).toBe(firstDispatch?.task.id)
+    expect(secondDispatch?.task.executionKey).toBe(expectedKey)
+    expect(secondDispatch?.run?.id).toBe(firstDispatch?.run?.id)
+
+    // Verify in Task repository that only 1 task with this key exists
+    await taskStore.fetchTasksByWorkspace('ws-dev')
+    const matchingTasks = taskStore.tasks.filter((t) => t.executionKey === expectedKey)
+    expect(matchingTasks.length).toBe(1)
+  })
+
+  it('Scenario 21: Duplicate Run Protection on Task Level (Rapid double-click 100ms apart yields single Run #1)', async () => {
+    const taskStore = useTaskStore()
+    const agentRunStore = useAgentRunStore()
+
+    const task = await taskStore.createTask({
+      workspaceId: 'ws-dev',
+      projectId: 'prj-satria-ui',
+      projectName: 'Satria UI',
+      title: 'High Concurrency Task',
+      description: 'Test duplicate click protection',
+      status: 'Todo',
+      priority: 'High',
+      assigneeName: 'Bima',
+      workerId: 'emp-bima',
+      workerName: 'Bima',
+      pathOverride: 'C:/Projects/AI AGENTIC UI',
+      dueDate: '2026-08-30',
+      tags: ['Concurrency', 'Protection']
+    })
+
+    const assignmentData = {
+      id: `asg-double-${Date.now()}`,
+      taskId: task.id,
+      taskTitle: task.title,
+      employeeId: 'emp-bima',
+      employeeName: 'Bima',
+      employeeAvatar: '',
+      employeeRole: 'Backend Engineer',
+      assignedBy: 'Owner',
+      skillIds: [],
+      priority: 'High' as const,
+      status: 'In Progress' as const,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+
+    // Click 1
+    const run1 = await agentRunStore.createRun(assignmentData, 1)
+    expect(run1).toBeDefined()
+    expect(run1.status).toBe('Running')
+
+    // Click 2 (e.g. 100ms later while run1 is active)
+    const run2 = await agentRunStore.createRun({
+      ...assignmentData,
+      id: `asg-double-${Date.now() + 100}`
+    }, 1)
+
+    // Must return run1, NOT creating a duplicate run2
+    expect(run2.id).toBe(run1.id)
+
+    // Verify in store that only 1 run was created for this task
+    const runsForTask = await agentRunStore.fetchRunsByTask(task.id)
+    expect(runsForTask.length).toBe(1)
+  })
+
+  it('Scenario 22: Strict 3-way Contract Separation (Cancel vs Archive vs Delete)', async () => {
+    const taskStore = useTaskStore()
+    const projectStore = useProjectStore()
+
+    // 1. CANCEL: status = 'Cancelled', cancelledAt set, deletedAt = undefined, archivedAt = undefined
+    const taskToCancel = await taskStore.createTask({
+      workspaceId: 'ws-dev',
+      projectId: 'prj-satria-ui',
+      projectName: 'Satria UI',
+      title: 'Contract Test Task - Cancel',
+      description: 'Test Cancel contract',
+      status: 'Todo',
+      priority: 'Low',
+      assigneeName: 'Maya',
+      dueDate: '2026-08-30',
+      tags: ['Contract']
+    })
+
+    const cancelled = await taskStore.cancelTask(taskToCancel.id, 'Test cancel reason')
+    expect(cancelled?.status).toBe('Cancelled')
+    expect(cancelled?.cancelledAt).toBeDefined()
+    expect(cancelled?.deletedAt).toBeUndefined()
+    expect(cancelled?.archivedAt).toBeUndefined()
+
+    // 2. ARCHIVE: status = 'Archived', archivedAt set, deletedAt = undefined, cancelledAt = undefined
+    const taskToArchive = await taskStore.createTask({
+      workspaceId: 'ws-dev',
+      projectId: 'prj-satria-ui',
+      projectName: 'Satria UI',
+      title: 'Contract Test Task - Archive',
+      description: 'Test Archive contract',
+      status: 'Todo',
+      priority: 'Low',
+      assigneeName: 'Maya',
+      dueDate: '2026-08-30',
+      tags: ['Contract']
+    })
+
+    const archived = await taskStore.archiveTask(taskToArchive.id)
+    expect(archived?.status).toBe('Archived')
+    expect(archived?.archivedAt).toBeDefined()
+    expect(archived?.deletedAt).toBeUndefined()
+    expect(archived?.cancelledAt).toBeUndefined()
+
+    // 3. DELETE (Soft): deletedAt set, deletedBy set, archivedAt = undefined, cancelledAt = undefined
+    const taskToDelete = await taskStore.createTask({
+      workspaceId: 'ws-dev',
+      projectId: 'prj-satria-ui',
+      projectName: 'Satria UI',
+      title: 'Contract Test Task - Delete',
+      description: 'Test Delete contract',
+      status: 'Todo',
+      priority: 'Low',
+      assigneeName: 'Maya',
+      dueDate: '2026-08-30',
+      tags: ['Contract']
+    })
+
+    await taskStore.deleteTask(taskToDelete.id, true, 'Test delete reason')
+    const inStore = taskStore.tasks.find((t) => t.id === taskToDelete.id)
+    expect(inStore).toBeUndefined() // Excluded from active in-memory list
+
+    const rawRecord = await (new (await import('../repositories')).MockTaskRepository()).getById(taskToDelete.id)
+    expect(rawRecord?.deletedAt).toBeDefined()
+    expect(rawRecord?.deletedBy).toBe('Owner')
+    expect(rawRecord?.deleteReason).toBe('Test delete reason')
+    expect(rawRecord?.archivedAt).toBeUndefined()
+    expect(rawRecord?.cancelledAt).toBeUndefined()
+
+    // Project Contract Validation
+    const prj = await projectStore.createProject({
+      workspaceId: 'ws-dev',
+      name: 'Contract Test Project',
+      description: 'Test project contracts',
+      path: 'C:/Projects/contracts',
+      status: 'Active',
+      contributorsCount: 1
+    })
+
+    const cancelledPrj = await projectStore.cancelProject(prj.id, 'Contract project cancel')
+    expect(cancelledPrj?.status).toBe('Cancelled')
+    expect(cancelledPrj?.cancelledAt).toBeDefined()
+    expect(cancelledPrj?.deletedAt).toBeUndefined()
+    expect(cancelledPrj?.archivedAt).toBeUndefined()
   })
 })

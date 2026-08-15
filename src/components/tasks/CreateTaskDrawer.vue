@@ -109,7 +109,7 @@
           <input
             v-model="form.pathOverride"
             type="text"
-            placeholder="C:/Projects/AI AGENTIC UI"
+            placeholder="e.g. D:/Projects/my-app"
             class="w-full bg-surface-container-low border border-outline-variant rounded-xl pl-9 pr-3 py-2.5 text-xs text-on-surface font-mono placeholder-muted focus:border-primary outline-none transition"
           />
         </div>

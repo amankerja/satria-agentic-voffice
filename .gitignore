@@ -1,20 +1,28 @@
+# ─── Build Outputs ────────────────────────────────────────
 node_modules
 dist
-*.zip
-.DS_Store
+test-results
+playwright-report
+
+# ─── Environment & Secrets ────────────────────────────────
 .env
 .env.local
 .env.*.local
+
+# ─── OS & Editor ──────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.log
+
+# ─── Archives & Temp ──────────────────────────────────────
+*.zip
+*.tar.gz
+data/backups
+
+# ─── PHP / Composer (legacy root artifacts) ───────────────
 composer-setup.php
 composer.phar
 vendor
-/hris/vendor
-/hris/node_modules
-/hris/.env
-/hris/public/storage
-/hris/public/build
-/hris/public/hot
-/hris/storage/*.key
-/hris/storage/pail
-*.log
 
+# ─── Docs / References (large binary assets) ──────────────
+docs/refrensi

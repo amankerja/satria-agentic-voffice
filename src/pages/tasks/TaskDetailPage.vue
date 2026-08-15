@@ -444,7 +444,7 @@ const activeRun = computed(() => {
 const targetWorkspacePath = computed(() => {
   if (task.value?.pathOverride) return task.value.pathOverride
   const prj = projectStore.projects.find((p) => p.id === task.value?.projectId)
-  return prj?.path || 'C:/Projects/AI AGENTIC UI'
+  return prj?.path || 'Path not configured'
 })
 
 const loadTaskData = async () => {
@@ -502,15 +502,21 @@ const handleStopRun = async () => {
 const handleLaunchExecution = async () => {
   if (!task.value) return
   try {
-    const worker = employeeStore.employees.find((e) => e.id === (task.value?.workerId || task.value?.assigneeId))
+    const project = task.value.projectId ? await projectStore.getProjectById(task.value.projectId) : undefined
+    const resolvedWorkerId = task.value.workerId || task.value.assigneeId || project?.defaultWorkerId
+    if (!resolvedWorkerId) {
+      toast.error('No worker assigned to this task. Please assign a digital worker first.')
+      return
+    }
+    const worker = employeeStore.employees.find((e) => e.id === resolvedWorkerId) || (await employeeStore.fetchEmployeeById(resolvedWorkerId))
     const run = await agentRunStore.createRun({
       id: `asg-${Date.now()}`,
       taskId: task.value.id,
       taskTitle: task.value.title,
-      employeeId: worker?.id || 'emp-raka',
-      employeeName: worker?.name || 'Raka',
-      employeeAvatar: worker?.avatar || '',
-      employeeRole: worker?.roleName || 'Lead Planner',
+      employeeId: resolvedWorkerId,
+      employeeName: worker?.name || task.value.workerName || task.value.assigneeName || 'Assigned Worker',
+      employeeAvatar: worker?.avatar || task.value.assigneeAvatar || '',
+      employeeRole: worker?.roleName || 'Autonomous Worker',
       assignedBy: 'Owner',
       skillIds: worker?.skills.map((s) => s.skillId) || [],
       priority: task.value.priority,
@@ -521,7 +527,10 @@ const handleLaunchExecution = async () => {
 
     await taskStore.updateTask(task.value.id, {
       status: 'In Progress',
-      activeRunId: run.id
+      workerId: resolvedWorkerId,
+      workerName: worker?.name || task.value.workerName,
+      activeRunId: run.id,
+      latestRunId: run.id
     })
 
     toast.success(`Execution launched for "${task.value.title}".`)
