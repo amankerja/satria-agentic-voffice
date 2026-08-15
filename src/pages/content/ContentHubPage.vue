@@ -101,6 +101,7 @@
         >
           <option value="all">Semua Platform</option>
           <option value="instagram">Instagram</option>
+          <option value="threads">Threads</option>
           <option value="tiktok">TikTok</option>
           <option value="facebook_page">Facebook Page</option>
           <option value="facebook_group">Facebook Group</option>

@@ -90,7 +90,25 @@
             </div>
           </div>
 
-          <!-- 2. TikTok Preview -->
+          <!-- 2. Threads Preview -->
+          <div v-else-if="activePlatformTab === 'threads'" class="rounded-xl border border-surface-container-high bg-surface-container-low p-4 space-y-3">
+            <div class="flex items-center gap-2">
+              <div class="h-8 w-8 rounded-full bg-purple-600 flex items-center justify-center text-xs font-bold text-white">
+                @
+              </div>
+              <div>
+                <p class="text-xs font-bold text-surface-on">satria.threads</p>
+                <p class="text-[10px] text-surface-muted">Official Meta Threads API</p>
+              </div>
+            </div>
+
+            <div class="text-xs text-surface-on leading-relaxed space-y-2 whitespace-pre-line bg-surface-container-lowest p-3.5 rounded-lg border border-surface-container-high/60">
+              <p class="font-bold text-primary">{{ item.title }}</p>
+              <p>{{ item.caption }}</p>
+            </div>
+          </div>
+
+          <!-- 3. TikTok Preview -->
           <div v-else-if="activePlatformTab === 'tiktok'" class="rounded-xl border border-surface-container-high bg-surface-container-low p-4 space-y-4">
             <div class="flex items-center justify-between">
               <span class="text-xs font-mono font-bold text-rose-400">TIKTOK SCRIPT & HOOK</span>
@@ -131,7 +149,7 @@
             </p>
           </div>
 
-          <!-- 3. Facebook Page & Group Preview -->
+          <!-- 4. Facebook Page & Group Preview -->
           <div v-else class="rounded-xl border border-surface-container-high bg-surface-container-low p-4 space-y-3">
             <div class="flex items-center gap-2">
               <div class="h-8 w-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white">
@@ -412,6 +430,8 @@ function platformLabel(p: PlatformTarget): string {
   switch (p) {
     case 'instagram':
       return 'Instagram'
+    case 'threads':
+      return 'Threads'
     case 'tiktok':
       return 'TikTok'
     case 'facebook_page':

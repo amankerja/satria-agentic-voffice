@@ -161,6 +161,8 @@ function platformBadgeText(platform: PlatformTarget): string {
   switch (platform) {
     case 'instagram':
       return 'IG'
+    case 'threads':
+      return 'TH'
     case 'tiktok':
       return 'TT'
     case 'facebook_page':

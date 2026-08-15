@@ -164,8 +164,9 @@ const contentStore = useContentStore()
 
 const availablePlatforms: { id: PlatformTarget; label: string }[] = [
   { id: 'instagram', label: 'Instagram' },
-  { id: 'tiktok', label: 'TikTok' },
+  { id: 'threads', label: 'Threads' },
   { id: 'facebook_page', label: 'Facebook Page' },
+  { id: 'tiktok', label: 'TikTok' },
   { id: 'facebook_group', label: 'Facebook Group' }
 ]
 

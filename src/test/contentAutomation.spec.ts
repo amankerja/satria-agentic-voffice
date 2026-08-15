@@ -46,8 +46,9 @@ describe('Phase 6 — Content, Data Analysis & Social Automation Suite', () => {
   })
 
   describe('Social Connectors & Idempotency', () => {
-    it('resolves connectors for all 4 platforms', () => {
+    it('resolves connectors for all 5 platforms', () => {
       expect(SocialConnectorFactory.get('instagram').platform).toBe('instagram')
+      expect(SocialConnectorFactory.get('threads').platform).toBe('threads')
       expect(SocialConnectorFactory.get('tiktok').platform).toBe('tiktok')
       expect(SocialConnectorFactory.get('facebook_page').platform).toBe('facebook_page')
       expect(SocialConnectorFactory.get('facebook_group').platform).toBe('facebook_group')

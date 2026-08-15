@@ -738,7 +738,7 @@ export interface SatriaBackupBundle {
 // PHASE 6 — CONTENT, DATA ANALYSIS & SOCIAL AUTOMATION TYPES
 // ==========================================
 
-export type PlatformTarget = 'instagram' | 'tiktok' | 'facebook_page' | 'facebook_group'
+export type PlatformTarget = 'instagram' | 'threads' | 'tiktok' | 'facebook_page' | 'facebook_group'
 
 export type ContentStatus =
   | 'Draft'
@@ -853,6 +853,16 @@ export interface SocialConnection {
   status: SocialConnectionStatus
   credentialReference: string
   isAssisted?: boolean
+  autoPublishEnabled?: boolean
+  credentials?: {
+    appId?: string
+    appSecret?: string
+    accessToken?: string
+    clientKey?: string
+    clientSecret?: string
+    pageId?: string
+    userId?: string
+  }
   connectedAt: string
   expiresAt?: string
   updatedAt: string
