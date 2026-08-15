@@ -75,6 +75,20 @@
             </select>
           </div>
 
+          <!-- Model Selector -->
+          <div class="flex items-center gap-1.5 bg-surface-container-lowest border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs font-mono">
+            <span class="text-muted text-[11px]">Model:</span>
+            <select
+              v-model="aiStore.selectedModel"
+              @change="aiStore.setModel(aiStore.selectedModel)"
+              class="bg-transparent text-primary font-bold outline-none cursor-pointer text-xs max-w-35 truncate"
+            >
+              <option v-for="m in aiStore.availableModels" :key="m" :value="m" class="bg-surface-container-low text-on-surface">
+                {{ m }}
+              </option>
+            </select>
+          </div>
+
           <!-- Priority Selector -->
           <div class="flex items-center gap-1.5 bg-surface-container-lowest border border-outline-variant rounded-lg px-2.5 py-1.5 text-xs">
             <span class="text-muted text-[11px]">Priority:</span>
@@ -158,6 +172,7 @@ import { useWorkspaceStore } from '../../stores/workspace'
 import { useEmployeeStore } from '../../stores/employee'
 import { useTaskStore } from '../../stores/task'
 import { useAgentRunStore } from '../../stores/agentRun'
+import { useAiRuntimeConfigStore } from '../../stores/aiRuntimeConfig'
 import { useToast } from '../../composables/useToast'
 import type { TaskPriority } from '../../types'
 
@@ -165,6 +180,7 @@ const workspaceStore = useWorkspaceStore()
 const employeeStore = useEmployeeStore()
 const taskStore = useTaskStore()
 const agentRunStore = useAgentRunStore()
+const aiStore = useAiRuntimeConfigStore()
 const toast = useToast()
 
 const promptText = ref('')

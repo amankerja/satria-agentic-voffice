@@ -1,21 +1,4 @@
-import {
-  mockWorkspaces,
-  mockProjects,
-  mockTasks,
-  mockFiles,
-  mockActivityLogs,
-  mockNotifications,
-  mockUser,
-  mockDepartments,
-  mockEmployeeRoles,
-  mockSkills,
-  mockWorkforceTools,
-  mockEmployees,
-  mockAssignments,
-  mockAgentRuns,
-  mockRunResults,
-  mockTaskReviews
-} from '../mocks/mockData'
+import { dbClient } from '../database/DatabaseClient'
 import type {
   Workspace,
   Project,
@@ -44,14 +27,18 @@ import type {
   ReviewDecision
 } from '../types'
 
+// ============================================================================
+// REAL DATABASE REPOSITORIES
+// All queries and mutations execute against IndexedDB and sync to data/database.json
+// ============================================================================
 
-export class MockWorkspaceRepository {
+export class WorkspaceRepository {
   async getAll(): Promise<Workspace[]> {
-    return [...mockWorkspaces]
+    return await dbClient.getAll<Workspace>('workspaces')
   }
 
   async getById(id: string): Promise<Workspace | undefined> {
-    return mockWorkspaces.find((w) => w.id === id)
+    return await dbClient.getById<Workspace>('workspaces', id)
   }
 
   async create(workspace: Omit<Workspace, 'id' | 'createdAt' | 'updatedAt' | 'projectCount' | 'taskCount' | 'fileCount'>): Promise<Workspace> {
@@ -64,18 +51,22 @@ export class MockWorkspaceRepository {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
-    mockWorkspaces.push(newWs)
-    return newWs
+    return await dbClient.insert<Workspace>('workspaces', newWs)
   }
 }
 
-export class MockProjectRepository {
+export class ProjectRepository {
+  async getAll(): Promise<Project[]> {
+    return await dbClient.getAll<Project>('projects')
+  }
+
   async getByWorkspace(workspaceId: string): Promise<Project[]> {
-    return mockProjects.filter((p) => p.workspaceId === workspaceId)
+    const all = await dbClient.getAll<Project>('projects')
+    return all.filter((p) => p.workspaceId === workspaceId)
   }
 
   async getById(id: string): Promise<Project | undefined> {
-    return mockProjects.find((p) => p.id === id)
+    return await dbClient.getById<Project>('projects', id)
   }
 
   async create(project: Omit<Project, 'id' | 'createdAt' | 'updatedAt' | 'progress' | 'taskCount' | 'completedTaskCount' | 'milestones'>): Promise<Project> {
@@ -89,35 +80,41 @@ export class MockProjectRepository {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
-    mockProjects.push(newPrj)
-    return newPrj
+    return await dbClient.insert<Project>('projects', newPrj)
   }
 }
 
-export class MockTaskRepository {
+export class TaskRepository {
   async getAll(): Promise<Task[]> {
-    return [...mockTasks]
+    return await dbClient.getAll<Task>('tasks')
   }
 
   async getByWorkspace(workspaceId: string): Promise<Task[]> {
-    return mockTasks.filter((t) => t.workspaceId === workspaceId)
+    const all = await dbClient.getAll<Task>('tasks')
+    return all.filter((t) => t.workspaceId === workspaceId)
   }
 
   async getByProject(projectId: string): Promise<Task[]> {
-    return mockTasks.filter((t) => t.projectId === projectId)
+    const all = await dbClient.getAll<Task>('tasks')
+    return all.filter((t) => t.projectId === projectId)
   }
 
   async getById(id: string): Promise<Task | undefined> {
-    return mockTasks.find((t) => t.id === id)
+    return await dbClient.getById<Task>('tasks', id)
   }
 
   async updateStatus(id: string, status: TaskStatus): Promise<Task | undefined> {
-    const task = mockTasks.find((t) => t.id === id)
-    if (task) {
-      task.status = status
-      task.updatedAt = new Date().toISOString()
-    }
-    return task
+    return await dbClient.update<Task>('tasks', id, {
+      status,
+      updatedAt: new Date().toISOString()
+    })
+  }
+
+  async update(id: string, updates: Partial<Task>): Promise<Task | undefined> {
+    return await dbClient.update<Task>('tasks', id, {
+      ...updates,
+      updatedAt: new Date().toISOString()
+    })
   }
 
   async create(task: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'progress' | 'checklist' | 'comments'>): Promise<Task> {
@@ -130,31 +127,26 @@ export class MockTaskRepository {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
-    mockTasks.unshift(newTask)
-    return newTask
+    return await dbClient.insert<Task>('tasks', newTask)
   }
 
   async delete(id: string): Promise<boolean> {
-    const index = mockTasks.findIndex((t) => t.id === id)
-    if (index !== -1) {
-      mockTasks.splice(index, 1)
-      return true
-    }
-    return false
+    return await dbClient.delete('tasks', id)
   }
 }
 
-export class MockFileRepository {
+export class FileRepository {
   async getAll(): Promise<WorkspaceFile[]> {
-    return [...mockFiles]
+    return await dbClient.getAll<WorkspaceFile>('files')
   }
 
   async getByWorkspace(workspaceId: string): Promise<WorkspaceFile[]> {
-    return mockFiles.filter((f) => f.workspaceId === workspaceId)
+    const all = await dbClient.getAll<WorkspaceFile>('files')
+    return all.filter((f) => f.workspaceId === workspaceId)
   }
 
   async getById(id: string): Promise<WorkspaceFile | undefined> {
-    return mockFiles.find((f) => f.id === id)
+    return await dbClient.getById<WorkspaceFile>('files', id)
   }
 
   async upload(fileData: Omit<WorkspaceFile, 'id' | 'updatedAt'>): Promise<WorkspaceFile> {
@@ -163,27 +155,22 @@ export class MockFileRepository {
       id: `fl-${Date.now()}`,
       updatedAt: 'Just now'
     }
-    mockFiles.unshift(newFile)
-    return newFile
+    return await dbClient.insert<WorkspaceFile>('files', newFile)
   }
 
   async delete(id: string): Promise<boolean> {
-    const index = mockFiles.findIndex((f) => f.id === id)
-    if (index !== -1) {
-      mockFiles.splice(index, 1)
-      return true
-    }
-    return false
+    return await dbClient.delete('files', id)
   }
 }
 
-export class MockActivityRepository {
+export class ActivityRepository {
   async getAll(): Promise<ActivityLog[]> {
-    return [...mockActivityLogs]
+    return await dbClient.getAll<ActivityLog>('activities')
   }
 
   async getByWorkspace(workspaceId: string): Promise<ActivityLog[]> {
-    return mockActivityLogs.filter((a) => a.workspaceId === workspaceId)
+    const all = await dbClient.getAll<ActivityLog>('activities')
+    return all.filter((a) => a.workspaceId === workspaceId)
   }
 
   async logActivity(log: Omit<ActivityLog, 'id' | 'timestamp' | 'timeAgo'>): Promise<ActivityLog> {
@@ -197,18 +184,18 @@ export class MockActivityRepository {
       timeAgo: 'Just now',
       date: 'Today'
     }
-    mockActivityLogs.unshift(newLog)
-    return newLog
+    return await dbClient.insert<ActivityLog>('activities', newLog)
   }
 }
 
-export class MockNotificationRepository {
+export class NotificationRepository {
   async getAll(): Promise<NotificationItem[]> {
-    return [...mockNotifications]
+    return await dbClient.getAll<NotificationItem>('notifications')
   }
 
   async getByWorkspace(workspaceId: string): Promise<NotificationItem[]> {
-    return mockNotifications.filter((n) => n.workspaceId === workspaceId)
+    const all = await dbClient.getAll<NotificationItem>('notifications')
+    return all.filter((n) => n.workspaceId === workspaceId)
   }
 
   async create(notifData: Omit<NotificationItem, 'id' | 'timeAgo' | 'read'> & { read?: boolean }): Promise<NotificationItem> {
@@ -219,103 +206,89 @@ export class MockNotificationRepository {
       timeAgo: 'Just now',
       createdAt: new Date().toISOString()
     }
-    mockNotifications.unshift(newNotif)
-    return newNotif
+    return await dbClient.insert<NotificationItem>('notifications', newNotif)
   }
 
   async markAsRead(id: string): Promise<boolean> {
-    const notif = mockNotifications.find((n) => n.id === id)
-    if (notif) {
-      notif.read = true
-      return true
-    }
-    return false
+    const res = await dbClient.update<NotificationItem>('notifications', id, { read: true })
+    return !!res
   }
 
   async markAllAsRead(workspaceId?: string): Promise<void> {
-    mockNotifications.forEach((n) => {
+    const all = await dbClient.getAll<NotificationItem>('notifications')
+    for (const n of all) {
       if (!workspaceId || n.workspaceId === workspaceId) {
-        n.read = true
+        await dbClient.update<NotificationItem>('notifications', n.id, { read: true })
       }
-    })
+    }
   }
 
   async delete(id: string): Promise<boolean> {
-    const index = mockNotifications.findIndex((n) => n.id === id)
-    if (index !== -1) {
-      mockNotifications.splice(index, 1)
-      return true
-    }
-    return false
+    return await dbClient.delete('notifications', id)
   }
 }
 
-export class MockUserRepository {
+export class UserRepository {
   async getUser(): Promise<UserProfile> {
-    return { ...mockUser }
+    return await dbClient.getItem<UserProfile>('user_profile')
   }
 
   async updateProfile(updates: Partial<UserProfile>): Promise<UserProfile> {
-    Object.assign(mockUser, updates)
-    return { ...mockUser }
+    return await dbClient.updateItem<UserProfile>('user_profile', updates)
   }
 
   async updateSettings(settings: Partial<UserSettings>): Promise<UserSettings> {
-    if (mockUser.settings) {
-      Object.assign(mockUser.settings, settings)
-      return { ...mockUser.settings }
-    }
-    return {} as UserSettings
+    return await dbClient.updateItem<UserSettings>('user_settings', settings)
   }
 }
 
-// ============================================================================
-// PHASE 1 — WORKFORCE REPOSITORIES
-// ============================================================================
-
-export class MockDepartmentRepository {
+export class DepartmentRepository {
   async getAll(): Promise<Department[]> {
-    return [...mockDepartments]
+    return await dbClient.getAll<Department>('departments')
   }
 
   async getById(id: string): Promise<Department | undefined> {
-    return mockDepartments.find((d) => d.id === id)
+    return await dbClient.getById<Department>('departments', id)
   }
 
   async getByCode(code: string): Promise<Department | undefined> {
-    return mockDepartments.find((d) => d.code.toUpperCase() === code.toUpperCase())
+    const all = await dbClient.getAll<Department>('departments')
+    return all.find((d) => d.code.toUpperCase() === code.toUpperCase())
   }
 }
 
-export class MockEmployeeRoleRepository {
+export class EmployeeRoleRepository {
   async getAll(): Promise<EmployeeRole[]> {
-    return [...mockEmployeeRoles]
+    return await dbClient.getAll<EmployeeRole>('roles')
   }
 
   async getByDepartment(departmentId: string): Promise<EmployeeRole[]> {
-    return mockEmployeeRoles.filter((r) => r.departmentId === departmentId)
+    const all = await dbClient.getAll<EmployeeRole>('roles')
+    return all.filter((r) => r.departmentId === departmentId)
   }
 
   async getById(id: string): Promise<EmployeeRole | undefined> {
-    return mockEmployeeRoles.find((r) => r.id === id)
+    return await dbClient.getById<EmployeeRole>('roles', id)
   }
 }
 
-export class MockSkillRepository {
+export class SkillRepository {
   async getAll(): Promise<Skill[]> {
-    return [...mockSkills]
+    return await dbClient.getAll<Skill>('skills')
   }
 
   async getById(id: string): Promise<Skill | undefined> {
-    return mockSkills.find((s) => s.id === id)
+    return await dbClient.getById<Skill>('skills', id)
   }
 
   async getByCategory(category: string): Promise<Skill[]> {
-    return mockSkills.filter((s) => s.category.toLowerCase() === category.toLowerCase())
+    const all = await dbClient.getAll<Skill>('skills')
+    return all.filter((s) => s.category.toLowerCase() === category.toLowerCase())
   }
 
   async getBySourceType(sourceType: 'internal' | 'external'): Promise<Skill[]> {
-    return mockSkills.filter((s) => s.sourceType === sourceType)
+    const all = await dbClient.getAll<Skill>('skills')
+    return all.filter((s) => s.sourceType === sourceType)
   }
 
   async create(skill: Omit<Skill, 'id' | 'createdAt' | 'updatedAt'>): Promise<Skill> {
@@ -325,30 +298,29 @@ export class MockSkillRepository {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
-    mockSkills.push(newSkill)
-    return newSkill
+    return await dbClient.insert<Skill>('skills', newSkill)
   }
 
   async update(id: string, updates: Partial<Skill>): Promise<Skill | undefined> {
-    const skill = mockSkills.find((s) => s.id === id)
-    if (skill) {
-      Object.assign(skill, updates, { updatedAt: new Date().toISOString() })
-    }
-    return skill
+    return await dbClient.update<Skill>('skills', id, {
+      ...updates,
+      updatedAt: new Date().toISOString()
+    })
   }
 }
 
-export class MockWorkforceToolRepository {
+export class WorkforceToolRepository {
   async getAll(): Promise<WorkforceTool[]> {
-    return [...mockWorkforceTools]
+    return await dbClient.getAll<WorkforceTool>('tools')
   }
 
   async getById(id: string): Promise<WorkforceTool | undefined> {
-    return mockWorkforceTools.find((t) => t.id === id)
+    return await dbClient.getById<WorkforceTool>('tools', id)
   }
 
   async getByCategory(category: string): Promise<WorkforceTool[]> {
-    return mockWorkforceTools.filter((t) => t.category.toLowerCase() === category.toLowerCase())
+    const all = await dbClient.getAll<WorkforceTool>('tools')
+    return all.filter((t) => t.category.toLowerCase() === category.toLowerCase())
   }
 
   async create(tool: Omit<WorkforceTool, 'id'>): Promise<WorkforceTool> {
@@ -356,22 +328,22 @@ export class MockWorkforceToolRepository {
       ...tool,
       id: `tool-${Date.now()}`
     }
-    mockWorkforceTools.push(newTool)
-    return newTool
+    return await dbClient.insert<WorkforceTool>('tools', newTool)
   }
 }
 
-export class MockEmployeeRepository {
+export class EmployeeRepository {
   async getAll(): Promise<Employee[]> {
-    return [...mockEmployees]
+    return await dbClient.getAll<Employee>('employees')
   }
 
   async getById(id: string): Promise<Employee | undefined> {
-    return mockEmployees.find((e) => e.id === id)
+    return await dbClient.getById<Employee>('employees', id)
   }
 
   async getByDepartment(departmentId: string): Promise<Employee[]> {
-    return mockEmployees.filter((e) => e.departmentId === departmentId)
+    const all = await dbClient.getAll<Employee>('employees')
+    return all.filter((e) => e.departmentId === departmentId)
   }
 
   async create(employee: Omit<Employee, 'id' | 'createdAt' | 'updatedAt'>): Promise<Employee> {
@@ -381,68 +353,83 @@ export class MockEmployeeRepository {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
-    mockEmployees.push(newEmployee)
+    await dbClient.insert<Employee>('employees', newEmployee)
 
     // Update department count
-    const dept = mockDepartments.find((d) => d.id === employee.departmentId)
+    const depts = await dbClient.getAll<Department>('departments')
+    const employees = await dbClient.getAll<Employee>('employees')
+    const dept = depts.find((d) => d.id === employee.departmentId)
     if (dept) {
-      dept.employeeCount = mockEmployees.filter((e) => e.departmentId === dept.id && e.status !== 'Archived').length
+      const count = employees.filter((e) => e.departmentId === dept.id && e.status !== 'Archived').length
+      await dbClient.update<Department>('departments', dept.id, { employeeCount: count })
     }
 
     return newEmployee
   }
 
   async update(id: string, updates: Partial<Employee>): Promise<Employee | undefined> {
-    const employee = mockEmployees.find((e) => e.id === id)
-    if (employee) {
-      Object.assign(employee, updates, { updatedAt: new Date().toISOString() })
-      
-      // Update department count if department changed
-      if (updates.departmentId) {
-        mockDepartments.forEach((d) => {
-          d.employeeCount = mockEmployees.filter((e) => e.departmentId === d.id && e.status !== 'Archived').length
-        })
+    const updated = await dbClient.update<Employee>('employees', id, {
+      ...updates,
+      updatedAt: new Date().toISOString()
+    })
+
+    if (updates.departmentId) {
+      const depts = await dbClient.getAll<Department>('departments')
+      const employees = await dbClient.getAll<Employee>('employees')
+      for (const d of depts) {
+        const count = employees.filter((e) => e.departmentId === d.id && e.status !== 'Archived').length
+        await dbClient.update<Department>('departments', d.id, { employeeCount: count })
       }
     }
-    return employee
+    return updated
   }
 
   async updateStatus(id: string, status: EmploymentStatus): Promise<Employee | undefined> {
-    const employee = mockEmployees.find((e) => e.id === id)
-    if (employee) {
-      employee.status = status
-      employee.updatedAt = new Date().toISOString()
+    const updated = await dbClient.update<Employee>('employees', id, {
+      status,
+      updatedAt: new Date().toISOString()
+    })
 
-      // Update department count
-      const dept = mockDepartments.find((d) => d.id === employee.departmentId)
+    if (updated) {
+      const depts = await dbClient.getAll<Department>('departments')
+      const employees = await dbClient.getAll<Employee>('employees')
+      const dept = depts.find((d) => d.id === updated.departmentId)
       if (dept) {
-        dept.employeeCount = mockEmployees.filter((e) => e.departmentId === dept.id && e.status !== 'Archived').length
+        const count = employees.filter((e) => e.departmentId === dept.id && e.status !== 'Archived').length
+        await dbClient.update<Department>('departments', dept.id, { employeeCount: count })
       }
     }
-    return employee
+    return updated
   }
 
   async assignSkill(employeeId: string, assignment: EmployeeSkillAssignment): Promise<Employee | undefined> {
-    const employee = mockEmployees.find((e) => e.id === employeeId)
+    const employee = await dbClient.getById<Employee>('employees', employeeId)
     if (employee) {
-      const existingIdx = employee.skills.findIndex((s) => s.skillId === assignment.skillId)
+      const skills = [...employee.skills]
+      const existingIdx = skills.findIndex((s) => s.skillId === assignment.skillId)
       if (existingIdx >= 0) {
-        employee.skills[existingIdx] = assignment
+        skills[existingIdx] = assignment
       } else {
-        employee.skills.push(assignment)
+        skills.push(assignment)
       }
-      employee.updatedAt = new Date().toISOString()
+      return await dbClient.update<Employee>('employees', employeeId, {
+        skills,
+        updatedAt: new Date().toISOString()
+      })
     }
-    return employee
+    return undefined
   }
 
   async removeSkill(employeeId: string, skillId: string): Promise<Employee | undefined> {
-    const employee = mockEmployees.find((e) => e.id === employeeId)
+    const employee = await dbClient.getById<Employee>('employees', employeeId)
     if (employee) {
-      employee.skills = employee.skills.filter((s) => s.skillId !== skillId)
-      employee.updatedAt = new Date().toISOString()
+      const skills = employee.skills.filter((s) => s.skillId !== skillId)
+      return await dbClient.update<Employee>('employees', employeeId, {
+        skills,
+        updatedAt: new Date().toISOString()
+      })
     }
-    return employee
+    return undefined
   }
 
   async archive(id: string): Promise<Employee | undefined> {
@@ -450,25 +437,23 @@ export class MockEmployeeRepository {
   }
 }
 
-// ==========================================
-// PHASE 2: REPOSITORIES
-// ==========================================
-
-export class MockAssignmentRepository {
+export class AssignmentRepository {
   async getAll(): Promise<TaskAssignment[]> {
-    return [...mockAssignments]
+    return await dbClient.getAll<TaskAssignment>('assignments')
   }
 
   async getById(id: string): Promise<TaskAssignment | undefined> {
-    return mockAssignments.find((a) => a.id === id)
+    return await dbClient.getById<TaskAssignment>('assignments', id)
   }
 
   async getByTaskId(taskId: string): Promise<TaskAssignment[]> {
-    return mockAssignments.filter((a) => a.taskId === taskId)
+    const all = await dbClient.getAll<TaskAssignment>('assignments')
+    return all.filter((a) => a.taskId === taskId)
   }
 
   async getByEmployeeId(employeeId: string): Promise<TaskAssignment[]> {
-    return mockAssignments.filter((a) => a.employeeId === employeeId)
+    const all = await dbClient.getAll<TaskAssignment>('assignments')
+    return all.filter((a) => a.employeeId === employeeId)
   }
 
   async create(assignment: Omit<TaskAssignment, 'id' | 'createdAt' | 'updatedAt'>): Promise<TaskAssignment> {
@@ -478,41 +463,38 @@ export class MockAssignmentRepository {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
-    mockAssignments.unshift(newAssignment)
+    await dbClient.insert<TaskAssignment>('assignments', newAssignment)
 
-    // Update corresponding task assignee if exists
-    const task = mockTasks.find((t) => t.id === assignment.taskId)
-    if (task) {
-      task.assigneeId = assignment.employeeId
-      task.assigneeName = assignment.employeeName
-      task.assigneeAvatar = assignment.employeeAvatar
-      task.activeAssignmentId = newAssignment.id
-      task.updatedAt = new Date().toISOString()
-    }
+    // Update corresponding task assignee
+    await dbClient.update<Task>('tasks', assignment.taskId, {
+      assigneeId: assignment.employeeId,
+      assigneeName: assignment.employeeName,
+      assigneeAvatar: assignment.employeeAvatar,
+      activeAssignmentId: newAssignment.id,
+      updatedAt: new Date().toISOString()
+    })
 
     return newAssignment
   }
 
   async update(id: string, updates: Partial<TaskAssignment>): Promise<TaskAssignment | undefined> {
-    const assignment = mockAssignments.find((a) => a.id === id)
-    if (assignment) {
-      Object.assign(assignment, updates, { updatedAt: new Date().toISOString() })
-    }
-    return assignment
+    return await dbClient.update<TaskAssignment>('assignments', id, {
+      ...updates,
+      updatedAt: new Date().toISOString()
+    })
   }
 
   async updateStatus(id: string, status: AssignmentStatus): Promise<TaskAssignment | undefined> {
-    const assignment = mockAssignments.find((a) => a.id === id)
-    if (assignment) {
-      assignment.status = status
-      assignment.updatedAt = new Date().toISOString()
-      if (status === 'Completed') {
-        assignment.completedAt = new Date().toISOString()
-      } else if (status === 'In Progress' && !assignment.startedAt) {
-        assignment.startedAt = new Date().toISOString()
-      }
+    const updates: Partial<TaskAssignment> = {
+      status,
+      updatedAt: new Date().toISOString()
     }
-    return assignment
+    if (status === 'Completed') {
+      updates.completedAt = new Date().toISOString()
+    } else if (status === 'In Progress') {
+      updates.startedAt = new Date().toISOString()
+    }
+    return await dbClient.update<TaskAssignment>('assignments', id, updates)
   }
 
   async cancel(id: string): Promise<TaskAssignment | undefined> {
@@ -520,25 +502,28 @@ export class MockAssignmentRepository {
   }
 }
 
-export class MockAgentRunRepository {
+export class AgentRunRepository {
   async getAll(): Promise<AgentRun[]> {
-    return [...mockAgentRuns]
+    return await dbClient.getAll<AgentRun>('agent_runs')
   }
 
   async getById(id: string): Promise<AgentRun | undefined> {
-    return mockAgentRuns.find((r) => r.id === id)
+    return await dbClient.getById<AgentRun>('agent_runs', id)
   }
 
   async getByAssignmentId(assignmentId: string): Promise<AgentRun[]> {
-    return mockAgentRuns.filter((r) => r.assignmentId === assignmentId)
+    const all = await dbClient.getAll<AgentRun>('agent_runs')
+    return all.filter((r) => r.assignmentId === assignmentId)
   }
 
   async getByTaskId(taskId: string): Promise<AgentRun[]> {
-    return mockAgentRuns.filter((r) => r.taskId === taskId)
+    const all = await dbClient.getAll<AgentRun>('agent_runs')
+    return all.filter((r) => r.taskId === taskId)
   }
 
   async getByEmployeeId(employeeId: string): Promise<AgentRun[]> {
-    return mockAgentRuns.filter((r) => r.employeeId === employeeId)
+    const all = await dbClient.getAll<AgentRun>('agent_runs')
+    return all.filter((r) => r.employeeId === employeeId)
   }
 
   async create(run: Omit<AgentRun, 'id' | 'createdAt' | 'updatedAt'>): Promise<AgentRun> {
@@ -548,69 +533,73 @@ export class MockAgentRunRepository {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
-    mockAgentRuns.unshift(newRun)
+    await dbClient.insert<AgentRun>('agent_runs', newRun)
 
     // Update active run on task
-    const task = mockTasks.find((t) => t.id === run.taskId)
-    if (task) {
-      task.activeRunId = newRun.id
-      task.updatedAt = new Date().toISOString()
-    }
+    await dbClient.update<Task>('tasks', run.taskId, {
+      activeRunId: newRun.id,
+      updatedAt: new Date().toISOString()
+    })
 
     return newRun
   }
 
   async update(id: string, updates: Partial<AgentRun>): Promise<AgentRun | undefined> {
-    const run = mockAgentRuns.find((r) => r.id === id)
-    if (run) {
-      Object.assign(run, updates, { updatedAt: new Date().toISOString() })
-    }
-    return run
+    return await dbClient.update<AgentRun>('agent_runs', id, {
+      ...updates,
+      updatedAt: new Date().toISOString()
+    })
   }
 
   async addLog(id: string, log: Omit<RunLogEntry, 'id'>): Promise<AgentRun | undefined> {
-    const run = mockAgentRuns.find((r) => r.id === id)
+    const run = await dbClient.getById<AgentRun>('agent_runs', id)
     if (run) {
-      const logEntry: RunLogEntry = {
+      const logs = [...run.logs]
+      logs.push({
         ...log,
         id: `log-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`
-      }
-      run.logs.push(logEntry)
-      run.updatedAt = new Date().toISOString()
+      })
+      return await dbClient.update<AgentRun>('agent_runs', id, {
+        logs,
+        updatedAt: new Date().toISOString()
+      })
     }
-    return run
+    return undefined
   }
 
   async updateProgress(id: string, progress: number, step: RunStep, status?: AgentRunStatus): Promise<AgentRun | undefined> {
-    const run = mockAgentRuns.find((r) => r.id === id)
-    if (run) {
-      run.progress = progress
-      run.currentStep = step
-      if (status) run.status = status
-      run.updatedAt = new Date().toISOString()
+    const updates: Partial<AgentRun> = {
+      progress,
+      currentStep: step,
+      updatedAt: new Date().toISOString()
+    }
+    if (status) {
+      updates.status = status
       if (status === 'Completed') {
-        run.completedAt = new Date().toISOString()
+        updates.completedAt = new Date().toISOString()
       }
     }
-    return run
+    return await dbClient.update<AgentRun>('agent_runs', id, updates)
   }
 }
 
-export class MockRunResultRepository {
+export class RunResultRepository {
   async getAll(): Promise<RunResult[]> {
-    return [...mockRunResults]
+    return await dbClient.getAll<RunResult>('run_results')
   }
 
   async getById(id: string): Promise<RunResult | undefined> {
-    return mockRunResults.find((r) => r.id === id)
+    return await dbClient.getById<RunResult>('run_results', id)
   }
 
   async getByRunId(runId: string): Promise<RunResult | undefined> {
-    return mockRunResults.find((r) => r.runId === runId)
+    const all = await dbClient.getAll<RunResult>('run_results')
+    return all.find((r) => r.runId === runId)
   }
 
   async getByTaskId(taskId: string): Promise<RunResult[]> {
-    return mockRunResults.filter((r) => r.taskId === taskId)
+    const all = await dbClient.getAll<RunResult>('run_results')
+    return all.filter((r) => r.taskId === taskId)
   }
 
   async create(result: Omit<RunResult, 'id' | 'createdAt' | 'updatedAt'>): Promise<RunResult> {
@@ -620,38 +609,39 @@ export class MockRunResultRepository {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
-    mockRunResults.unshift(newResult)
-    return newResult
+    return await dbClient.insert<RunResult>('run_results', newResult)
   }
 
   async update(id: string, updates: Partial<RunResult>): Promise<RunResult | undefined> {
-    const result = mockRunResults.find((r) => r.id === id)
-    if (result) {
-      Object.assign(result, updates, { updatedAt: new Date().toISOString() })
-    }
-    return result
+    return await dbClient.update<RunResult>('run_results', id, {
+      ...updates,
+      updatedAt: new Date().toISOString()
+    })
   }
 }
 
-export class MockReviewRepository {
+export class ReviewRepository {
   async getAll(): Promise<TaskReview[]> {
-    return [...mockTaskReviews]
+    return await dbClient.getAll<TaskReview>('task_reviews')
   }
 
   async getById(id: string): Promise<TaskReview | undefined> {
-    return mockTaskReviews.find((r) => r.id === id)
+    return await dbClient.getById<TaskReview>('task_reviews', id)
   }
 
   async getByRunId(runId: string): Promise<TaskReview | undefined> {
-    return mockTaskReviews.find((r) => r.runId === runId)
+    const all = await dbClient.getAll<TaskReview>('task_reviews')
+    return all.find((r) => r.runId === runId)
   }
 
   async getByTaskId(taskId: string): Promise<TaskReview[]> {
-    return mockTaskReviews.filter((r) => r.taskId === taskId)
+    const all = await dbClient.getAll<TaskReview>('task_reviews')
+    return all.filter((r) => r.taskId === taskId)
   }
 
   async getPending(): Promise<TaskReview[]> {
-    return mockTaskReviews.filter((r) => r.status === 'Pending')
+    const all = await dbClient.getAll<TaskReview>('task_reviews')
+    return all.filter((r) => r.status === 'Pending')
   }
 
   async create(review: Omit<TaskReview, 'id' | 'createdAt' | 'updatedAt'>): Promise<TaskReview> {
@@ -661,38 +651,54 @@ export class MockReviewRepository {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
-    mockTaskReviews.unshift(newReview)
-    return newReview
+    return await dbClient.insert<TaskReview>('task_reviews', newReview)
   }
 
   async update(id: string, updates: Partial<TaskReview>): Promise<TaskReview | undefined> {
-    const review = mockTaskReviews.find((r) => r.id === id)
-    if (review) {
-      Object.assign(review, updates, { updatedAt: new Date().toISOString() })
-    }
-    return review
+    return await dbClient.update<TaskReview>('task_reviews', id, {
+      ...updates,
+      updatedAt: new Date().toISOString()
+    })
   }
 
   async submitDecision(id: string, decision: ReviewDecision, comment?: string): Promise<TaskReview | undefined> {
-    const review = mockTaskReviews.find((r) => r.id === id)
-    if (review) {
-      review.status = decision
-      if (comment) review.comment = comment
-      review.decisionAt = new Date().toISOString()
-      review.updatedAt = new Date().toISOString()
-
-      // If approved, update Task to Completed / Done
-      if (decision === 'Approved') {
-        const task = mockTasks.find((t) => t.id === review.taskId)
-        if (task) {
-          task.status = 'Done'
-          task.progress = 100
-          task.updatedAt = new Date().toISOString()
-        }
-      }
+    const updates: Partial<TaskReview> = {
+      status: decision,
+      decisionAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     }
+    if (comment) updates.comment = comment
+
+    const review = await dbClient.update<TaskReview>('task_reviews', id, updates)
+
+    if (review && decision === 'Approved') {
+      await dbClient.update<Task>('tasks', review.taskId, {
+        status: 'Done',
+        progress: 100,
+        updatedAt: new Date().toISOString()
+      })
+    }
+
     return review
   }
 }
 
-
+// Backwards compatibility aliases
+export {
+  WorkspaceRepository as MockWorkspaceRepository,
+  ProjectRepository as MockProjectRepository,
+  TaskRepository as MockTaskRepository,
+  FileRepository as MockFileRepository,
+  ActivityRepository as MockActivityRepository,
+  NotificationRepository as MockNotificationRepository,
+  UserRepository as MockUserRepository,
+  DepartmentRepository as MockDepartmentRepository,
+  EmployeeRoleRepository as MockEmployeeRoleRepository,
+  SkillRepository as MockSkillRepository,
+  WorkforceToolRepository as MockWorkforceToolRepository,
+  EmployeeRepository as MockEmployeeRepository,
+  AssignmentRepository as MockAssignmentRepository,
+  AgentRunRepository as MockAgentRunRepository,
+  RunResultRepository as MockRunResultRepository,
+  ReviewRepository as MockReviewRepository
+}

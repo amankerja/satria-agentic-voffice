@@ -6,8 +6,17 @@ export class HermesMapper {
   static toHermesPayload(input: AgentRunInput) {
     const context = ContextBuilder.build(input)
     const meta = import.meta as any
+    const localModel = typeof localStorage !== 'undefined' ? localStorage.getItem('satria_hermes_model') : null
+    const localTemp = typeof localStorage !== 'undefined' ? localStorage.getItem('satria_hermes_temp') : null
+    const localMaxTokens = typeof localStorage !== 'undefined' ? localStorage.getItem('satria_hermes_max_tokens') : null
+
     const configuredModel =
-      (meta?.env?.VITE_HERMES_MODEL as string) || 'hermes-3-llama-3.1-70b'
+      localModel ||
+      (meta?.env?.VITE_HERMES_MODEL as string) ||
+      'fast-work-free'
+
+    const configuredTemp = localTemp ? parseFloat(localTemp) : 0.2
+    const configuredMaxTokens = localMaxTokens ? parseInt(localMaxTokens, 10) : 4096
 
     return {
       input: context.userPrompt || input.taskPrompt,
@@ -31,8 +40,8 @@ export class HermesMapper {
       },
       modelConfig: {
         model: configuredModel,
-        maxTokens: 4096,
-        temperature: 0.2
+        maxTokens: configuredMaxTokens,
+        temperature: configuredTemp
       }
     }
   }
@@ -54,7 +63,7 @@ export class HermesMapper {
       : new Date().toISOString()
     const meta = import.meta as any
     const defaultModel =
-      (meta?.env?.VITE_HERMES_MODEL as string) || 'hermes-3-llama-3.1-70b'
+      (meta?.env?.VITE_HERMES_MODEL as string) || 'fast-work-free'
 
     const rawTelemetry = raw.usage || raw.telemetry || raw
     const telemetry = TelemetryMapper.normalize(

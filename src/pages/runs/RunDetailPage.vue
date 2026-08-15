@@ -263,7 +263,7 @@
           <div class="p-3 bg-surface-container-lowest border border-outline-variant rounded-lg space-y-1">
             <span class="text-[10px] font-mono text-muted uppercase">Provider</span>
             <div class="text-xs font-mono font-bold text-on-surface truncate">
-              {{ telemetry?.provider || (agentRunStore.runtimeMode === 'hermes' ? 'NousResearch' : 'satria-in-memory') }}
+              {{ activeConfiguredProvider }}
             </div>
           </div>
 
@@ -272,9 +272,9 @@
             <span class="text-[10px] font-mono text-muted uppercase">Model ID</span>
             <div
               class="text-xs font-mono font-bold text-primary truncate"
-              :title="telemetry?.model || (agentRunStore.runtimeMode === 'hermes' ? 'hermes-3-llama-3.1-70b' : 'mock-agent-simulation-v1')"
+              :title="activeConfiguredModel"
             >
-              {{ telemetry?.model || (agentRunStore.runtimeMode === 'hermes' ? 'hermes-3-llama-3.1-70b' : 'mock-agent-simulation-v1') }}
+              {{ activeConfiguredModel }}
             </div>
           </div>
 
@@ -510,6 +510,23 @@ const pendingApproval = computed(() => {
 })
 
 const telemetry = computed(() => run.value?.telemetry)
+
+const activeConfiguredModel = computed(() => {
+  if (telemetry.value?.model) return telemetry.value.model
+  if (agentRunStore.runtimeMode === 'hermes') {
+    const meta = import.meta as any
+    return (meta?.env?.VITE_HERMES_MODEL as string) || 'fast-work-free'
+  }
+  return 'mock-agent-simulation-v1'
+})
+
+const activeConfiguredProvider = computed(() => {
+  if (telemetry.value?.provider) return telemetry.value.provider
+  if (agentRunStore.runtimeMode === 'hermes') {
+    return 'Hermes Local'
+  }
+  return 'satria-in-memory'
+})
 
 const collectedArtifacts = computed(() => {
   const list = globalArtifactCollector.getArtifacts(runId.value)

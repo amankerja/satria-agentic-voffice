@@ -28,6 +28,17 @@ export const useTaskStore = defineStore('task', () => {
     return updated
   }
 
+  async function updateTask(taskId: string, updates: Partial<Task>) {
+    const updated = await repo.update(taskId, updates)
+    if (updated) {
+      const idx = tasks.value.findIndex((t) => t.id === taskId)
+      if (idx !== -1) {
+        tasks.value[idx] = { ...updated }
+      }
+    }
+    return updated
+  }
+
   async function createTask(data: Omit<Task, 'id' | 'createdAt' | 'updatedAt' | 'progress' | 'checklist' | 'comments'>) {
     const created = await repo.create(data)
     tasks.value.unshift(created)
@@ -39,6 +50,7 @@ export const useTaskStore = defineStore('task', () => {
     loading,
     fetchTasksByWorkspace,
     updateTaskStatus,
+    updateTask,
     createTask
   }
 })

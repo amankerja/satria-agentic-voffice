@@ -8,7 +8,8 @@
     "build": "vue-tsc && vite build",
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit",
-    "test:unit": "vitest run"
+    "test:unit": "vitest run",
+    "satria": "node satria-cli.mjs"
   },
   "dependencies": {
     "@lucide/lab": "^0.1.2",

@@ -145,6 +145,17 @@ export interface User {
   role?: string
 }
 
+export interface AiRuntimeConfig {
+  hermesBaseUrl: string
+  hermesApiKey: string
+  llmBaseUrl: string
+  selectedModel: string
+  selectedProvider: string
+  temperature: number
+  maxTokens: number
+  availableModels: string[]
+}
+
 export interface UserSettings {
   theme: 'dark' | 'light' | 'system'
   compactMode: boolean
@@ -157,6 +168,7 @@ export interface UserSettings {
   autoSaveInterval: number
   timezone: string
   language: string
+  aiRuntime?: AiRuntimeConfig
 }
 
 export interface UserProfile {

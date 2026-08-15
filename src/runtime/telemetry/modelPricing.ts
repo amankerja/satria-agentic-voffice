@@ -72,6 +72,15 @@ export const MODEL_PRICING_TABLE: Record<string, ModelPricing> = {
     currency: 'USD',
     effectiveFrom: '2024-08-15'
   },
+  'fast-work-free': {
+    provider: 'LocalGateway',
+    model: 'fast-work-free',
+    promptCostPer1M: 0.0,
+    completionCostPer1M: 0.0,
+    cachedCostPer1M: 0.0,
+    currency: 'USD',
+    effectiveFrom: '2026-01-01'
+  },
   'mock-agent-simulation-v1': {
     provider: 'SatriaMock',
     model: 'mock-agent-simulation-v1',

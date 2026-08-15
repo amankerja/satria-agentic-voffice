@@ -25,15 +25,28 @@ export class HermesClient {
 
   constructor(config?: Partial<HermesClientConfig>) {
     const meta = import.meta as any
+    const localUrl = typeof localStorage !== 'undefined' ? localStorage.getItem('satria_hermes_url') : null
+    const localKey = typeof localStorage !== 'undefined' ? localStorage.getItem('satria_hermes_api_key') : null
+
+    const configuredUrl =
+      config?.baseUrl ||
+      localUrl ||
+      (meta?.env?.VITE_HERMES_URL as string) ||
+      '/hermes-api'
+
+    const baseUrl =
+      typeof window !== 'undefined' &&
+      (configuredUrl.startsWith('http://127.0.0.1:8642') || configuredUrl.startsWith('http://localhost:8642'))
+        ? '/hermes-api'
+        : configuredUrl
+
     this.config = {
-      baseUrl:
-        config?.baseUrl ||
-        (meta?.env?.VITE_HERMES_URL as string) ||
-        'http://127.0.0.1:8642',
+      baseUrl,
       apiKey:
         config?.apiKey ||
+        localKey ||
         (meta?.env?.VITE_HERMES_API_KEY as string) ||
-        '',
+        'satria-local-dev',
       timeoutMs: config?.timeoutMs ?? 120000,
       maxReconnectAttempts: config?.maxReconnectAttempts ?? 5,
       initialBackoffMs: config?.initialBackoffMs ?? 1000,
@@ -320,6 +333,7 @@ export class HermesClient {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' }
     if (this.config.apiKey) {
       headers['Authorization'] = `Bearer ${this.config.apiKey}`
+      headers['X-API-Key'] = this.config.apiKey
     }
     return headers
   }

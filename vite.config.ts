@@ -3,11 +3,13 @@ import vue from '@vitejs/plugin-vue'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
+import { viteDatabasePlugin } from './src/database/viteDatabasePlugin'
 
 export default defineConfig({
   plugins: [
     vue(),
     tailwindcss(),
+    viteDatabasePlugin(),
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.ico', 'favicon.svg', 'apple-touch-icon.png', 'mask-icon.svg', 'pwa-192x192.png', 'pwa-512x512.png'],
@@ -92,6 +94,27 @@ export default defineConfig({
         manualChunks: {
           'vue-vendor': ['vue', 'vue-router', 'pinia'],
           'lucide-icons': ['@lucide/vue']
+        }
+      }
+    }
+  },
+  server: {
+    proxy: {
+      '/hermes-api': {
+        target: 'http://127.0.0.1:8642',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/hermes-api/, ''),
+        headers: {
+          Authorization: 'Bearer satria-local-dev',
+          'X-API-Key': 'satria-local-dev'
+        },
+        configure: (proxy) => {
+          proxy.on('proxyReq', (proxyReq) => {
+            proxyReq.setHeader('Authorization', 'Bearer satria-local-dev')
+            proxyReq.setHeader('X-API-Key', 'satria-local-dev')
+            proxyReq.removeHeader('origin')
+            proxyReq.removeHeader('referer')
+          })
         }
       }
     }
