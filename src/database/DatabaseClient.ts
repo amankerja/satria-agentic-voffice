@@ -33,7 +33,13 @@ import {
   initialContentItems,
   initialPublications,
   initialDataReviews,
-  initialWorkflowTemplates
+  initialWorkflowTemplates,
+  initialIntegrationProviders,
+  initialIntegrationConnections,
+  initialToolPermissions,
+  initialToolExecutions,
+  initialIntegrationApprovals,
+  initialIntegrationAuditEvents
 } from './initialSeed'
 import type {
   Workspace,
@@ -63,7 +69,13 @@ import type {
   Publication,
   DataReview,
   WorkflowTemplate,
-  WorkflowInstance
+  WorkflowInstance,
+  IntegrationProvider,
+  IntegrationConnection,
+  ToolPermission,
+  ToolExecution,
+  IntegrationApprovalRequest,
+  IntegrationAuditEvent
 } from '../types'
 import { STORAGE_KEYS, saveStoredCollection } from '../utils/mockStorage'
 import * as mockArrays from '../mocks/mockData'
@@ -95,6 +107,12 @@ export interface FullDatabaseState {
   data_reviews: DataReview[]
   workflow_templates: WorkflowTemplate[]
   workflow_instances: WorkflowInstance[]
+  integration_providers: IntegrationProvider[]
+  integration_connections: IntegrationConnection[]
+  tool_permissions: ToolPermission[]
+  tool_executions: ToolExecution[]
+  integration_approvals: IntegrationApprovalRequest[]
+  integration_audit_events: IntegrationAuditEvent[]
   user_profile: UserProfile
   user_settings: UserSettings
 }
@@ -103,7 +121,7 @@ export type StoreName = keyof FullDatabaseState
 
 class SatriaDatabaseClient {
   private dbName = 'satria_ai_workforce_db'
-  private dbVersion = 7
+  private dbVersion = 8
   private db: IDBDatabase | null = null
   private memoryCache: FullDatabaseState
   private initialized = false
@@ -142,6 +160,12 @@ class SatriaDatabaseClient {
       data_reviews: JSON.parse(JSON.stringify(initialDataReviews)),
       workflow_templates: JSON.parse(JSON.stringify(initialWorkflowTemplates)),
       workflow_instances: [],
+      integration_providers: JSON.parse(JSON.stringify(initialIntegrationProviders)),
+      integration_connections: JSON.parse(JSON.stringify(initialIntegrationConnections)),
+      tool_permissions: JSON.parse(JSON.stringify(initialToolPermissions)),
+      tool_executions: JSON.parse(JSON.stringify(initialToolExecutions)),
+      integration_approvals: JSON.parse(JSON.stringify(initialIntegrationApprovals)),
+      integration_audit_events: JSON.parse(JSON.stringify(initialIntegrationAuditEvents)),
       user_profile: JSON.parse(JSON.stringify(initialUser)),
       user_settings: JSON.parse(JSON.stringify(initialUserSettings))
     }
@@ -200,6 +224,12 @@ class SatriaDatabaseClient {
       data_reviews: {},
       workflow_templates: {},
       workflow_instances: {},
+      integration_providers: {},
+      integration_connections: {},
+      tool_permissions: {},
+      tool_executions: {},
+      integration_approvals: {},
+      integration_audit_events: {},
       user_profile: {},
       user_settings: {}
     }
@@ -249,6 +279,12 @@ class SatriaDatabaseClient {
           'data_reviews',
           'workflow_templates',
           'workflow_instances',
+          'integration_providers',
+          'integration_connections',
+          'tool_permissions',
+          'tool_executions',
+          'integration_approvals',
+          'integration_audit_events',
           'user_profile',
           'user_settings'
         ]
@@ -317,7 +353,13 @@ class SatriaDatabaseClient {
       'media_assets',
       'data_reviews',
       'workflow_templates',
-      'workflow_instances'
+      'workflow_instances',
+      'integration_providers',
+      'integration_connections',
+      'tool_permissions',
+      'tool_executions',
+      'integration_approvals',
+      'integration_audit_events'
     ]
 
     for (const storeName of stores) {

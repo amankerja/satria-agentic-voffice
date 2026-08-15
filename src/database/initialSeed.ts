@@ -25,7 +25,19 @@ import type {
   RunResult,
   TaskReview,
   AgentMemoryItem,
-  Schedule
+  Schedule,
+  SocialConnection,
+  MediaAsset,
+  ContentItem,
+  Publication,
+  DataReview,
+  WorkflowTemplate,
+  IntegrationProvider,
+  IntegrationConnection,
+  ToolPermission,
+  ToolExecution,
+  IntegrationApprovalRequest,
+  IntegrationAuditEvent
 } from '../types'
 
 export const initialUserSettings: UserSettings = {
@@ -2271,14 +2283,7 @@ export const initialSchedules: Schedule[] = [
 // PHASE 6 — CONTENT, DATA ANALYSIS & SOCIAL SEED DATA
 // ==========================================
 
-import type {
-  SocialConnection,
-  MediaAsset,
-  ContentItem,
-  Publication,
-  DataReview,
-  WorkflowTemplate
-} from '../types'
+
 
 export const initialSocialConnections: SocialConnection[] = [
   {
@@ -2774,5 +2779,326 @@ export const initialWorkflowTemplates: WorkflowTemplate[] = [
     updatedAt: '2026-08-10T08:00:00Z'
   }
 ]
+
+// =========================================================================
+// INTEGRATION SEED DATA (GITHUB & EMAIL / GMAIL)
+// =========================================================================
+export const initialIntegrationProviders: IntegrationProvider[] = [
+  {
+    id: 'github',
+    name: 'GitHub',
+    category: 'developer',
+    authType: 'github_app',
+    description: 'Akses repository, issue tracking, branch creation, code modification, dan pull request.',
+    icon: 'github',
+    capabilities: [
+      { id: 'repo_read', name: 'Read Repositories & Files', description: 'Membaca kode, file, branch, dan commit' },
+      { id: 'issue_manage', name: 'Manage Issues', description: 'Membaca, membuat, dan mengomentari issues' },
+      { id: 'pr_manage', name: 'Pull Requests', description: 'Membuat branch, commit perubahan, dan membuka PR' },
+      { id: 'actions_read', name: 'Actions & Workflows', description: 'Membaca log status build dan workflow runs' }
+    ]
+  },
+  {
+    id: 'gmail',
+    name: 'Gmail / Google Mailbox',
+    category: 'communication',
+    authType: 'oauth2',
+    description: 'Pencarian inbox email, ekstraksi tiket komplain pelanggan, pembuatan draft, dan pengiriman pesan terotorisasi.',
+    icon: 'mail',
+    capabilities: [
+      { id: 'mail_read', name: 'Read Inbox & Search', description: 'Mencari dan membaca email pelanggan serta thread' },
+      { id: 'draft_write', name: 'Draft Responses', description: 'Menyusun draf balasan email secara otomatis' },
+      { id: 'mail_send', name: 'Send with Approval', description: 'Mengirim email setelah melewati approval gate' }
+    ]
+  },
+  {
+    id: 'slack',
+    name: 'Slack Workspace',
+    category: 'communication',
+    authType: 'oauth2',
+    description: 'Notifikasi channel, alert status insiden, dan koordinasi digital employee real-time.',
+    icon: 'message-square',
+    capabilities: [
+      { id: 'slack_post', name: 'Post Message', description: 'Kirim notifikasi ke channel #engineering dan #alerts' }
+    ]
+  },
+  {
+    id: 'google_drive',
+    name: 'Google Drive',
+    category: 'productivity',
+    authType: 'oauth2',
+    description: 'Penyimpanan dokumen laporan, sinkronisasi file PDF/DOCX, dan sharing folder publik.',
+    icon: 'folder',
+    capabilities: [
+      { id: 'drive_sync', name: 'File Storage Sync', description: 'Upload artefak hasil pekerjaan ke shared folder' }
+    ]
+  }
+]
+
+export const initialIntegrationConnections: IntegrationConnection[] = [
+  {
+    id: 'conn-github-01',
+    providerId: 'github',
+    workspaceId: 'ws-dev',
+    displayName: 'Satria Workforce Organization (GitHub App)',
+    accountLabel: 'satria-workforce',
+    accountId: 'org_987654',
+    status: 'Connected',
+    scopes: ['repo', 'read:org', 'pull_requests:write', 'issues:write'],
+    metadata: {
+      repositories: ['satria-api', 'satria-web', 'satria-core-runtime'],
+      defaultBranch: 'main'
+    },
+    credentials: {
+      installationId: 'inst_123456',
+      accessToken: 'ghs_vault_mock_token'
+    },
+    lastValidatedAt: '2026-08-15T23:30:00Z',
+    createdAt: '2026-08-01T08:00:00Z',
+    updatedAt: '2026-08-15T23:30:00Z'
+  },
+  {
+    id: 'conn-gmail-01',
+    providerId: 'gmail',
+    workspaceId: 'ws-dev',
+    displayName: 'Operations & Support Mailbox (OAuth v2)',
+    accountLabel: 'ops@satria.workforce.ai',
+    accountId: 'user_gmail_8812',
+    status: 'Connected',
+    scopes: ['https://www.googleapis.com/auth/gmail.readonly', 'https://www.googleapis.com/auth/gmail.compose', 'https://www.googleapis.com/auth/gmail.send'],
+    metadata: {
+      selectedMailbox: 'INBOX',
+      allowedRecipientDomains: ['clientcorp.com', 'satria.workforce.ai', 'vendorpartner.id'],
+      autoDraftEnabled: true,
+      autoSendEnabled: false
+    },
+    credentials: {
+      accessToken: 'ya29.vault_oauth_token',
+      refreshToken: '1//refresh_token_vault'
+    },
+    lastValidatedAt: '2026-08-15T23:45:00Z',
+    createdAt: '2026-08-01T08:00:00Z',
+    updatedAt: '2026-08-15T23:45:00Z'
+  },
+  {
+    id: 'conn-slack-01',
+    providerId: 'slack',
+    workspaceId: 'ws-dev',
+    displayName: 'Satria Engineering Slack',
+    accountLabel: '#satria-alerts',
+    status: 'Connected',
+    scopes: ['chat:write', 'channels:read'],
+    metadata: {},
+    lastValidatedAt: '2026-08-15T22:00:00Z',
+    createdAt: '2026-08-05T08:00:00Z',
+    updatedAt: '2026-08-15T22:00:00Z'
+  }
+]
+
+export const initialToolPermissions: ToolPermission[] = [
+  {
+    id: 'tp-1',
+    workspaceId: 'ws-dev',
+    agentId: 'emp-bima',
+    connectionId: 'conn-github-01',
+    toolName: 'github.get_file',
+    action: 'read',
+    effect: 'ALLOW',
+    riskLevel: 'LOW',
+    approvalRequired: false,
+    createdAt: '2026-08-01T08:00:00Z',
+    updatedAt: '2026-08-01T08:00:00Z'
+  },
+  {
+    id: 'tp-2',
+    workspaceId: 'ws-dev',
+    agentId: 'emp-bima',
+    connectionId: 'conn-github-01',
+    toolName: 'github.update_file',
+    action: 'write',
+    effect: 'ALLOW',
+    riskLevel: 'MEDIUM',
+    approvalRequired: false,
+    createdAt: '2026-08-01T08:00:00Z',
+    updatedAt: '2026-08-01T08:00:00Z'
+  },
+  {
+    id: 'tp-3',
+    workspaceId: 'ws-dev',
+    agentId: 'emp-bima',
+    connectionId: 'conn-github-01',
+    toolName: 'github.create_pull_request',
+    action: 'write',
+    effect: 'APPROVAL_REQUIRED',
+    riskLevel: 'HIGH',
+    approvalRequired: true,
+    createdAt: '2026-08-01T08:00:00Z',
+    updatedAt: '2026-08-01T08:00:00Z'
+  },
+  {
+    id: 'tp-4',
+    workspaceId: 'ws-dev',
+    agentId: 'emp-raka',
+    connectionId: 'conn-gmail-01',
+    toolName: 'email.search_messages',
+    action: 'read',
+    effect: 'ALLOW',
+    riskLevel: 'LOW',
+    approvalRequired: false,
+    createdAt: '2026-08-01T08:00:00Z',
+    updatedAt: '2026-08-01T08:00:00Z'
+  },
+  {
+    id: 'tp-5',
+    workspaceId: 'ws-dev',
+    agentId: 'emp-raka',
+    connectionId: 'conn-gmail-01',
+    toolName: 'email.create_draft',
+    action: 'write',
+    effect: 'ALLOW',
+    riskLevel: 'LOW',
+    approvalRequired: false,
+    createdAt: '2026-08-01T08:00:00Z',
+    updatedAt: '2026-08-01T08:00:00Z'
+  },
+  {
+    id: 'tp-6',
+    workspaceId: 'ws-dev',
+    agentId: 'emp-raka',
+    connectionId: 'conn-gmail-01',
+    toolName: 'email.send',
+    action: 'write',
+    effect: 'APPROVAL_REQUIRED',
+    riskLevel: 'HIGH',
+    approvalRequired: true,
+    createdAt: '2026-08-01T08:00:00Z',
+    updatedAt: '2026-08-01T08:00:00Z'
+  }
+]
+
+export const initialToolExecutions: ToolExecution[] = [
+  {
+    id: 'exec-seed-1',
+    runId: 'run-101',
+    taskId: 'tsk-101',
+    agentId: 'emp-bima',
+    agentName: 'Bima (Backend Engineer)',
+    connectionId: 'conn-github-01',
+    toolName: 'github.get_file',
+    action: 'read',
+    inputHash: 'hash_bima_01',
+    status: 'COMPLETED',
+    startedAt: '2026-08-15T10:00:00Z',
+    completedAt: '2026-08-15T10:00:01Z',
+    resultMetadata: { path: 'pkg/auth/auth_handler.go', lines: 180 }
+  },
+  {
+    id: 'exec-seed-2',
+    runId: 'run-101',
+    taskId: 'tsk-101',
+    agentId: 'emp-raka',
+    agentName: 'Raka (Operations)',
+    connectionId: 'conn-gmail-01',
+    toolName: 'email.search_messages',
+    action: 'read',
+    inputHash: 'hash_raka_01',
+    status: 'COMPLETED',
+    startedAt: '2026-08-15T10:05:00Z',
+    completedAt: '2026-08-15T10:05:01Z',
+    resultMetadata: { matchedCount: 2 }
+  }
+]
+
+export const initialIntegrationApprovals: IntegrationApprovalRequest[] = [
+  {
+    id: 'appr-seed-1',
+    runId: 'run-cross-01',
+    taskId: 'tsk-cross-sys-01',
+    toolRequestId: 'req-pr-01',
+    agentId: 'emp-bima',
+    agentName: 'Bima (Backend Engineer)',
+    connectionId: 'conn-github-01',
+    provider: 'github',
+    requestedAction: 'github.create_pull_request (write)',
+    toolName: 'github.create_pull_request',
+    reason: 'Membuat Pull Request #143: fix(auth): sanitize JWT mutex locking di satria-api.',
+    riskLevel: 'HIGH',
+    details: {
+      repository: 'satria-api',
+      branch: 'fix/auth-token-leak',
+      base: 'main',
+      filesChanged: 3
+    },
+    status: 'APPROVED',
+    createdAt: '2026-08-15T10:15:00Z',
+    resolvedAt: '2026-08-15T10:16:00Z',
+    resolvedBy: 'Satria Utama (Lead)'
+  },
+  {
+    id: 'appr-seed-2',
+    runId: 'run-cross-01',
+    taskId: 'tsk-cross-sys-01',
+    toolRequestId: 'req-email-send-01',
+    agentId: 'emp-raka',
+    agentName: 'Raka (Operations)',
+    connectionId: 'conn-gmail-01',
+    provider: 'gmail',
+    requestedAction: 'email.send (write)',
+    toolName: 'email.send',
+    reason: 'Mengirim email konfirmasi penyelesaian bug ke pelanggan budi.santoso@clientcorp.com.',
+    riskLevel: 'HIGH',
+    details: {
+      to: ['budi.santoso@clientcorp.com'],
+      subject: 'Re: [URGENT] Bug: HTTP 500 saat refresh auth token transaksi'
+    },
+    status: 'APPROVED',
+    createdAt: '2026-08-15T10:20:00Z',
+    resolvedAt: '2026-08-15T10:21:00Z',
+    resolvedBy: 'Satria Utama (Lead)'
+  }
+]
+
+export const initialIntegrationAuditEvents: IntegrationAuditEvent[] = [
+  {
+    id: 'aud-seed-1',
+    timestamp: '2026-08-15T10:00:01Z',
+    actorId: 'emp-bima',
+    actorName: 'Bima (Backend Engineer)',
+    connectionId: 'conn-github-01',
+    provider: 'github',
+    toolName: 'github.get_file',
+    action: 'read',
+    status: 'SUCCESS',
+    riskLevel: 'LOW',
+    details: { path: 'pkg/auth/auth_handler.go' }
+  },
+  {
+    id: 'aud-seed-2',
+    timestamp: '2026-08-15T10:16:00Z',
+    actorId: 'emp-bima',
+    actorName: 'Bima (Backend Engineer)',
+    connectionId: 'conn-github-01',
+    provider: 'github',
+    toolName: 'github.create_pull_request',
+    action: 'write',
+    status: 'APPROVED',
+    riskLevel: 'HIGH',
+    details: { prNumber: 143, branch: 'fix/auth-token-leak' }
+  },
+  {
+    id: 'aud-seed-3',
+    timestamp: '2026-08-15T10:21:00Z',
+    actorId: 'emp-raka',
+    actorName: 'Raka (Operations)',
+    connectionId: 'conn-gmail-01',
+    provider: 'gmail',
+    toolName: 'email.send',
+    action: 'write',
+    status: 'SUCCESS',
+    riskLevel: 'HIGH',
+    details: { to: 'budi.santoso@clientcorp.com', subject: 'Re: [URGENT] Bug: HTTP 500' }
+  }
+]
+
 
 

@@ -35,7 +35,12 @@ import type {
   SocialConnection,
   MediaAsset,
   DataReview,
-  WorkflowTemplate
+  WorkflowTemplate,
+  IntegrationConnection,
+  ToolPermission,
+  ToolExecution,
+  IntegrationApprovalRequest,
+  IntegrationAuditEvent
 } from '../types'
 
 // ============================================================================
@@ -1211,6 +1216,152 @@ export class WorkflowTemplateRepository {
   }
 }
 
+// ==========================================
+// INTEGRATION REPOSITORIES
+// ==========================================
+export class IntegrationConnectionRepository {
+  async getAll(): Promise<IntegrationConnection[]> {
+    return await dbClient.getAll<IntegrationConnection>('integration_connections')
+  }
+
+  async getById(id: string): Promise<IntegrationConnection | undefined> {
+    return await dbClient.getById<IntegrationConnection>('integration_connections', id)
+  }
+
+  async getByProvider(providerId: string): Promise<IntegrationConnection[]> {
+    const all = await this.getAll()
+    return all.filter((c) => c.providerId === providerId)
+  }
+
+  async create(data: Omit<IntegrationConnection, 'id' | 'createdAt' | 'updatedAt'>): Promise<IntegrationConnection> {
+    const newConn: IntegrationConnection = {
+      ...data,
+      id: `conn-${data.providerId}-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    await dbClient.insert<IntegrationConnection>('integration_connections', newConn)
+    return newConn
+  }
+
+  async update(id: string, updates: Partial<IntegrationConnection>): Promise<IntegrationConnection | undefined> {
+    return await dbClient.update<IntegrationConnection>('integration_connections', id, {
+      ...updates,
+      updatedAt: new Date().toISOString()
+    })
+  }
+
+  async delete(id: string): Promise<boolean> {
+    return await dbClient.delete('integration_connections', id)
+  }
+}
+
+export class ToolPermissionRepository {
+  async getAll(): Promise<ToolPermission[]> {
+    return await dbClient.getAll<ToolPermission>('tool_permissions')
+  }
+
+  async getByAgent(agentId: string): Promise<ToolPermission[]> {
+    const all = await this.getAll()
+    return all.filter((p) => p.agentId === agentId || p.agentId === '*')
+  }
+
+  async create(data: Omit<ToolPermission, 'id' | 'createdAt' | 'updatedAt'>): Promise<ToolPermission> {
+    const perm: ToolPermission = {
+      ...data,
+      id: `tp-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+    await dbClient.insert<ToolPermission>('tool_permissions', perm)
+    return perm
+  }
+
+  async update(id: string, updates: Partial<ToolPermission>): Promise<ToolPermission | undefined> {
+    return await dbClient.update<ToolPermission>('tool_permissions', id, {
+      ...updates,
+      updatedAt: new Date().toISOString()
+    })
+  }
+
+  async delete(id: string): Promise<boolean> {
+    return await dbClient.delete('tool_permissions', id)
+  }
+}
+
+export class ToolExecutionRepository {
+  async getAll(): Promise<ToolExecution[]> {
+    return await dbClient.getAll<ToolExecution>('tool_executions')
+  }
+
+  async getByRunId(runId: string): Promise<ToolExecution[]> {
+    const all = await this.getAll()
+    return all.filter((e) => e.runId === runId)
+  }
+
+  async create(data: Omit<ToolExecution, 'id'>): Promise<ToolExecution> {
+    const exec: ToolExecution = {
+      ...data,
+      id: `exec-${Date.now()}`
+    }
+    await dbClient.insert<ToolExecution>('tool_executions', exec)
+    return exec
+  }
+
+  async update(id: string, updates: Partial<ToolExecution>): Promise<ToolExecution | undefined> {
+    return await dbClient.update<ToolExecution>('tool_executions', id, updates)
+  }
+}
+
+export class IntegrationApprovalRepository {
+  async getAll(): Promise<IntegrationApprovalRequest[]> {
+    return await dbClient.getAll<IntegrationApprovalRequest>('integration_approvals')
+  }
+
+  async getPending(): Promise<IntegrationApprovalRequest[]> {
+    const all = await this.getAll()
+    return all.filter((a) => a.status === 'PENDING')
+  }
+
+  async getById(id: string): Promise<IntegrationApprovalRequest | undefined> {
+    return await dbClient.getById<IntegrationApprovalRequest>('integration_approvals', id)
+  }
+
+  async create(data: Omit<IntegrationApprovalRequest, 'id' | 'createdAt'>): Promise<IntegrationApprovalRequest> {
+    const appr: IntegrationApprovalRequest = {
+      ...data,
+      id: `appr-${Date.now()}`,
+      createdAt: new Date().toISOString()
+    }
+    await dbClient.insert<IntegrationApprovalRequest>('integration_approvals', appr)
+    return appr
+  }
+
+  async resolve(id: string, status: 'APPROVED' | 'REJECTED', resolvedBy = 'Owner'): Promise<IntegrationApprovalRequest | undefined> {
+    return await dbClient.update<IntegrationApprovalRequest>('integration_approvals', id, {
+      status,
+      resolvedAt: new Date().toISOString(),
+      resolvedBy
+    })
+  }
+}
+
+export class IntegrationAuditRepository {
+  async getAll(): Promise<IntegrationAuditEvent[]> {
+    return await dbClient.getAll<IntegrationAuditEvent>('integration_audit_events')
+  }
+
+  async create(data: Omit<IntegrationAuditEvent, 'id' | 'timestamp'>): Promise<IntegrationAuditEvent> {
+    const event: IntegrationAuditEvent = {
+      ...data,
+      id: `aud-${Date.now()}`,
+      timestamp: new Date().toISOString()
+    }
+    await dbClient.insert<IntegrationAuditEvent>('integration_audit_events', event)
+    return event
+  }
+}
+
 // Backwards compatibility aliases
 export {
   WorkspaceRepository as MockWorkspaceRepository,
@@ -1238,5 +1389,10 @@ export {
   SocialConnectionRepository as MockSocialConnectionRepository,
   MediaAssetRepository as MockMediaAssetRepository,
   DataReviewRepository as MockDataReviewRepository,
-  WorkflowTemplateRepository as MockWorkflowTemplateRepository
+  WorkflowTemplateRepository as MockWorkflowTemplateRepository,
+  IntegrationConnectionRepository as MockIntegrationConnectionRepository,
+  ToolPermissionRepository as MockToolPermissionRepository,
+  ToolExecutionRepository as MockToolExecutionRepository,
+  IntegrationApprovalRepository as MockIntegrationApprovalRepository,
+  IntegrationAuditRepository as MockIntegrationAuditRepository
 }

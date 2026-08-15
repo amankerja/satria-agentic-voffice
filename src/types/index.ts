@@ -710,6 +710,11 @@ export type PermissionType =
   | 'datareview:analyze'
   | 'social:connect'
   | 'social:disconnect'
+  | 'integration:manage'
+  | 'integration:connect'
+  | 'integration:disconnect'
+  | 'tool:execute'
+  | 'tool:approve'
 
 export interface SatriaBackupBundle {
   version: string
@@ -730,7 +735,10 @@ export interface SatriaBackupBundle {
     contentItems?: ContentItem[]
     publications?: Publication[]
     socialConnections?: SocialConnection[]
+    mediaAssets?: MediaAsset[]
     dataReviews?: DataReview[]
+    integrationConnections?: IntegrationConnection[]
+    toolPermissions?: ToolPermission[]
   }
 }
 
@@ -942,5 +950,196 @@ export interface DataReview {
   analyzedByWorkerId?: string
   analyzedByWorkerName?: string
   createdAt: string
+  completedAt?: string
+}
+
+// ==========================================
+// GITHUB & EMAIL INTEGRATION DOMAIN TYPES
+// ==========================================
+export type IntegrationProviderType = 'github' | 'gmail' | 'google_drive' | 'slack' | 'outlook' | 'custom_api'
+export type IntegrationAuthType = 'oauth2' | 'github_app' | 'api_key' | 'webhook'
+export type IntegrationConnectionStatus = 'Connected' | 'Degraded' | 'Expired' | 'Revoked' | 'Error' | 'Disconnected'
+export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+export type ToolEffect = 'ALLOW' | 'DENY' | 'APPROVAL_REQUIRED'
+export type IntegrationApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'CANCELLED'
+export type ToolExecutionStatus = 'REQUESTED' | 'VALIDATING' | 'WAITING_APPROVAL' | 'EXECUTING' | 'COMPLETED' | 'FAILED' | 'REJECTED'
+
+export interface IntegrationCapability {
+  id: string
+  name: string
+  description: string
+}
+
+export interface IntegrationProvider {
+  id: IntegrationProviderType
+  name: string
+  category: 'developer' | 'communication' | 'productivity' | 'custom'
+  authType: IntegrationAuthType
+  description: string
+  icon: string
+  capabilities: IntegrationCapability[]
+}
+
+export interface IntegrationConnection {
+  id: string
+  providerId: IntegrationProviderType
+  workspaceId: string
+  displayName: string
+  accountLabel: string
+  accountId?: string
+  status: IntegrationConnectionStatus
+  scopes: string[]
+  metadata?: {
+    repositories?: string[]
+    defaultBranch?: string
+    selectedMailbox?: string
+    allowedRecipientDomains?: string[]
+    autoDraftEnabled?: boolean
+    autoSendEnabled?: boolean
+  }
+  credentials?: {
+    accessToken?: string
+    refreshToken?: string
+    installationId?: string
+    apiKey?: string
+  }
+  lastValidatedAt?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ToolEvidence {
+  type: string
+  id?: string
+  label: string
+  data?: unknown
+  url?: string
+  diff?: string
+  summary?: string
+}
+
+export interface IntegrationTool {
+  name: string
+  provider: IntegrationProviderType
+  action: string
+  displayName: string
+  riskLevel: RiskLevel
+  requiresApproval: boolean
+  description: string
+  inputSchema?: Record<string, any>
+}
+
+export interface ToolPermission {
+  id: string
+  workspaceId: string
+  agentId: string // worker ID or '*'
+  connectionId: string // connection ID or '*'
+  toolName: string
+  action: string
+  effect: ToolEffect
+  riskLevel: RiskLevel
+  approvalRequired: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ToolRequest {
+  id: string
+  runId: string
+  taskId: string
+  agentId: string
+  agentName?: string
+  connectionId?: string
+  toolName: string
+  action: string
+  arguments: Record<string, any>
+  riskLevel: RiskLevel
+  createdAt: string
+}
+
+export interface ToolExecution {
+  id: string
+  runId: string
+  taskId: string
+  agentId: string
+  agentName?: string
+  connectionId?: string
+  toolName: string
+  action: string
+  inputHash: string
+  status: ToolExecutionStatus
+  arguments?: Record<string, any>
+  startedAt: string
+  completedAt?: string
+  errorCode?: string
+  errorMessage?: string
+  resultMetadata?: Record<string, any>
+  evidence?: ToolEvidence[]
+}
+
+export interface IntegrationApprovalRequest {
+  id: string
+  runId: string
+  taskId: string
+  toolRequestId: string
+  agentId: string
+  agentName: string
+  connectionId: string
+  provider: IntegrationProviderType
+  requestedAction: string
+  toolName: string
+  reason: string
+  riskLevel: RiskLevel
+  details: Record<string, any>
+  status: IntegrationApprovalStatus
+  expiresAt?: string
+  createdAt: string
+  resolvedAt?: string
+  resolvedBy?: string
+}
+
+export interface IntegrationAuditEvent {
+  id: string
+  timestamp: string
+  actorId: string
+  actorName: string
+  connectionId: string
+  provider: IntegrationProviderType
+  toolName: string
+  action: string
+  status: 'SUCCESS' | 'FAILURE' | 'DENIED' | 'APPROVED' | 'REJECTED'
+  riskLevel: RiskLevel
+  details?: Record<string, any>
+  evidence?: ToolEvidence[]
+}
+
+export interface CrossSystemStep {
+  id: string
+  name: string
+  system: 'Gmail' | 'GitHub' | 'Verification' | 'Approval' | 'Reporting'
+  action: string
+  status: 'Pending' | 'Running' | 'Completed' | 'Waiting_Approval' | 'Failed'
+  details?: string
+  evidenceUrl?: string
+}
+
+export interface CrossSystemWorkflowState {
+  id: string
+  taskId: string
+  title: string
+  status: 'Idle' | 'Running' | 'Waiting_Approval' | 'Completed' | 'Failed'
+  currentStepIndex: number
+  steps: CrossSystemStep[]
+  deliverables: {
+    githubIssueUrl?: string
+    branchName?: string
+    filesChanged?: number
+    pullRequestUrl?: string
+    testResultsSummary?: string
+    emailDraftId?: string
+    emailRecipient?: string
+    emailSentUrl?: string
+  }
+  startedAt?: string
   completedAt?: string
 }

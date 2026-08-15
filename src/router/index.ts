@@ -53,8 +53,13 @@ const routes = [
   },
   {
     path: '/content',
-    name: 'ContentAutomation',
+    name: 'ContentHub',
     component: () => import('../pages/content/ContentHubPage.vue')
+  },
+  {
+    path: '/integrations',
+    name: 'IntegrationsHub',
+    component: () => import('../pages/integrations/IntegrationsHubPage.vue')
   },
   {
     path: '/workers',
