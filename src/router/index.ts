@@ -52,6 +52,11 @@ const routes = [
     component: () => import('../pages/schedules/SchedulesPage.vue')
   },
   {
+    path: '/content',
+    name: 'ContentAutomation',
+    component: () => import('../pages/content/ContentHubPage.vue')
+  },
+  {
     path: '/workers',
     redirect: '/workforce/employees'
   },

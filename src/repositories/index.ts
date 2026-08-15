@@ -29,7 +29,13 @@ import type {
   MemoryRecallQuery,
   Schedule,
   CostEntry,
-  AuditLogEntry
+  AuditLogEntry,
+  ContentItem,
+  Publication,
+  SocialConnection,
+  MediaAsset,
+  DataReview,
+  WorkflowTemplate
 } from '../types'
 
 // ============================================================================
@@ -982,6 +988,229 @@ export class AuditLogRepository {
   }
 }
 
+export class ContentItemRepository {
+  async getAll(projectId?: string): Promise<ContentItem[]> {
+    const all = await dbClient.getAll<ContentItem>('content_items')
+    if (projectId) return all.filter((c) => c.projectId === projectId)
+    return all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  }
+
+  async getById(id: string): Promise<ContentItem | undefined> {
+    return await dbClient.getById<ContentItem>('content_items', id)
+  }
+
+  async create(item: Omit<ContentItem, 'id' | 'createdAt' | 'updatedAt' | 'version'>): Promise<ContentItem> {
+    const now = new Date().toISOString()
+    const newItem: ContentItem = {
+      ...item,
+      id: `cnt-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      version: 1,
+      createdAt: now,
+      updatedAt: now
+    }
+    await dbClient.insert<ContentItem>('content_items', newItem)
+    return newItem
+  }
+
+  async update(id: string, updates: Partial<ContentItem>): Promise<ContentItem | undefined> {
+    const existing = await this.getById(id)
+    if (!existing) return undefined
+    const updated: ContentItem = {
+      ...existing,
+      ...updates,
+      updatedAt: new Date().toISOString()
+    }
+    return await dbClient.update<ContentItem>('content_items', id, updated)
+  }
+
+  async approve(id: string, approvedBy: string, version: number): Promise<ContentItem | undefined> {
+    const existing = await this.getById(id)
+    if (!existing) return undefined
+    return await this.update(id, {
+      status: 'Approved',
+      approvedBy,
+      approvedAt: new Date().toISOString(),
+      version: version || existing.version
+    })
+  }
+
+  async reject(id: string, reason: string): Promise<ContentItem | undefined> {
+    return await this.update(id, {
+      status: 'Draft',
+      rejectionReason: reason
+    })
+  }
+
+  async schedule(id: string, scheduledAt: string): Promise<ContentItem | undefined> {
+    return await this.update(id, {
+      status: 'Scheduled',
+      scheduledAt
+    })
+  }
+
+  async delete(id: string): Promise<boolean> {
+    return await dbClient.delete('content_items', id)
+  }
+}
+
+export class PublicationRepository {
+  async getAll(contentItemId?: string): Promise<Publication[]> {
+    const all = await dbClient.getAll<Publication>('publications')
+    if (contentItemId) return all.filter((p) => p.contentItemId === contentItemId)
+    return all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  }
+
+  async getById(id: string): Promise<Publication | undefined> {
+    return await dbClient.getById<Publication>('publications', id)
+  }
+
+  async getByIdempotencyKey(key: string): Promise<Publication | undefined> {
+    const all = await this.getAll()
+    return all.find((p) => p.idempotencyKey === key)
+  }
+
+  async create(pub: Omit<Publication, 'id' | 'createdAt' | 'updatedAt' | 'attemptCount'>): Promise<Publication> {
+    const now = new Date().toISOString()
+    const newPub: Publication = {
+      ...pub,
+      id: `pub-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      attemptCount: 0,
+      createdAt: now,
+      updatedAt: now
+    }
+    await dbClient.insert<Publication>('publications', newPub)
+    return newPub
+  }
+
+  async updateStatus(
+    id: string,
+    status: Publication['status'],
+    extras?: { externalId?: string; externalUrl?: string; error?: string; parentRunId?: string }
+  ): Promise<Publication | undefined> {
+    const existing = await this.getById(id)
+    if (!existing) return undefined
+    const updated: Publication = {
+      ...existing,
+      status,
+      ...extras,
+      attemptCount: (existing.attemptCount || 0) + 1,
+      publishedAt: status === 'Published' || status === 'Assisted' ? new Date().toISOString() : existing.publishedAt,
+      updatedAt: new Date().toISOString()
+    }
+    return await dbClient.update<Publication>('publications', id, updated)
+  }
+}
+
+export class SocialConnectionRepository {
+  async getAll(): Promise<SocialConnection[]> {
+    return await dbClient.getAll<SocialConnection>('social_connections')
+  }
+
+  async getById(id: string): Promise<SocialConnection | undefined> {
+    return await dbClient.getById<SocialConnection>('social_connections', id)
+  }
+
+  async getByPlatform(platform: string): Promise<SocialConnection[]> {
+    const all = await this.getAll()
+    return all.filter((c) => c.platform === platform)
+  }
+
+  async create(conn: Omit<SocialConnection, 'id' | 'connectedAt' | 'updatedAt'>): Promise<SocialConnection> {
+    const now = new Date().toISOString()
+    const newConn: SocialConnection = {
+      ...conn,
+      id: `conn-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      connectedAt: now,
+      updatedAt: now
+    }
+    await dbClient.insert<SocialConnection>('social_connections', newConn)
+    return newConn
+  }
+
+  async update(id: string, updates: Partial<SocialConnection>): Promise<SocialConnection | undefined> {
+    const existing = await this.getById(id)
+    if (!existing) return undefined
+    const updated: SocialConnection = {
+      ...existing,
+      ...updates,
+      updatedAt: new Date().toISOString()
+    }
+    return await dbClient.update<SocialConnection>('social_connections', id, updated)
+  }
+
+  async delete(id: string): Promise<boolean> {
+    return await dbClient.delete('social_connections', id)
+  }
+}
+
+export class MediaAssetRepository {
+  async getAll(projectId?: string): Promise<MediaAsset[]> {
+    const all = await dbClient.getAll<MediaAsset>('media_assets')
+    if (projectId) return all.filter((m) => m.projectId === projectId)
+    return all
+  }
+
+  async getById(id: string): Promise<MediaAsset | undefined> {
+    return await dbClient.getById<MediaAsset>('media_assets', id)
+  }
+
+  async create(asset: Omit<MediaAsset, 'id' | 'createdAt'>): Promise<MediaAsset> {
+    const newAsset: MediaAsset = {
+      ...asset,
+      id: `med-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      createdAt: new Date().toISOString()
+    }
+    await dbClient.insert<MediaAsset>('media_assets', newAsset)
+    return newAsset
+  }
+
+  async delete(id: string): Promise<boolean> {
+    return await dbClient.delete('media_assets', id)
+  }
+}
+
+export class DataReviewRepository {
+  async getAll(projectId?: string): Promise<DataReview[]> {
+    const all = await dbClient.getAll<DataReview>('data_reviews')
+    if (projectId) return all.filter((d) => d.projectId === projectId)
+    return all.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  }
+
+  async getById(id: string): Promise<DataReview | undefined> {
+    return await dbClient.getById<DataReview>('data_reviews', id)
+  }
+
+  async create(data: Omit<DataReview, 'id' | 'createdAt'>): Promise<DataReview> {
+    const newReview: DataReview = {
+      ...data,
+      id: `drev-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+      createdAt: new Date().toISOString()
+    }
+    await dbClient.insert<DataReview>('data_reviews', newReview)
+    return newReview
+  }
+
+  async update(id: string, updates: Partial<DataReview>): Promise<DataReview | undefined> {
+    const existing = await this.getById(id)
+    if (!existing) return undefined
+    const updated: DataReview = {
+      ...existing,
+      ...updates
+    }
+    return await dbClient.update<DataReview>('data_reviews', id, updated)
+  }
+}
+
+export class WorkflowTemplateRepository {
+  async getAll(): Promise<WorkflowTemplate[]> {
+    return await dbClient.getAll<WorkflowTemplate>('workflow_templates')
+  }
+
+  async getById(id: string): Promise<WorkflowTemplate | undefined> {
+    return await dbClient.getById<WorkflowTemplate>('workflow_templates', id)
+  }
+}
+
 // Backwards compatibility aliases
 export {
   WorkspaceRepository as MockWorkspaceRepository,
@@ -1003,5 +1232,11 @@ export {
   ScheduleRepository as MockScheduleRepository,
   MemoryRepository as MockMemoryRepository,
   CostLedgerRepository as MockCostLedgerRepository,
-  AuditLogRepository as MockAuditLogRepository
+  AuditLogRepository as MockAuditLogRepository,
+  ContentItemRepository as MockContentItemRepository,
+  PublicationRepository as MockPublicationRepository,
+  SocialConnectionRepository as MockSocialConnectionRepository,
+  MediaAssetRepository as MockMediaAssetRepository,
+  DataReviewRepository as MockDataReviewRepository,
+  WorkflowTemplateRepository as MockWorkflowTemplateRepository
 }

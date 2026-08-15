@@ -2267,3 +2267,512 @@ export const initialSchedules: Schedule[] = [
   }
 ]
 
+// ==========================================
+// PHASE 6 — CONTENT, DATA ANALYSIS & SOCIAL SEED DATA
+// ==========================================
+
+import type {
+  SocialConnection,
+  MediaAsset,
+  ContentItem,
+  Publication,
+  DataReview,
+  WorkflowTemplate
+} from '../types'
+
+export const initialSocialConnections: SocialConnection[] = [
+  {
+    id: 'conn-ig-01',
+    platform: 'instagram',
+    accountName: 'SATRIA AI Workforce Official',
+    accountHandle: '@satria.workforce',
+    accountId: 'ig_act_987123456',
+    avatarUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80',
+    status: 'Connected',
+    credentialReference: 'vault:oauth:meta:satria_ig_token',
+    connectedAt: '2026-08-01T10:00:00Z',
+    expiresAt: '2026-11-01T10:00:00Z',
+    updatedAt: '2026-08-10T12:00:00Z'
+  },
+  {
+    id: 'conn-tt-01',
+    platform: 'tiktok',
+    accountName: 'Satria AI Tech',
+    accountHandle: '@satria_official',
+    accountId: 'tt_creator_55443322',
+    avatarUrl: 'https://images.unsplash.com/photo-1579783902614-a3fb3927b675?w=100&auto=format&fit=crop&q=80',
+    status: 'Connected',
+    credentialReference: 'vault:oauth:tiktok:posting_api_v2',
+    connectedAt: '2026-08-02T11:30:00Z',
+    expiresAt: '2026-10-02T11:30:00Z',
+    updatedAt: '2026-08-08T09:00:00Z'
+  },
+  {
+    id: 'conn-fb-01',
+    platform: 'facebook_page',
+    accountName: 'SATRIA Autonomous Workforce Indonesia',
+    accountHandle: 'fb.com/satria.workforce',
+    accountId: 'fb_page_1092837465',
+    avatarUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80',
+    status: 'Connected',
+    credentialReference: 'vault:oauth:meta:fb_page_token',
+    connectedAt: '2026-08-01T10:05:00Z',
+    expiresAt: '2026-11-01T10:05:00Z',
+    updatedAt: '2026-08-10T12:00:00Z'
+  },
+  {
+    id: 'conn-fbg-01',
+    platform: 'facebook_group',
+    accountName: 'Komunitas Pengusaha & Automasi AI Indonesia',
+    accountHandle: 'Group (14.2k Member)',
+    accountId: 'fb_grp_99887766',
+    avatarUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?w=100&auto=format&fit=crop&q=80',
+    status: 'Connected',
+    credentialReference: 'assisted:manual_copy_publisher',
+    isAssisted: true,
+    connectedAt: '2026-08-05T14:00:00Z',
+    updatedAt: '2026-08-10T14:00:00Z'
+  }
+]
+
+export const initialMediaAssets: MediaAsset[] = [
+  {
+    id: 'med-001',
+    projectId: 'prj-marketing',
+    name: 'infografis_kesalahan_stok_retail.png',
+    type: 'image',
+    url: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=1080&auto=format&fit=crop&q=80',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=200&auto=format&fit=crop&q=80',
+    sizeBytes: 430500,
+    dimensions: { width: 1080, height: 1080 },
+    createdAt: '2026-08-12T09:00:00Z'
+  },
+  {
+    id: 'med-002',
+    projectId: 'prj-satria-ui',
+    name: 'demo_quick_dispatch_workflow.mp4',
+    type: 'video',
+    url: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1080&auto=format&fit=crop&q=80',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80',
+    sizeBytes: 2516582,
+    dimensions: { width: 1080, height: 1920 },
+    durationSeconds: 28,
+    createdAt: '2026-08-13T11:00:00Z'
+  },
+  {
+    id: 'med-003',
+    projectId: 'prj-internal-ops',
+    name: 'q3_sales_growth_report_banner.png',
+    type: 'image',
+    url: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&auto=format&fit=crop&q=80',
+    thumbnailUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=200&auto=format&fit=crop&q=80',
+    sizeBytes: 318200,
+    dimensions: { width: 1200, height: 630 },
+    createdAt: '2026-08-14T08:00:00Z'
+  }
+]
+
+export const initialContentItems: ContentItem[] = [
+  {
+    id: 'cnt-101',
+    projectId: 'prj-marketing',
+    projectName: 'Marketing & Digital Business',
+    title: '5 Kesalahan Fatal UMKM Saat Mengelola Stok Barang',
+    caption: 'Stok menumpuk tapi uang kas menipis? Ini 5 kesalahan paling umum dalam manajemen inventaris retail dan cara mengatasinya dengan audit mingguan otomatis.',
+    mediaAssetIds: ['med-001'],
+    targetPlatforms: ['instagram', 'tiktok', 'facebook_page'],
+    status: 'Review',
+    approvalRequired: true,
+    approvalPolicy: 'Review',
+    version: 1,
+    platformVersions: {
+      instagram: {
+        caption: 'Stok menumpuk tapi kas menipis? 📦⚠️\n\nSimak 5 kesalahan paling fatal yang sering dilakukan pemilik toko dalam manajemen inventaris:\n1. Tidak menghitung safety stock\n2. Rekap manual di kertas tanpa audit barcode\n3. Membiarkan dead stock mengendap >90 hari\n4. Salah prediksi seasonal demand\n5. Tidak memiliki sistem peringatan low-stock otomatis\n\nKomen "AUDIT" untuk template checklist pengelolaan inventaris gratis! 👇\n\n#ManajemenStok #BisnisRetail #AutomasiBisnis #SatriaWorkforce #UMKMGoDigital',
+        hashtags: ['#ManajemenStok', '#BisnisRetail', '#AutomasiBisnis', '#SatriaWorkforce']
+      },
+      tiktok: {
+        hook: 'Kenapa toko kamu rame tapi uangnya gak kelihatan? Cek stok gudang sekarang!',
+        script: 'Scene 1: Tunjukkan gudang penuh barang berdebu.\nVoiceover: "Banyak pemilik toko mikir barang banyak itu aset, padahal kalau dead stock lebih dari 90 hari, uang kas kamu terkunci di sana!"\nScene 2: Tunjukkan layar dashboard Satria Inventory Review.\nVoiceover: "Gunakan audit mingguan otomatis biar reorder point selalu pas!"',
+        onScreenText: ['Dead stock = Uang Terkunci', 'Gunakan Safety Stock Otomatis'],
+        cta: 'Follow @satria_official untuk tips automasi operasional harian!'
+      },
+      facebook_page: {
+        caption: 'Bagi rekan-rekan pengusaha retail dan distributor, salah satu pemicu utama krisis likuiditas adalah "Dead Stock" yang tidak termonitor.\n\nDalam artikel ringkas ini, kami merangkum 5 langkah strategis pencegahan kebocoran stok yang dapat langsung diterapkan minggu ini.',
+        cta: 'Baca panduan lengkap di website Satria Workforce: https://satria.workforce.ai/blog/inventory-control'
+      }
+    },
+    qualityChecks: {
+      brandCompliance: true,
+      grammarQuality: true,
+      noSensitiveContent: true,
+      linksValid: true,
+      mediaValid: true,
+      score: 94,
+      notes: ['Semua hashtag sesuai guidelines', 'Tone ramah dan solutif']
+    },
+    createdBy: 'emp-alya',
+    creatorName: 'Alya',
+    createdAt: '2026-08-14T10:00:00Z',
+    updatedAt: '2026-08-14T10:30:00Z'
+  },
+  {
+    id: 'cnt-102',
+    projectId: 'prj-satria-ui',
+    projectName: 'SATRIA AI Workforce UI',
+    title: 'Otomatisasi Laporan Finansial Mingguan dengan AI Agent',
+    caption: 'Tinggalkan copy-paste spreadsheet berjam-jam. AI Agent SATRIA membaca data XLSX, menghitung KPI kunci, dan membuat dokumen presentasi PDF dalam 30 detik.',
+    mediaAssetIds: ['med-002'],
+    targetPlatforms: ['instagram', 'facebook_page'],
+    status: 'Approved',
+    approvalRequired: true,
+    approvalPolicy: 'Review',
+    version: 1,
+    approvedBy: 'Satria Utama (Lead)',
+    approvedAt: '2026-08-15T09:00:00Z',
+    platformVersions: {
+      instagram: {
+        caption: 'Kerjaan 4 jam diringkas jadi 30 detik ⚡\n\nAI Agent SATRIA langsung memproses spreadsheet penjualan, menemukan pola anomali, dan menyusun laporan DOCX/PDF secara otomatis.',
+        hashtags: ['#AIAgent', '#WorkforceAutomation', '#ProductivityHacks']
+      },
+      facebook_page: {
+        caption: 'Otomatisasi Laporan Finansial Mingguan: Bagaimana tim operasional modern memangkas waktu administratif dan fokus pada eksekusi strategis.',
+        cta: 'Jadwalkan demo di https://satria.workforce.ai'
+      }
+    },
+    qualityChecks: {
+      brandCompliance: true,
+      grammarQuality: true,
+      noSensitiveContent: true,
+      linksValid: true,
+      mediaValid: true,
+      score: 98
+    },
+    createdBy: 'emp-alex',
+    creatorName: 'Alex',
+    createdAt: '2026-08-14T14:00:00Z',
+    updatedAt: '2026-08-15T09:00:00Z'
+  },
+  {
+    id: 'cnt-103',
+    projectId: 'prj-internal-ops',
+    projectName: 'Training & Safety Operations',
+    title: 'Infografis Pertumbuhan Revenue Q3 2026 (+12%)',
+    caption: 'Ringkasan visual capaian kuartal 3: Pertumbuhan omzet 12% didorong peningkatan Average Order Value sebesar 16.7%.',
+    mediaAssetIds: ['med-003'],
+    targetPlatforms: ['instagram', 'tiktok'],
+    status: 'Scheduled',
+    approvalRequired: true,
+    approvalPolicy: 'Review',
+    version: 1,
+    scheduledAt: '2026-08-18T09:00:00Z',
+    approvedBy: 'Satria Utama (Lead)',
+    approvedAt: '2026-08-15T11:00:00Z',
+    dataReviewId: 'drev-001',
+    platformVersions: {
+      instagram: {
+        caption: 'Hasil Analisis Q3 2026: Revenue naik 12% didukung kenaikan Average Order Value (AOV) dari Rp320.000 ke Rp388.700. 📈\n\nTerima kasih kepada seluruh tim mitra dan customer setia!',
+        hashtags: ['#QuarterlyReport', '#GrowthJourney', '#SatriaEnterprise']
+      }
+    },
+    qualityChecks: {
+      brandCompliance: true,
+      grammarQuality: true,
+      noSensitiveContent: true,
+      linksValid: true,
+      mediaValid: true,
+      score: 96
+    },
+    createdBy: 'emp-mila',
+    creatorName: 'Mila',
+    createdAt: '2026-08-15T08:00:00Z',
+    updatedAt: '2026-08-15T11:00:00Z'
+  },
+  {
+    id: 'cnt-104',
+    projectId: 'prj-satria-ui',
+    projectName: 'SATRIA AI Workforce UI',
+    title: 'Panduan Memulai Hermes Agentic Gateway di Lokal',
+    caption: 'Step-by-step setup Hermes runtime untuk menggerakkan autonomous workforce di mesin lokal dengan koneksi tool sandboxing aman.',
+    mediaAssetIds: ['med-002'],
+    targetPlatforms: ['instagram', 'facebook_page', 'facebook_group'],
+    status: 'Published',
+    approvalRequired: true,
+    approvalPolicy: 'Review',
+    version: 1,
+    publishedAt: '2026-08-14T17:00:00Z',
+    approvedBy: 'Satria Utama (Lead)',
+    approvedAt: '2026-08-14T15:30:00Z',
+    qualityChecks: {
+      brandCompliance: true,
+      grammarQuality: true,
+      noSensitiveContent: true,
+      linksValid: true,
+      mediaValid: true,
+      score: 100
+    },
+    createdBy: 'emp-bima',
+    creatorName: 'Bima',
+    createdAt: '2026-08-14T13:00:00Z',
+    updatedAt: '2026-08-14T17:00:00Z'
+  },
+  {
+    id: 'cnt-105',
+    projectId: 'prj-marketing',
+    projectName: 'Marketing & Digital Business',
+    title: '3 Framework Prompting Terbaik untuk Copywriter AI',
+    caption: 'Formula PAS, AIDA, dan BAB yang diadaptasi khusus untuk agen AI penghasil konversi tinggi.',
+    mediaAssetIds: [],
+    targetPlatforms: ['tiktok'],
+    status: 'Draft',
+    approvalRequired: true,
+    approvalPolicy: 'Review',
+    version: 1,
+    createdBy: 'emp-alya',
+    creatorName: 'Alya',
+    createdAt: '2026-08-15T12:00:00Z',
+    updatedAt: '2026-08-15T12:00:00Z'
+  }
+]
+
+export const initialPublications: Publication[] = [
+  {
+    id: 'pub-101-ig',
+    contentItemId: 'cnt-101',
+    contentTitle: '5 Kesalahan Fatal UMKM Saat Mengelola Stok Barang',
+    platform: 'instagram',
+    connectionId: 'conn-ig-01',
+    status: 'Pending',
+    idempotencyKey: 'cnt-101:instagram:v1',
+    attemptCount: 0,
+    createdAt: '2026-08-14T10:30:00Z',
+    updatedAt: '2026-08-14T10:30:00Z'
+  },
+  {
+    id: 'pub-101-tt',
+    contentItemId: 'cnt-101',
+    contentTitle: '5 Kesalahan Fatal UMKM Saat Mengelola Stok Barang',
+    platform: 'tiktok',
+    connectionId: 'conn-tt-01',
+    status: 'Pending',
+    idempotencyKey: 'cnt-101:tiktok:v1',
+    attemptCount: 0,
+    createdAt: '2026-08-14T10:30:00Z',
+    updatedAt: '2026-08-14T10:30:00Z'
+  },
+  {
+    id: 'pub-101-fb',
+    contentItemId: 'cnt-101',
+    contentTitle: '5 Kesalahan Fatal UMKM Saat Mengelola Stok Barang',
+    platform: 'facebook_page',
+    connectionId: 'conn-fb-01',
+    status: 'Pending',
+    idempotencyKey: 'cnt-101:facebook_page:v1',
+    attemptCount: 0,
+    createdAt: '2026-08-14T10:30:00Z',
+    updatedAt: '2026-08-14T10:30:00Z'
+  },
+  {
+    id: 'pub-102-ig',
+    contentItemId: 'cnt-102',
+    contentTitle: 'Otomatisasi Laporan Finansial Mingguan dengan AI Agent',
+    platform: 'instagram',
+    connectionId: 'conn-ig-01',
+    status: 'Approved',
+    idempotencyKey: 'cnt-102:instagram:v1',
+    attemptCount: 0,
+    createdAt: '2026-08-15T09:00:00Z',
+    updatedAt: '2026-08-15T09:00:00Z'
+  },
+  {
+    id: 'pub-102-fb',
+    contentItemId: 'cnt-102',
+    contentTitle: 'Otomatisasi Laporan Finansial Mingguan dengan AI Agent',
+    platform: 'facebook_page',
+    connectionId: 'conn-fb-01',
+    status: 'Approved',
+    idempotencyKey: 'cnt-102:facebook_page:v1',
+    attemptCount: 0,
+    createdAt: '2026-08-15T09:00:00Z',
+    updatedAt: '2026-08-15T09:00:00Z'
+  },
+  {
+    id: 'pub-103-ig',
+    contentItemId: 'cnt-103',
+    contentTitle: 'Infografis Pertumbuhan Revenue Q3 2026 (+12%)',
+    platform: 'instagram',
+    connectionId: 'conn-ig-01',
+    status: 'Scheduled',
+    scheduledAt: '2026-08-18T09:00:00Z',
+    idempotencyKey: 'cnt-103:instagram:v1',
+    attemptCount: 0,
+    createdAt: '2026-08-15T11:00:00Z',
+    updatedAt: '2026-08-15T11:00:00Z'
+  },
+  {
+    id: 'pub-104-ig',
+    contentItemId: 'cnt-104',
+    contentTitle: 'Panduan Memulai Hermes Agentic Gateway di Lokal',
+    platform: 'instagram',
+    connectionId: 'conn-ig-01',
+    status: 'Published',
+    publishedAt: '2026-08-14T17:00:00Z',
+    externalId: 'ig_post_88992211',
+    externalUrl: 'https://instagram.com/p/C_satria_demo_01',
+    idempotencyKey: 'cnt-104:instagram:v1',
+    attemptCount: 1,
+    createdAt: '2026-08-14T15:30:00Z',
+    updatedAt: '2026-08-14T17:00:00Z'
+  },
+  {
+    id: 'pub-104-fbg',
+    contentItemId: 'cnt-104',
+    contentTitle: 'Panduan Memulai Hermes Agentic Gateway di Lokal',
+    platform: 'facebook_group',
+    connectionId: 'conn-fbg-01',
+    status: 'Assisted',
+    publishedAt: '2026-08-14T17:15:00Z',
+    externalUrl: 'https://facebook.com/groups/umkm/post/99812',
+    idempotencyKey: 'cnt-104:facebook_group:v1',
+    attemptCount: 1,
+    createdAt: '2026-08-14T15:30:00Z',
+    updatedAt: '2026-08-14T17:15:00Z'
+  }
+]
+
+export const initialDataReviews: DataReview[] = [
+  {
+    id: 'drev-001',
+    projectId: 'prj-internal-ops',
+    projectName: 'Training & Safety Operations',
+    title: 'Analisis Penjualan & Perilaku Konsumen Kuartal 3 2026',
+    sourceFile: 'sales_transactions_q3_2026.xlsx',
+    sourceFormat: 'xlsx',
+    status: 'Completed',
+    summary: 'Total pendapatan meningkat +12% dibanding Q2, meskipun volume transaksi turun -4%. Pertumbuhan didorong oleh kenaikan Average Order Value (AOV) sebesar +16.7%.',
+    keyMetrics: [
+      { label: 'Total Revenue', value: 'Rp748.500.000', change: '+12.4%', isPositive: true },
+      { label: 'Order Volume', value: '1.926 orders', change: '-4.1%', isPositive: false },
+      { label: 'Average Order Value (AOV)', value: 'Rp388.700', change: '+16.7%', isPositive: true },
+      { label: 'Gross Margin', value: '38.2%', change: '+2.1%', isPositive: true }
+    ],
+    anomalies: [
+      'Penurunan tajam transaksi di minggu ke-2 Agustus pada segmen produk tier-3 (-22%).',
+      'Kenaikan pembelian grosir B2B sebesar 3.5x lipat pada hari Jumat.'
+    ],
+    trends: [
+      'Pelanggan ritel cenderung beralih ke paket bundle premium 3-in-1.',
+      'Metode pembayaran QRIS mendominasi 74% total transaksi toko fisik.'
+    ],
+    findings: [
+      'Kenaikan omzet tidak bergantung pada pertambahan user baru, melainkan up-selling paket bundle.',
+      'Tingkat dead stock produk kategori C menurun setelah promosi bundling dijalankan.'
+    ],
+    risks: [
+      'Ketergantungan berlebih pada 10 akun B2B terbesar yang menyumbang 42% revenue total.',
+      'Potensi kelangkaan bahan baku kemasan pada akhir September.'
+    ],
+    recommendations: [
+      'Luncurkan kampanye retensi untuk mempertahankan Average Order Value di atas Rp350.000.',
+      'Buat konten edukasi stok & bundling untuk didistribusikan ke Instagram dan Facebook Page.',
+      'Otomatisasi pengingat reorder stock ke supplier saat level stok menyentuh batas 15%.'
+    ],
+    sourceReferences: [
+      'Sheet "Transactions" (Row 2 - 1928)',
+      'Sheet "Product_Margin_Matrix" (VLOOKUP SKU-A1 s/d SKU-F9)',
+      'ERP Sync Log #20260814-Q3'
+    ],
+    artifacts: [
+      { id: 'art-drev-1', name: 'Laporan_Analisis_Sales_Q3_2026.pdf', type: 'pdf', size: '1.2 MB', url: '/artifacts/sales_q3.pdf' },
+      { id: 'art-drev-2', name: 'Executive_Summary_Sales_Q3.docx', type: 'docx', size: '480 KB', url: '/artifacts/sales_q3.docx' },
+      { id: 'art-drev-3', name: 'Cleaned_Data_Metrics.csv', type: 'csv', size: '220 KB', url: '/artifacts/sales_q3.csv' }
+    ],
+    generatedContentId: 'cnt-103',
+    analyzedByWorkerId: 'emp-raka',
+    analyzedByWorkerName: 'Raka (Planner / Data Analyst)',
+    createdAt: '2026-08-14T08:00:00Z',
+    completedAt: '2026-08-14T08:35:00Z'
+  },
+  {
+    id: 'drev-002',
+    projectId: 'prj-crm-saas',
+    projectName: 'CRM SaaS Backend Engine',
+    title: 'Audit Performa Database & Latensi API Gateway',
+    sourceFile: 'crm_backend_telemetry_august.json',
+    sourceFormat: 'json',
+    status: 'Completed',
+    summary: 'Seluruh endpoint API berada dalam batas aman SLA (P95 latency: 142ms). Penghematan token AI mencapai 38% berkat aktivasi prompt caching pada model Hermes 3-70B.',
+    keyMetrics: [
+      { label: 'P95 Latency', value: '142 ms', change: '-18 ms', isPositive: true },
+      { label: 'Cache Hit Rate', value: '48.5%', change: '+12.3%', isPositive: true },
+      { label: 'Error Rate', value: '0.04%', change: '-0.02%', isPositive: true },
+      { label: 'Token Efficiency', value: '$0.0028 / req', change: '-32%', isPositive: true }
+    ],
+    anomalies: [
+      'Lonjakan query webhook pelanggan terjadi serentak setiap pukul 09:00 - 09:15 WIB.'
+    ],
+    trends: [
+      'Traffic didominasi oleh request background sync CRM customer database.'
+    ],
+    findings: [
+      'Index database pada tabel `crm_deals` mempercepat response time query sebesar 4x lipat.',
+      'Sistem sandboxing tool runtime berhasil memblokir 2 upaya path traversal mencurigakan.'
+    ],
+    risks: [
+      'Kapasitas disk log server perlu di-rotate setiap 30 hari untuk mencegah kepenuhan.'
+    ],
+    recommendations: [
+      'Pertahankan strategi caching prompt pada endpoint reasoning LLM.',
+      'Aktifkan connection pooling dinamis pada backend Node.js.'
+    ],
+    sourceReferences: [
+      'File `telemetry_export_2026-08.json` (62,400 events)',
+      'Gateway Health Probe Logs :8642'
+    ],
+    artifacts: [
+      { id: 'art-drev-4', name: 'Audit_System_Performance_Aug2026.pdf', type: 'pdf', size: '890 KB', url: '/artifacts/sys_perf.pdf' },
+      { id: 'art-drev-5', name: 'Telemetry_Summary.json', type: 'json', size: '150 KB', url: '/artifacts/telemetry.json' }
+    ],
+    analyzedByWorkerId: 'emp-dimas',
+    analyzedByWorkerName: 'Dimas (Quality & Security)',
+    createdAt: '2026-08-15T06:00:00Z',
+    completedAt: '2026-08-15T06:22:00Z'
+  }
+]
+
+export const initialWorkflowTemplates: WorkflowTemplate[] = [
+  {
+    id: 'wf-daily-marketing',
+    name: 'Daily Marketing & Social Automation Pipeline',
+    description: 'Pipeline harian otomatis: Riset topik tren → Pembuatan angle copy → Adaptasi platform (IG/TikTok/FB) → Visual render → Quality gate → Review owner → Publikasi.',
+    targetProjectId: 'prj-marketing',
+    steps: [
+      { id: 'st-1', name: 'Riset Tren & Analisis Topik', type: 'research', order: 1, assignedWorkerId: 'emp-alya' },
+      { id: 'st-2', name: 'Penyusunan Master Copy & Caption Multi-Platform', type: 'generate', order: 2, assignedWorkerId: 'emp-alya' },
+      { id: 'st-3', name: 'Sintesis Aset Visual / Video Script', type: 'visual', order: 3, assignedWorkerId: 'emp-alex' },
+      { id: 'st-4', name: 'Quality & Brand Compliance Check', type: 'quality_check', order: 4, assignedWorkerId: 'emp-dimas' },
+      { id: 'st-5', name: 'Owner Approval Gate', type: 'approval', order: 5 },
+      { id: 'st-6', name: 'Distribusi & Publikasi ke Platform', type: 'publish', order: 6, assignedWorkerId: 'emp-raka' },
+      { id: 'st-7', name: 'Verifikasi & Laporan Tayang', type: 'verify', order: 7, assignedWorkerId: 'emp-raka' }
+    ],
+    createdAt: '2026-08-01T08:00:00Z',
+    updatedAt: '2026-08-10T08:00:00Z'
+  },
+  {
+    id: 'wf-weekly-bi',
+    name: 'Weekly Data Review & Content Generation Pipeline',
+    description: 'Pipeline mingguan: Ingest data transaksi/file → Ekstraksi anomali & temuan → Buat laporan PDF/DOCX → Ubah insight kunci menjadi infografis konten sosial → Approval → Publish.',
+    targetProjectId: 'prj-internal-ops',
+    steps: [
+      { id: 'st-b1', name: 'Validasi & Profiling Data Input (CSV/XLSX)', type: 'analyze', order: 1, assignedWorkerId: 'emp-raka' },
+      { id: 'st-b2', name: 'Penyusunan Findings & Rekomendasi Laporan', type: 'analyze', order: 2, assignedWorkerId: 'emp-raka' },
+      { id: 'st-b3', name: 'Generasi Dokumen Laporan (PDF/DOCX)', type: 'generate', order: 3, assignedWorkerId: 'emp-bima' },
+      { id: 'st-b4', name: 'Konversi Insight Jadi Konten Edukasi Publik', type: 'generate', order: 4, assignedWorkerId: 'emp-alya' },
+      { id: 'st-b5', name: 'Quality Check & Owner Review', type: 'review', order: 5 },
+      { id: 'st-b6', name: 'Publikasi Multi-Platform', type: 'publish', order: 6, assignedWorkerId: 'emp-raka' }
+    ],
+    createdAt: '2026-08-02T08:00:00Z',
+    updatedAt: '2026-08-10T08:00:00Z'
+  }
+]
+
+

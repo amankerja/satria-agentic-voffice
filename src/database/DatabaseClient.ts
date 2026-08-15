@@ -27,7 +27,13 @@ import {
   initialUser,
   initialUserSettings,
   initialMemories,
-  initialSchedules
+  initialSchedules,
+  initialSocialConnections,
+  initialMediaAssets,
+  initialContentItems,
+  initialPublications,
+  initialDataReviews,
+  initialWorkflowTemplates
 } from './initialSeed'
 import type {
   Workspace,
@@ -50,7 +56,14 @@ import type {
   AgentMemoryItem,
   Schedule,
   CostEntry,
-  AuditLogEntry
+  AuditLogEntry,
+  SocialConnection,
+  MediaAsset,
+  ContentItem,
+  Publication,
+  DataReview,
+  WorkflowTemplate,
+  WorkflowInstance
 } from '../types'
 import { STORAGE_KEYS, saveStoredCollection } from '../utils/mockStorage'
 import * as mockArrays from '../mocks/mockData'
@@ -75,6 +88,13 @@ export interface FullDatabaseState {
   schedules: Schedule[]
   cost_entries: CostEntry[]
   audit_logs: AuditLogEntry[]
+  content_items: ContentItem[]
+  publications: Publication[]
+  social_connections: SocialConnection[]
+  media_assets: MediaAsset[]
+  data_reviews: DataReview[]
+  workflow_templates: WorkflowTemplate[]
+  workflow_instances: WorkflowInstance[]
   user_profile: UserProfile
   user_settings: UserSettings
 }
@@ -83,7 +103,7 @@ export type StoreName = keyof FullDatabaseState
 
 class SatriaDatabaseClient {
   private dbName = 'satria_ai_workforce_db'
-  private dbVersion = 6
+  private dbVersion = 7
   private db: IDBDatabase | null = null
   private memoryCache: FullDatabaseState
   private initialized = false
@@ -115,6 +135,13 @@ class SatriaDatabaseClient {
       schedules: JSON.parse(JSON.stringify(initialSchedules)),
       cost_entries: [],
       audit_logs: [],
+      content_items: JSON.parse(JSON.stringify(initialContentItems)),
+      publications: JSON.parse(JSON.stringify(initialPublications)),
+      social_connections: JSON.parse(JSON.stringify(initialSocialConnections)),
+      media_assets: JSON.parse(JSON.stringify(initialMediaAssets)),
+      data_reviews: JSON.parse(JSON.stringify(initialDataReviews)),
+      workflow_templates: JSON.parse(JSON.stringify(initialWorkflowTemplates)),
+      workflow_instances: [],
       user_profile: JSON.parse(JSON.stringify(initialUser)),
       user_settings: JSON.parse(JSON.stringify(initialUserSettings))
     }
@@ -166,6 +193,13 @@ class SatriaDatabaseClient {
       schedules: { array: mockArrays.mockSchedules, key: STORAGE_KEYS.SCHEDULES },
       cost_entries: {},
       audit_logs: {},
+      content_items: {},
+      publications: {},
+      social_connections: {},
+      media_assets: {},
+      data_reviews: {},
+      workflow_templates: {},
+      workflow_instances: {},
       user_profile: {},
       user_settings: {}
     }
@@ -208,6 +242,13 @@ class SatriaDatabaseClient {
           'schedules',
           'cost_entries',
           'audit_logs',
+          'content_items',
+          'publications',
+          'social_connections',
+          'media_assets',
+          'data_reviews',
+          'workflow_templates',
+          'workflow_instances',
           'user_profile',
           'user_settings'
         ]
@@ -267,7 +308,16 @@ class SatriaDatabaseClient {
       'activities',
       'notifications',
       'memories',
-      'schedules'
+      'schedules',
+      'cost_entries',
+      'audit_logs',
+      'content_items',
+      'publications',
+      'social_connections',
+      'media_assets',
+      'data_reviews',
+      'workflow_templates',
+      'workflow_instances'
     ]
 
     for (const storeName of stores) {

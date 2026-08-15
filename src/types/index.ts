@@ -701,6 +701,15 @@ export type PermissionType =
   | 'memory:manage'
   | 'backup:export'
   | 'backup:restore'
+  | 'content:create'
+  | 'content:edit'
+  | 'content:approve'
+  | 'content:publish'
+  | 'content:delete'
+  | 'datareview:create'
+  | 'datareview:analyze'
+  | 'social:connect'
+  | 'social:disconnect'
 
 export interface SatriaBackupBundle {
   version: string
@@ -718,5 +727,210 @@ export interface SatriaBackupBundle {
     auditLogs: AuditLogEntry[]
     memories: AgentMemoryItem[]
     workspacePathReferences: { projectId: string; path: string }[]
+    contentItems?: ContentItem[]
+    publications?: Publication[]
+    socialConnections?: SocialConnection[]
+    dataReviews?: DataReview[]
   }
+}
+
+// ==========================================
+// PHASE 6 — CONTENT, DATA ANALYSIS & SOCIAL AUTOMATION TYPES
+// ==========================================
+
+export type PlatformTarget = 'instagram' | 'tiktok' | 'facebook_page' | 'facebook_group'
+
+export type ContentStatus =
+  | 'Draft'
+  | 'Review'
+  | 'Approved'
+  | 'Scheduled'
+  | 'Publishing'
+  | 'Published'
+  | 'Failed'
+  | 'Cancelled'
+
+export type PublicationStatus =
+  | 'Pending'
+  | 'Approved'
+  | 'Scheduled'
+  | 'Publishing'
+  | 'Published'
+  | 'Failed'
+  | 'Cancelled'
+  | 'Assisted'
+
+export type SocialConnectionStatus = 'Connected' | 'Expired' | 'Revoked' | 'Error'
+
+export type ApprovalPolicy = 'Auto' | 'Review' | 'Strict'
+
+export interface MediaAsset {
+  id: string
+  projectId?: string
+  name: string
+  type: 'image' | 'video' | 'audio' | 'document'
+  url: string
+  thumbnailUrl?: string
+  sizeBytes: number
+  dimensions?: { width: number; height: number }
+  durationSeconds?: number
+  createdAt: string
+}
+
+export interface PlatformContentAdaptation {
+  caption?: string
+  hook?: string
+  script?: string
+  onScreenText?: string[]
+  hashtags?: string[]
+  cta?: string
+  formattedBody?: string
+}
+
+export interface ContentQualityCheck {
+  brandCompliance: boolean
+  grammarQuality: boolean
+  noSensitiveContent: boolean
+  linksValid: boolean
+  mediaValid: boolean
+  score: number // 0 - 100
+  notes?: string[]
+}
+
+export interface ContentItem {
+  id: string
+  projectId: string
+  projectName?: string
+  title: string
+  caption?: string
+  mediaAssetIds: string[]
+  targetPlatforms: PlatformTarget[]
+  status: ContentStatus
+  approvalRequired: boolean
+  approvalPolicy: ApprovalPolicy
+  version: number
+  platformVersions?: Partial<Record<PlatformTarget, PlatformContentAdaptation>>
+  qualityChecks?: ContentQualityCheck
+  scheduledAt?: string
+  publishedAt?: string
+  rejectionReason?: string
+  approvedBy?: string
+  approvedAt?: string
+  createdBy: string
+  creatorName?: string
+  workflowInstanceId?: string
+  dataReviewId?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface Publication {
+  id: string
+  contentItemId: string
+  contentTitle?: string
+  platform: PlatformTarget
+  connectionId?: string
+  status: PublicationStatus
+  scheduledAt?: string
+  publishedAt?: string
+  externalId?: string
+  externalUrl?: string
+  error?: string
+  idempotencyKey: string
+  attemptCount: number
+  parentRunId?: string
+  createdAt: string
+  updatedAt: string
+}
+
+export interface SocialConnection {
+  id: string
+  platform: PlatformTarget
+  accountName: string
+  accountId?: string
+  accountHandle?: string
+  avatarUrl?: string
+  status: SocialConnectionStatus
+  credentialReference: string
+  isAssisted?: boolean
+  connectedAt: string
+  expiresAt?: string
+  updatedAt: string
+}
+
+export interface WorkflowStep {
+  id: string
+  name: string
+  type: 'research' | 'analyze' | 'generate' | 'visual' | 'quality_check' | 'review' | 'approval' | 'schedule' | 'publish' | 'verify'
+  assignedWorkerId?: string
+  requiredSkillIds?: string[]
+  order: number
+}
+
+export interface WorkflowTemplate {
+  id: string
+  name: string
+  description: string
+  targetProjectId?: string
+  steps: WorkflowStep[]
+  createdAt: string
+  updatedAt: string
+}
+
+export interface WorkflowInstance {
+  id: string
+  workflowTemplateId: string
+  workflowTemplateName?: string
+  projectId: string
+  projectName?: string
+  scheduleId?: string
+  contentItemId?: string
+  dataReviewId?: string
+  status: 'Pending' | 'Running' | 'Waiting' | 'Review' | 'Completed' | 'Failed' | 'Cancelled'
+  currentStepId?: string
+  currentStepName?: string
+  currentStepIndex: number
+  totalSteps: number
+  startedAt?: string
+  completedAt?: string
+  createdAt: string
+}
+
+export interface DataReviewArtifact {
+  id: string
+  name: string
+  type: 'docx' | 'pdf' | 'csv' | 'xlsx' | 'json' | 'markdown'
+  size: string
+  url: string
+}
+
+export interface DataReviewMetric {
+  label: string
+  value: string | number
+  change?: string
+  isPositive?: boolean
+}
+
+export interface DataReview {
+  id: string
+  projectId: string
+  projectName?: string
+  title: string
+  sourceFile: string
+  sourceFormat: 'csv' | 'xlsx' | 'json' | 'database' | 'api'
+  status: 'Pending' | 'Processing' | 'Completed' | 'Failed'
+  summary: string
+  keyMetrics: DataReviewMetric[]
+  anomalies: string[]
+  trends: string[]
+  findings: string[]
+  risks: string[]
+  recommendations: string[]
+  sourceReferences: string[]
+  artifacts: DataReviewArtifact[]
+  generatedContentId?: string
+  analyzedByWorkerId?: string
+  analyzedByWorkerName?: string
+  createdAt: string
+  completedAt?: string
 }

@@ -45,12 +45,25 @@ export class AuthorizationService {
       'schedule:trigger',
       'memory:manage',
       'backup:export',
-      'backup:restore'
+      'backup:restore',
+      'content:create',
+      'content:edit',
+      'content:approve',
+      'content:publish',
+      'content:delete',
+      'datareview:create',
+      'datareview:analyze',
+      'social:connect',
+      'social:disconnect'
     ]),
     Worker: new Set<PermissionType>([
       'task:view',
       'run:execute',
-      'run:update_result'
+      'run:update_result',
+      'content:create',
+      'content:edit',
+      'datareview:create',
+      'datareview:analyze'
     ]),
     Viewer: new Set<PermissionType>([
       'task:view'
@@ -62,7 +75,20 @@ export class AuthorizationService {
     return allowed ? allowed.has(permission) : false
   }
 
-  public static assertPermission(role: UserRole, permission: PermissionType, actionDescription?: string): void {
+  public static assertPermission(permissionOrRole: PermissionType | UserRole, permissionOrAction?: PermissionType | string, actionDescription?: string): void {
+    let role: UserRole = 'Owner'
+    let permission: PermissionType
+
+    if (permissionOrRole === 'Owner' || permissionOrRole === 'Worker' || permissionOrRole === 'Viewer') {
+      role = permissionOrRole as UserRole
+      permission = permissionOrAction as PermissionType
+    } else {
+      permission = permissionOrRole as PermissionType
+      if (typeof permissionOrAction === 'string' && (permissionOrAction === 'Owner' || permissionOrAction === 'Worker' || permissionOrAction === 'Viewer')) {
+        role = permissionOrAction as UserRole
+      }
+    }
+
     if (!this.can(role, permission)) {
       throw new AuthorizationError(
         role,
