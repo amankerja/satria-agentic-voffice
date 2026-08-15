@@ -5,7 +5,10 @@ import {
   MockAgentRunRepository,
   MockRunResultRepository,
   MockReviewRepository,
-  MockEmployeeRepository
+  MockEmployeeRepository,
+  MockTaskRepository,
+  MockProjectRepository,
+  MockAssignmentRepository
 } from '../repositories'
 import { RuntimeFactory } from '../runtime/RuntimeFactory'
 import type { AgentRunInput, RuntimeEvent, RuntimeMode, ApprovalRequest } from '../runtime/types'
@@ -20,6 +23,9 @@ export const useAgentRunStore = defineStore('agentRun', () => {
   const resultRepo = new MockRunResultRepository()
   const reviewRepo = new MockReviewRepository()
   const employeeRepo = new MockEmployeeRepository()
+  const taskRepo = new MockTaskRepository()
+  const projectRepo = new MockProjectRepository()
+  const assignmentRepo = new MockAssignmentRepository()
 
   const runs = ref<AgentRun[]>([])
   const currentRun = ref<AgentRun | null>(null)
@@ -114,6 +120,7 @@ export const useAgentRunStore = defineStore('agentRun', () => {
     const targetRun = runs.value.find((r) => r.id === runId)
     if (!targetRun) return
 
+    // 1. Resolve Employee
     const employee =
       (await employeeRepo.getById(targetRun.employeeId)) ||
       ({
@@ -125,7 +132,13 @@ export const useAgentRunStore = defineStore('agentRun', () => {
         description: 'Digital workforce employee'
       } as Employee)
 
-    const assignment: TaskAssignment = {
+    // 2. Resolve Task & Project Context
+    const task = await taskRepo.getById(targetRun.taskId)
+    const project = task?.projectId ? await projectRepo.getById(task.projectId) : undefined
+
+    // 3. Resolve Assignment
+    const existingAssignment = await assignmentRepo.getById(targetRun.assignmentId)
+    const assignment: TaskAssignment = existingAssignment || {
       id: targetRun.assignmentId,
       taskId: targetRun.taskId,
       taskTitle: targetRun.taskTitle,
@@ -141,15 +154,37 @@ export const useAgentRunStore = defineStore('agentRun', () => {
       updatedAt: targetRun.startedAt
     }
 
+    // 4. Patch A: Criteria Asli from Task
+    const resolvedCriteria =
+      task?.acceptanceCriteria && task.acceptanceCriteria.length > 0
+        ? task.acceptanceCriteria
+        : task?.checklist && task.checklist.length > 0
+        ? task.checklist.map((c) => c.title)
+        : [`Deliverable output integrity for ${targetRun.taskTitle}`]
+
+    // 5. Patch B: Dynamic Workspace Path & Project Context
+    const resolvedWorkspacePath = project?.path || 'C:/Projects/AI AGENTIC UI'
+
     const input: AgentRunInput = {
       runId,
       assignment,
       employee,
       skills: [],
       tools: [],
-      workspacePath: 'C:/Projects/AI AGENTIC UI',
-      taskPrompt: targetRun.taskTitle,
-      acceptanceCriteria: ['Pass all automated verification checks.']
+      workspacePath: resolvedWorkspacePath,
+      projectContext: project
+        ? {
+            projectId: project.id,
+            projectName: project.name,
+            repositoryUrl: project.repositoryUrl,
+            branch: project.branch
+          }
+        : undefined,
+      taskPrompt: task?.description
+        ? `${targetRun.taskTitle}\n\nTask Description:\n${task.description}`
+        : targetRun.taskTitle,
+      acceptanceCriteria: resolvedCriteria,
+      instructions: assignment.instructions
     }
 
     const runtime = RuntimeFactory.getRuntime(runtimeMode.value)
@@ -359,6 +394,21 @@ export const useAgentRunStore = defineStore('agentRun', () => {
     }
   }
 
+  /**
+   * Patch C: Single Source of Truth for Retry Lifecycle Contract
+   *
+   * Architectural Flow:
+   *   AutonomousTaskLoop / Human Trigger
+   *           ↓
+   *     agentRunStore.retryRun(runId)
+   *           ↓
+   *     runtime.cancel(runId) + state reset + attempt increment (max 3)
+   *           ↓
+   *     startLiveRunner(runId) -> runtime.start(input, listener)
+   *
+   * Note: Callers should ALWAYS invoke `agentRunStore.retryRun(runId)`
+   * and NEVER bypass the store to call `HermesRuntimeAdapter.retry()` directly.
+   */
   async function retryRun(runId: string) {
     const previousRun = runs.value.find((r) => r.id === runId)
     if (!previousRun) return null

@@ -34,6 +34,9 @@ export interface Project {
   contributorsCount: number
   accentColor?: string
   milestones: Milestone[]
+  path?: string
+  repositoryUrl?: string
+  branch?: string
   createdAt: string
   updatedAt: string
 }
@@ -69,6 +72,7 @@ export interface Task {
   assigneeAvatar?: string
   requiredSkillIds?: string[]
   optionalSkillIds?: string[]
+  acceptanceCriteria?: string[]
   parentTaskId?: string
   dependencyTaskIds?: string[]
   activeRunId?: string
