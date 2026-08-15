@@ -10,6 +10,7 @@ import {
 import { RuntimeFactory } from '../runtime/RuntimeFactory'
 import type { AgentRunInput, RuntimeEvent, RuntimeMode, ApprovalRequest } from '../runtime/types'
 import { VerificationEngine } from '../runtime/verification/VerificationEngine'
+import { AcceptanceCriteriaRule } from '../runtime/verification/rules/AcceptanceCriteriaRule'
 import { globalResultIngestor } from '../runtime/results/ResultIngestor'
 import { useActivityStore } from './activity'
 import { useNotificationStore } from './notification'
@@ -210,7 +211,7 @@ export const useAgentRunStore = defineStore('agentRun', () => {
         if (event.telemetry) {
           targetRun.telemetry = event.telemetry
         }
-        targetRun.outputSummary = `Pekerjaan "${targetRun.taskTitle}" telah selesai dijalankan oleh ${targetRun.employeeName} dengan hasil verifikasi optimal.`
+        targetRun.outputSummary = `Run "${targetRun.taskTitle}" completed by ${targetRun.employeeName}. Pending verification and human review.`
 
         await runRepo.update(runId, {
           status: 'Completed',
@@ -226,24 +227,33 @@ export const useAgentRunStore = defineStore('agentRun', () => {
         const runtimeResult =
           event.result || globalResultIngestor.buildRuntimeResult(targetRun.id, 'Completed')
 
+        // Phase 3.7: Real per-criterion evaluation against actual agent output.
+        // AcceptanceCriteriaRule.evaluateAgainstOutput() checks each criterion
+        // independently using keyword matching — never auto-passes on status alone.
+        const evaluatedCriteria = input.acceptanceCriteria && input.acceptanceCriteria.length > 0
+          ? AcceptanceCriteriaRule.evaluateAgainstOutput(
+              input.acceptanceCriteria,
+              runtimeResult.output,
+              runtimeResult.status
+            )
+          : [
+              {
+                name: 'Deliverable Output Integrity',
+                passed: Boolean(runtimeResult.output && runtimeResult.output.trim().length > 0),
+                details: runtimeResult.output?.trim().length > 0
+                  ? 'Agent produced non-empty deliverable output.'
+                  : 'Agent produced no output. Cannot verify deliverable.',
+                mandatory: true
+              }
+            ]
+
         const verification = VerificationEngine.evaluate({
           runtimeResult,
-          acceptanceCriteria: input.acceptanceCriteria?.map((crit) => ({
-            name: crit,
-            passed: runtimeResult.status === 'Completed' && !runtimeResult.error,
-            details:
-              runtimeResult.status === 'Completed'
-                ? 'Criteria verified with deliverable output.'
-                : 'Execution failed.'
-          })) || [
-            {
-              name: 'Deliverable Output Integrity',
-              passed: Boolean(runtimeResult.output && runtimeResult.output.trim().length > 0),
-              details: 'Output produced and ready for human review.'
-            }
-          ],
+          acceptanceCriteria: evaluatedCriteria,
           diffCount: runtimeResult.diffs?.length || 0,
-          securityPassed: true
+          // Security is evaluated by the sandbox — only mark true if no violations
+          // were recorded during this run (runtime ensures this)
+          securityPassed: !runtimeResult.error?.toLowerCase().includes('sandbox')
         })
 
         const outputText =
