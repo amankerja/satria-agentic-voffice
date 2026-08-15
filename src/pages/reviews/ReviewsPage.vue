@@ -119,10 +119,22 @@
 
           <div class="text-sm font-bold text-on-surface truncate">{{ rev.taskTitle }}</div>
 
-          <div class="flex items-center gap-3 text-xs text-muted font-mono">
+          <div class="flex items-center gap-3 text-xs text-muted font-mono flex-wrap">
             <span>By: <strong class="text-on-surface">{{ rev.employeeName }}</strong></span>
             <span>&bull;</span>
-            <span>Checklist: {{ rev.checklist.filter(c => c.completed).length }}/{{ rev.checklist.length }} passed</span>
+            <span class="flex items-center gap-1">
+              <span
+                :class="[
+                  'px-1.5 py-0.5 rounded text-[10px] font-bold font-mono',
+                  rev.checklist.every(c => c.completed)
+                    ? 'bg-primary-container/20 text-primary-container'
+                    : 'bg-amber-400/20 text-amber-300'
+                ]"
+              >
+                {{ Math.round((rev.checklist.filter(c => c.completed).length / (rev.checklist.length || 1)) * 100) }}% Score
+              </span>
+              <span>({{ rev.checklist.filter(c => c.completed).length }}/{{ rev.checklist.length }} assertions)</span>
+            </span>
           </div>
 
           <p v-if="rev.comment" class="text-xs text-on-surface-variant line-clamp-1 italic">
