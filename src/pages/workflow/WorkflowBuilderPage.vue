@@ -76,7 +76,7 @@
     </div>
 
     <!-- Visual DAG Canvas Board -->
-    <div class="relative p-6 rounded-2xl border border-surface-container-high bg-surface-container-lowest min-h-[420px] overflow-x-auto">
+    <div class="relative p-6 rounded-2xl border border-surface-container-high bg-surface-container-lowest min-h-105 overflow-x-auto">
       <div class="flex items-center justify-between mb-4">
         <div class="flex items-center gap-2">
           <Layers class="w-4 h-4 text-primary" />

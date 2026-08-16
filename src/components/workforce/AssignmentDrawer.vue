@@ -20,7 +20,7 @@
       <!-- Capability 2.0 Recommended Best Agent Banner -->
       <div
         v-if="bestCandidate"
-        class="p-3 bg-gradient-to-r from-emerald-950/20 via-surface-container-low to-surface-container-low border border-primary/30 rounded-xl space-y-2"
+        class="p-3 bg-surface-container-low border border-primary/30 rounded-xl space-y-2"
       >
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-1.5 text-xs font-bold text-primary font-mono">
