@@ -82,6 +82,11 @@ const routes = [
     component: () => import('../pages/workforce/DelegationHubPage.vue')
   },
   {
+    path: '/webhooks',
+    name: 'WebhookGateway',
+    component: () => import('../pages/webhooks/WebhookGatewayPage.vue')
+  },
+  {
     path: '/workers',
     redirect: '/workforce/employees'
   },

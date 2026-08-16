@@ -1988,5 +1988,185 @@
         "gpt-4o"
       ]
     }
-  }
+  },
+  "data_reviews": [
+    {
+      "projectId": "prj-marketing",
+      "projectName": "Marketing & Digital Business",
+      "title": "Audit Penjualan & Operasional Bisnis — Minggu Agustus 2026",
+      "sourceFile": "penjualan_mingguan_umkm.xlsx",
+      "sourceFormat": "xlsx",
+      "status": "Completed",
+      "summary": "Total omzet minggu ini tercatat Rp18.450.000 (naik +14.2% dari minggu lalu). Terdeteksi anomali penurunan order di hari Selasa (-28%), namun Average Order Value (AOV) melonjak tinggi didorong paket bundle.",
+      "keyMetrics": [
+        {
+          "label": "Total Omzet (Revenue)",
+          "value": "Rp18.450.000",
+          "change": "+14.2%",
+          "isPositive": true
+        },
+        {
+          "label": "Total Transaksi",
+          "value": "142 orders",
+          "change": "-3.4%",
+          "isPositive": false
+        },
+        {
+          "label": "Rata-rata Order (AOV)",
+          "value": "Rp129.900",
+          "change": "+18.1%",
+          "isPositive": true
+        },
+        {
+          "label": "Estimasi Gross Profit",
+          "value": "Rp7.240.000 (39.2%)",
+          "change": "+2.4%",
+          "isPositive": true
+        }
+      ],
+      "anomalies": [
+        "Anomali Hari Selasa: Order turun drastis -28% karena kehabisan stok varian terlaris.",
+        "Margin SKU-B tipis (hanya 12%) akibat kenaikan ongkos packaging lokal."
+      ],
+      "trends": [
+        "78% pembeli memilih metode pembayaran QRIS & Transfer instan.",
+        "Paket Bundling 2-in-1 menyumbang 54% total omzet mingguan."
+      ],
+      "findings": [
+        "Produk bundling memiliki tingkat konversi 2.4x lebih tinggi dibanding jual satuan.",
+        "Pelanggan loyal melakukan repeat order dalam rentang 10-14 hari."
+      ],
+      "risks": [
+        "Potensi kehabisan stok varian utama jika reorder ke supplier terlambat >3 hari.",
+        "SKU-B perlu penyesuaian harga jual agar margin kembali sehat di atas 30%."
+      ],
+      "recommendations": [
+        "Segera reorder bahan baku untuk varian best seller sebelum hari Rabu.",
+        "Buat 3 materi konten edukasi & promo bundling untuk mendongkrak penjualan minggu depan.",
+        "Naikkan harga SKU-B sebesar Rp4.000 atau ubah format bundling agar tetap profitable."
+      ],
+      "sourceReferences": [
+        "File: penjualan_mingguan_umkm.xlsx (142 baris transaksi)",
+        "Rekap Pembukuan Kas & Mutasi Bank",
+        "Laporan Stok Fisik Toko"
+      ],
+      "artifacts": [
+        {
+          "id": "art-1786846860423-pdf",
+          "name": "Laporan_Eksekutif_Penjualan_Mingguan.pdf",
+          "type": "pdf",
+          "size": "640 KB",
+          "url": "/artifacts/laporan_penjualan_mingguan.pdf"
+        },
+        {
+          "id": "art-1786846860423-md",
+          "name": "Executive_Summary_Findings.markdown",
+          "type": "markdown",
+          "size": "42 KB",
+          "url": "/artifacts/summary.md"
+        },
+        {
+          "id": "art-1786846860423-csv",
+          "name": "Cleaned_Sales_Metrics.csv",
+          "type": "csv",
+          "size": "95 KB",
+          "url": "/artifacts/metrics.csv"
+        }
+      ],
+      "analyzedByWorkerId": "emp-raka",
+      "analyzedByWorkerName": "Raka (Planner / Business Operations Analyst)",
+      "completedAt": "2026-08-16T02:21:00.423Z",
+      "id": "drev-1786846860423-ixt0",
+      "createdAt": "2026-08-16T02:21:00.423Z"
+    },
+    {
+      "projectId": "prj-marketing",
+      "projectName": "Marketing & Digital Business",
+      "title": "Audit Penjualan & Operasional Bisnis — Minggu Agustus 2026",
+      "sourceFile": "penjualan_mingguan_umkm.xlsx",
+      "sourceFormat": "xlsx",
+      "status": "Completed",
+      "summary": "Total omzet minggu ini tercatat Rp18.450.000 (naik +14.2% dari minggu lalu). Terdeteksi anomali penurunan order di hari Selasa (-28%), namun Average Order Value (AOV) melonjak tinggi didorong paket bundle.",
+      "keyMetrics": [
+        {
+          "label": "Total Omzet (Revenue)",
+          "value": "Rp18.450.000",
+          "change": "+14.2%",
+          "isPositive": true
+        },
+        {
+          "label": "Total Transaksi",
+          "value": "142 orders",
+          "change": "-3.4%",
+          "isPositive": false
+        },
+        {
+          "label": "Rata-rata Order (AOV)",
+          "value": "Rp129.900",
+          "change": "+18.1%",
+          "isPositive": true
+        },
+        {
+          "label": "Estimasi Gross Profit",
+          "value": "Rp7.240.000 (39.2%)",
+          "change": "+2.4%",
+          "isPositive": true
+        }
+      ],
+      "anomalies": [
+        "Anomali Hari Selasa: Order turun drastis -28% karena kehabisan stok varian terlaris.",
+        "Margin SKU-B tipis (hanya 12%) akibat kenaikan ongkos packaging lokal."
+      ],
+      "trends": [
+        "78% pembeli memilih metode pembayaran QRIS & Transfer instan.",
+        "Paket Bundling 2-in-1 menyumbang 54% total omzet mingguan."
+      ],
+      "findings": [
+        "Produk bundling memiliki tingkat konversi 2.4x lebih tinggi dibanding jual satuan.",
+        "Pelanggan loyal melakukan repeat order dalam rentang 10-14 hari."
+      ],
+      "risks": [
+        "Potensi kehabisan stok varian utama jika reorder ke supplier terlambat >3 hari.",
+        "SKU-B perlu penyesuaian harga jual agar margin kembali sehat di atas 30%."
+      ],
+      "recommendations": [
+        "Segera reorder bahan baku untuk varian best seller sebelum hari Rabu.",
+        "Buat 3 materi konten edukasi & promo bundling untuk mendongkrak penjualan minggu depan.",
+        "Naikkan harga SKU-B sebesar Rp4.000 atau ubah format bundling agar tetap profitable."
+      ],
+      "sourceReferences": [
+        "File: penjualan_mingguan_umkm.xlsx (142 baris transaksi)",
+        "Rekap Pembukuan Kas & Mutasi Bank",
+        "Laporan Stok Fisik Toko"
+      ],
+      "artifacts": [
+        {
+          "id": "art-1786841788326-pdf",
+          "name": "Laporan_Eksekutif_Penjualan_Mingguan.pdf",
+          "type": "pdf",
+          "size": "640 KB",
+          "url": "/artifacts/laporan_penjualan_mingguan.pdf"
+        },
+        {
+          "id": "art-1786841788326-md",
+          "name": "Executive_Summary_Findings.markdown",
+          "type": "markdown",
+          "size": "42 KB",
+          "url": "/artifacts/summary.md"
+        },
+        {
+          "id": "art-1786841788326-csv",
+          "name": "Cleaned_Sales_Metrics.csv",
+          "type": "csv",
+          "size": "95 KB",
+          "url": "/artifacts/metrics.csv"
+        }
+      ],
+      "analyzedByWorkerId": "emp-raka",
+      "analyzedByWorkerName": "Raka (Planner / Business Operations Analyst)",
+      "completedAt": "2026-08-16T00:56:28.326Z",
+      "id": "drev-1786841788326-mc4k",
+      "createdAt": "2026-08-16T00:56:28.326Z"
+    }
+  ]
 }

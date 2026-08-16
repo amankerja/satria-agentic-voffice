@@ -846,6 +846,57 @@ export interface DelegationPlan {
 }
 
 // ==========================================
+// PHASE 7 — LIVE WEBHOOK GATEWAY & EVENT STREAM
+// ==========================================
+
+export type WebhookSource = 'GITHUB' | 'GMAIL' | 'STRIPE' | 'CUSTOM_API'
+
+export type WebhookEventType =
+  | 'github.push'
+  | 'github.pull_request.opened'
+  | 'github.issues.opened'
+  | 'github.workflow_run.failed'
+  | 'gmail.message.received'
+  | 'gmail.invoice.detected'
+  | 'stripe.payment_intent.succeeded'
+  | 'webhook.custom'
+
+export interface WebhookEndpointConfig {
+  id: string
+  name: string
+  source: WebhookSource
+  urlPath: string
+  secretKey: string
+  enabled: boolean
+  targetWorkflowId?: string
+  totalEventsReceived: number
+  lastReceivedAt?: string
+}
+
+export type InboundEventStatus =
+  | 'RECEIVED'
+  | 'VERIFIED'
+  | 'ROUTED'
+  | 'PROCESSED'
+  | 'REJECTED'
+  | 'DUPLICATE'
+
+export interface SatriaInboundEvent {
+  id: string
+  deliveryId: string
+  source: WebhookSource
+  eventType: WebhookEventType
+  signatureVerified: boolean
+  headers: Record<string, string>
+  payload: any
+  status: InboundEventStatus
+  targetWorkflowId?: string
+  receivedAt: string
+  processedAt?: string
+  error?: string
+}
+
+// ==========================================
 // RECURRING SCHEDULE & ACTIVE WORK READ MODEL
 // ==========================================
 

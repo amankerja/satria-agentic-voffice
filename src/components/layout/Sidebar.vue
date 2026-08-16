@@ -168,7 +168,8 @@ import {
   Brain,
   FlaskConical,
   GitBranch,
-  Network
+  Network,
+  Radio
 } from '@lucide/vue'
 import WorkspaceSwitcher from './WorkspaceSwitcher.vue'
 import { useAgentRunStore } from '../../stores/agentRun'
@@ -218,6 +219,7 @@ const primaryMenu = [
 
 const advancedMenu = [
   { label: 'Workflows', path: '/workflows', icon: GitBranch },
+  { label: 'Webhook Gateway', path: '/webhooks', icon: Radio },
   { label: 'Delegation & ACL', path: '/delegation', icon: Network },
   { label: 'Agent Runs', path: '/runs', icon: Terminal },
   { label: 'Agent Memory', path: '/memory', icon: Brain },
