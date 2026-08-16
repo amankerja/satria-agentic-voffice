@@ -970,7 +970,7 @@ export type SatriaExecutionMode =
   | 'ENGINEERING_EXECUTION'
   | 'CROSS_SYSTEM'
 
-// Email Intelligence 3-Layer Types
+// Email Intelligence 3-Layer & Accounting Safety Types
 export type EmailCategory =
   | 'FINANCE'
   | 'PAYMENT'
@@ -979,6 +979,14 @@ export type EmailCategory =
   | 'OPERATIONS'
   | 'REPORT'
   | 'OTHER'
+
+export type TransactionLifecycleStatus =
+  | 'EXTRACTED'
+  | 'VERIFIED'
+  | 'RECONCILED'
+  | 'FINAL'
+  | 'FLAGGED_DUPLICATE'
+  | 'DISPUTED'
 
 export interface EmailFilterRule {
   id: string
@@ -1012,7 +1020,29 @@ export interface StructuredEmailTransaction {
   referenceNumber: string
   senderOrMerchantName?: string
   rawSnippet: string
-  status: 'EXTRACTED' | 'RECONCILED' | 'FLAGGED'
+  status: TransactionLifecycleStatus
+  reconciliationGroupId?: string
+  duplicateOfId?: string
+  validationErrors?: string[]
+}
+
+export interface ReconciledJournalEntry {
+  id: string
+  canonicalReference: string // e.g. 'SAT-9921'
+  title: string
+  entryType: 'INCOME' | 'EXPENSE' | 'SETTLEMENT'
+  transactionDate: string
+  grossAmount: number
+  totalFee: number
+  netAmount: number
+  currency: string
+  status: TransactionLifecycleStatus
+  primarySource: string
+  evidenceSources: string[] // e.g. ['MIDTRANS', 'SHOPEEPAY', 'BANK']
+  rawTransactionIds: string[]
+  reconciledAt: string
+  confidence: number
+  reconciliationNotes: string
 }
 
 export interface EmailIntelligenceReport {
@@ -1027,7 +1057,9 @@ export interface EmailIntelligenceReport {
   totalEmailsScanned: number
   totalRelevantEmails: number
   totalIgnoredEmails: number
-  totalTransactions: number
+  totalRawEvidence: number
+  totalReconciledUniqueTransactions: number
+  totalDuplicatesMerged: number
   summary: {
     totalIncome: number
     totalExpense: number
@@ -1041,6 +1073,7 @@ export interface EmailIntelligenceReport {
     transactionCount: number
     totalAmount: number
   }[]
+  reconciledEntries: ReconciledJournalEntry[]
   transactions: StructuredEmailTransaction[]
   markdownDeliverable: string
 }

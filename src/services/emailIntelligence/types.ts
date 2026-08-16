@@ -6,6 +6,7 @@ import type {
   EmailCategory,
   EmailFilterRule,
   StructuredEmailTransaction,
+  ReconciledJournalEntry,
   EmailIntelligenceReport
 } from '../../types'
 
@@ -42,6 +43,8 @@ export interface EmailPipelineResult {
   totalScanned: number
   passedFilter: number
   ignoredCount: number
+  totalDuplicatesMerged: number
   extractedTransactions: StructuredEmailTransaction[]
+  reconciledEntries: ReconciledJournalEntry[]
   report: EmailIntelligenceReport
 }

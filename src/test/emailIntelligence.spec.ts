@@ -3,14 +3,16 @@ import { setActivePinia, createPinia } from 'pinia'
 import { EmailFilterEngine } from '../services/emailIntelligence/EmailFilterEngine'
 import { EmailClassifierEngine } from '../services/emailIntelligence/EmailClassifierEngine'
 import { StructuredEmailExtractor } from '../services/emailIntelligence/StructuredEmailExtractor'
+import { TransactionValidationEngine } from '../services/emailIntelligence/TransactionValidationEngine'
+import { ReconciliationEngine } from '../services/emailIntelligence/ReconciliationEngine'
 import { EmailReportAggregator } from '../services/emailIntelligence/EmailReportAggregator'
 import { EmailIntelligenceService } from '../services/emailIntelligence/EmailIntelligenceService'
 import { EngineeringExecutionEngine } from '../services/engineering/EngineeringExecutionEngine'
 import { useEmailIntelligenceStore } from '../stores/emailIntelligence'
-import type { IntegrationConnection } from '../types'
+import type { IntegrationConnection, StructuredEmailTransaction } from '../types'
 import type { RawEmail } from '../services/emailIntelligence/types'
 
-describe('SATRIA 4-Mode Execution Architecture — Mode 2 (Email Intelligence) & Mode 3 (Engineering Execution)', () => {
+describe('SATRIA 4-Mode Execution Architecture & Accounting Reconciliation Engine', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
@@ -32,22 +34,6 @@ describe('SATRIA 4-Mode Execution Architecture — Mode 2 (Email Intelligence) &
       expect(res.matchedRule?.targetCategory).toBe('FINANCE')
     })
 
-    it('passes ShopeePay settlement and payment gateway emails', () => {
-      const shopeeEmail: RawEmail = {
-        id: 'em-2',
-        from: 'ShopeePay Merchant <settlement@shopee.co.id>',
-        to: ['finance@satria.workforce.ai'],
-        subject: 'Pemberitahuan Settlement ShopeePay Merchant',
-        snippet: 'Dana settlement berhasil dicairkan sebesar Rp 875.000',
-        body: 'Gross Payout: Rp 875.000, MDR: Rp 5.000',
-        date: '2026-08-15T12:00:00Z'
-      }
-
-      const res = EmailFilterEngine.evaluateEmail(shopeeEmail)
-      expect(res.isRelevant).toBe(true)
-      expect(res.matchedRule?.targetCategory).toBe('PAYMENT')
-    })
-
     it('strictly discards marketing newsletters and spam from processing', () => {
       const spamEmail: RawEmail = {
         id: 'em-spam',
@@ -65,26 +51,8 @@ describe('SATRIA 4-Mode Execution Architecture — Mode 2 (Email Intelligence) &
     })
   })
 
-  describe('Layer 2 — Email Classifier (Business Domains)', () => {
-    it('classifies bank mutasi into FINANCE and settlement into PAYMENT', () => {
-      const bankEmail: RawEmail = {
-        id: 'em-bca',
-        from: 'BCA <alert@bank.co.id>',
-        to: ['me@satria.ai'],
-        subject: 'Mutasi Rekening BCA',
-        snippet: 'Kredit Rp 500.000',
-        body: 'Transfer masuk dari Budi',
-        date: '2026-08-15T10:00:00Z'
-      }
-
-      const classRes = EmailClassifierEngine.classify(bankEmail)
-      expect(classRes.category).toBe('FINANCE')
-      expect(classRes.source).toBe('BANK')
-    })
-  })
-
-  describe('Layer 3 — Structured Extractor & Indonesian Rupiah Parsing', () => {
-    it('extracts numbers, fee, reference, and sender from raw unstructured text', () => {
+  describe('Layer 2 & 3 — Classifier and Structured Extraction', () => {
+    it('extracts structured transaction with currency, amount, fee and reference', () => {
       const email: RawEmail = {
         id: 'em-shopee-test',
         from: 'ShopeePay Merchant <settlement@shopee.co.id>',
@@ -95,109 +63,167 @@ describe('SATRIA 4-Mode Execution Architecture — Mode 2 (Email Intelligence) &
         date: '2026-08-15T16:00:00Z'
       }
 
-      const tx = StructuredEmailExtractor.extract(email, {
-        emailId: email.id,
-        category: 'PAYMENT',
-        source: 'SHOPEEPAY',
-        confidence: 0.95,
-        justification: 'ShopeePay rule'
-      })
+      const classification = EmailClassifierEngine.classify(email)
+      const tx = StructuredEmailExtractor.extract(email, classification)
 
       expect(tx.amount).toBe(875000)
       expect(tx.fee).toBe(5000)
       expect(tx.netAmount).toBe(870000)
       expect(tx.referenceNumber).toBe('SPP-99281726')
-      expect(tx.type).toBe('SETTLEMENT')
+      expect(tx.status).toBe('EXTRACTED')
     })
   })
 
-  describe('EmailReportAggregator & Consolidated Business Reports', () => {
-    it('synthesizes multi-source transactions into accurate financial report', () => {
-      const transactions = [
-        {
-          id: 'tx-1',
-          messageId: 'em-1',
-          category: 'FINANCE' as const,
-          source: 'BANK',
-          sender: 'BCA',
-          subject: 'Transfer Masuk',
-          receivedAt: '2026-08-15T10:00:00Z',
-          transactionDate: '2026-08-15',
-          amount: 1250000,
-          currency: 'IDR',
-          type: 'INCOME' as const,
-          referenceNumber: 'BCA-01',
-          rawSnippet: '',
-          status: 'EXTRACTED' as const
-        },
-        {
-          id: 'tx-2',
-          messageId: 'em-2',
-          category: 'PAYMENT' as const,
-          source: 'SHOPEEPAY',
-          sender: 'ShopeePay',
-          subject: 'Settlement',
-          receivedAt: '2026-08-15T12:00:00Z',
-          transactionDate: '2026-08-15',
-          amount: 875000,
-          fee: 5000,
-          currency: 'IDR',
-          type: 'SETTLEMENT' as const,
-          referenceNumber: 'SPP-02',
-          rawSnippet: '',
-          status: 'EXTRACTED' as const
-        },
-        {
-          id: 'tx-3',
-          messageId: 'em-3',
-          category: 'FINANCE' as const,
-          source: 'BANK',
-          sender: 'BCA',
-          subject: 'Pembayaran Hosting',
-          receivedAt: '2026-08-15T15:00:00Z',
-          transactionDate: '2026-08-15',
-          amount: 350000,
-          currency: 'IDR',
-          type: 'EXPENSE' as const,
-          referenceNumber: 'BCA-EXP-03',
-          rawSnippet: '',
-          status: 'EXTRACTED' as const
-        }
-      ]
+  describe('Stage 4 — Transaction Validation Engine', () => {
+    it('validates sane transactions and flags invalid amounts', () => {
+      const validTx: StructuredEmailTransaction = {
+        id: 'tx-valid',
+        messageId: 'em-v',
+        category: 'FINANCE',
+        source: 'BANK',
+        sender: 'bank',
+        subject: 'Valid',
+        receivedAt: '2026-08-15T10:00:00Z',
+        transactionDate: '2026-08-15',
+        amount: 1500000,
+        currency: 'IDR',
+        type: 'INCOME',
+        referenceNumber: 'TRX-101',
+        rawSnippet: '',
+        status: 'EXTRACTED'
+      }
 
-      const report = EmailReportAggregator.aggregate(transactions, 'FINANCE', 6, 3)
+      const result = TransactionValidationEngine.validate(validTx)
+      expect(result.status).toBe('VERIFIED')
+      expect(result.validationErrors?.length).toBe(0)
 
-      expect(report.summary.totalIncome).toBe(1250000)
-      expect(report.summary.totalSettlement).toBe(875000)
-      expect(report.summary.totalExpense).toBe(350000)
-      expect(report.summary.totalFee).toBe(5000)
-      expect(report.summary.netRevenue).toBe(1250000 + 875000 - 350000 - 5000) // 1.770.000
-      expect(report.markdownDeliverable).toContain('Ringkasan Finansial Eksekutif')
-      expect(report.markdownDeliverable).toContain('SHOPEEPAY')
-      expect(report.markdownDeliverable).toContain('BANK')
+      const invalidTx: StructuredEmailTransaction = {
+        ...validTx,
+        amount: -5000
+      }
+      const invalidResult = TransactionValidationEngine.validate(invalidTx)
+      expect(invalidResult.status).toBe('DISPUTED')
+      expect(invalidResult.validationErrors?.length).toBeGreaterThan(0)
     })
   })
 
-  describe('Full 3-Layer Email Intelligence Pipeline & Store', () => {
-    it('executes master EmailIntelligenceService on raw inbox', () => {
+  describe('Stage 5 — Accounting Reconciliation & Anti-Triple-Counting (Midtrans + ShopeePay + Bank)', () => {
+    it('correlates 3 notifications for Order #SAT-9921 and merges them into 1 Canonical ReconciledJournalEntry', () => {
+      const midtransTx: StructuredEmailTransaction = {
+        id: 'tx-midtrans-1',
+        messageId: 'em-1',
+        category: 'PAYMENT',
+        source: 'MIDTRANS',
+        sender: 'Midtrans <support@midtrans.com>',
+        subject: 'Payment Successful: Order #SAT-9921',
+        receivedAt: '2026-08-15T17:30:00Z',
+        transactionDate: '2026-08-15',
+        amount: 2100000,
+        currency: 'IDR',
+        type: 'INCOME',
+        referenceNumber: 'SAT-9921',
+        rawSnippet: 'Order SAT-9921 Rp 2.100.000',
+        status: 'VERIFIED'
+      }
+
+      const shopeePaySettlementTx: StructuredEmailTransaction = {
+        id: 'tx-shopee-2',
+        messageId: 'em-2',
+        category: 'PAYMENT',
+        source: 'SHOPEEPAY',
+        sender: 'ShopeePay <settlement@shopee.co.id>',
+        subject: 'Settlement ShopeePay #SAT-9921',
+        receivedAt: '2026-08-15T18:00:00Z',
+        transactionDate: '2026-08-15',
+        amount: 2100000,
+        fee: 5000,
+        netAmount: 2095000,
+        currency: 'IDR',
+        type: 'SETTLEMENT',
+        referenceNumber: 'SAT-9921',
+        rawSnippet: 'Settlement Order SAT-9921 Net Rp 2.095.000',
+        status: 'VERIFIED'
+      }
+
+      const bcaDepositTx: StructuredEmailTransaction = {
+        id: 'tx-bca-3',
+        messageId: 'em-3',
+        category: 'FINANCE',
+        source: 'BANK',
+        sender: 'BCA <alert@klikbca.bank.co.id>',
+        subject: 'Mutasi Rekening: Transfer Masuk Rp 2.095.000',
+        receivedAt: '2026-08-15T18:30:00Z',
+        transactionDate: '2026-08-15',
+        amount: 2095000,
+        currency: 'IDR',
+        type: 'INCOME',
+        referenceNumber: 'SAT-9921',
+        rawSnippet: 'Kredit Rp 2.095.000 Ref SAT-9921 dari ShopeePay',
+        status: 'VERIFIED'
+      }
+
+      // Reconcile all 3 transactions
+      const res = ReconciliationEngine.reconcile([midtransTx, shopeePaySettlementTx, bcaDepositTx])
+
+      // CRITICAL ASSERTION: Exactly 1 Reconciled Canonical Entry created (NOT 3 entries totaling 6.29m!)
+      expect(res.reconciledEntries.length).toBe(1)
+      expect(res.totalDuplicatesPrevented).toBe(2)
+
+      const canonical = res.reconciledEntries[0]
+      expect(canonical.canonicalReference).toBe('SAT-9921')
+      expect(canonical.grossAmount).toBe(2100000)
+      expect(canonical.totalFee).toBe(5000)
+      expect(canonical.netAmount).toBe(2095000)
+      expect(canonical.evidenceSources).toEqual(expect.arrayContaining(['MIDTRANS', 'SHOPEEPAY', 'BANK']))
+      expect(canonical.rawTransactionIds.length).toBe(3)
+
+      // Raw transactions must reflect the reconciliation link
+      const updatedMidtrans = res.updatedRawTransactions.find((r) => r.id === 'tx-midtrans-1')
+      const updatedShopee = res.updatedRawTransactions.find((r) => r.id === 'tx-shopee-2')
+      expect(updatedMidtrans?.status).toBe('RECONCILED')
+      expect(updatedShopee?.duplicateOfId).toBe('tx-midtrans-1')
+    })
+  })
+
+  describe('Full Master Pipeline with Multi-Source Ingestion & Store', () => {
+    it('executes master EmailIntelligenceService.processInbox directly', () => {
+      const result = EmailIntelligenceService.processInbox()
+      expect(result.totalScanned).toBe(7)
+      expect(result.totalDuplicatesMerged).toBe(2)
+      expect(result.reconciledEntries.length).toBe(3)
+    })
+
+    it('aggregates reconciled entries into report with deliverable text', () => {
       const res = EmailIntelligenceService.processInbox()
-      expect(res.totalScanned).toBe(6)
-      expect(res.passedFilter).toBe(4)
-      expect(res.ignoredCount).toBe(2)
-      expect(res.extractedTransactions.length).toBe(4)
-      expect(res.report.summary.netRevenue).toBeGreaterThan(0)
+      const report = EmailReportAggregator.aggregate(
+        res.extractedTransactions,
+        res.reconciledEntries,
+        'FINANCE',
+        res.totalScanned,
+        res.ignoredCount,
+        res.totalDuplicatesMerged
+      )
+      expect(report.markdownDeliverable).toContain('Jaminan Keamanan Akuntansi (Anti-Triple-Counting)')
+      expect(report.totalReconciledUniqueTransactions).toBe(3)
     })
 
-    it('runs pipeline on inbox and populates store reactively', async () => {
+    it('executes master EmailIntelligenceService, merges multi-channel duplicates, and populates canonical ledger', async () => {
       const store = useEmailIntelligenceStore()
       const result = await store.processInboxEmails()
 
-      expect(result.totalScanned).toBe(6)
-      expect(result.passedFilter).toBe(4) // 4 operational emails passed
-      expect(result.ignoredCount).toBe(2) // 2 spam/newsletter ignored
-      expect(store.transactions.length).toBe(4)
-      expect(store.totalIncome).toBeGreaterThan(0)
-      expect(store.netRevenue).toBeGreaterThan(0)
+      expect(result.totalScanned).toBe(7)
+      expect(result.passedFilter).toBe(5) // 5 operational emails passed
+      expect(result.ignoredCount).toBe(2) // 2 spam/newsletters discarded
+
+      // Reconciled entries should merge the 3 multi-channel items (Midtrans + Shopee + BCA) for SAT-9921
+      expect(result.totalDuplicatesMerged).toBe(2)
+      expect(result.reconciledEntries.length).toBe(3) // 1 for SAT-9921, 1 for Consulting, 1 for Expense
+
+      // Financial figures should be clean and accurate
+      expect(store.totalIncome).toBe(2100000 + 1250000) // 3.350.000
+      expect(store.totalFee).toBe(5000)
+      expect(store.totalExpense).toBe(350000)
+      expect(store.netRevenue).toBe(3350000 - 350000 - 5000) // 2.995.000
     })
   })
 

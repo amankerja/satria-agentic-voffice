@@ -7,6 +7,7 @@
 
 import type {
   StructuredEmailTransaction,
+  ReconciledJournalEntry,
   EmailIntelligenceReport,
   EmailCategory
 } from '../../types'
@@ -20,35 +21,49 @@ export class EmailReportAggregator {
   }
 
   /**
-   * Aggregates transactions into a comprehensive EmailIntelligenceReport
+   * Aggregates transactions & reconciled journal entries into a comprehensive EmailIntelligenceReport
    */
   public static aggregate(
     transactions: StructuredEmailTransaction[],
+    reconciledEntries: ReconciledJournalEntry[] = [],
     category: EmailCategory = 'FINANCE',
     scannedCount = 0,
-    ignoredCount = 0
+    ignoredCount = 0,
+    duplicatesMerged = 0
   ): EmailIntelligenceReport {
     let totalIncome = 0
     let totalExpense = 0
     let totalSettlement = 0
     let totalFee = 0
 
+    // Compute financial metrics from canonical reconciled entries if available, otherwise raw
+    if (reconciledEntries.length > 0) {
+      for (const entry of reconciledEntries) {
+        if (entry.entryType === 'EXPENSE') {
+          totalExpense += entry.grossAmount
+        } else {
+          totalIncome += entry.grossAmount
+          totalFee += entry.totalFee
+        }
+      }
+    } else {
+      for (const tx of transactions) {
+        if (tx.type === 'INCOME') {
+          totalIncome += tx.amount
+        } else if (tx.type === 'EXPENSE') {
+          totalExpense += tx.amount
+        } else if (tx.type === 'SETTLEMENT') {
+          totalSettlement += tx.amount
+        }
+
+        if (tx.fee) {
+          totalFee += tx.fee
+        }
+      }
+    }
+
     const sourceMap: Map<string, { count: number; total: number }> = new Map()
-
     for (const tx of transactions) {
-      if (tx.type === 'INCOME') {
-        totalIncome += tx.amount
-      } else if (tx.type === 'EXPENSE') {
-        totalExpense += tx.amount
-      } else if (tx.type === 'SETTLEMENT') {
-        totalSettlement += tx.amount
-      }
-
-      if (tx.fee) {
-        totalFee += tx.fee
-      }
-
-      // Group by source
       const current = sourceMap.get(tx.source) || { count: 0, total: 0 }
       current.count += 1
       current.total += tx.amount
@@ -64,49 +79,53 @@ export class EmailReportAggregator {
     }))
 
     const today = new Date().toISOString().split('T')[0]
-    const title = `LAPORAN REKAPITULASI ${category.toUpperCase()} DARI EMAIL INTELLIGENCE`
+    const title = `LAPORAN REKAPITULASI & REKONSILIASI KEUANGAN DARI EMAIL INTELLIGENCE`
 
     // Generate Markdown Deliverable
     const markdownLines = [
       `# 📊 ${title}`,
       ``,
-      `> **Periode Pemrosesan**: ${today} | **Total Email Dipindai**: ${scannedCount} | **Email Relevan**: ${transactions.length} | **Diabaikan (Non-Op)**: ${ignoredCount}`,
+      `> **Periode**: ${today} | **Email Dipindai**: ${scannedCount} | **Bukti Raw Terekstraksi**: ${transactions.length} | **Entri Unik Terekonsiliasi**: ${reconciledEntries.length} | **Duplikasi Dicegah**: ${duplicatesMerged}`,
       ``,
-      `### 💰 Ringkasan Finansial Eksekutif`,
+      `### 🛡️ Jaminan Keamanan Akuntansi (Anti-Triple-Counting)`,
+      `Sistem menerapkan 4 tahap verifikasi: \`EXTRACTED\` &rarr; \`VERIFIED\` &rarr; \`RECONCILED\` &rarr; \`FINAL\`. Transaksi yang muncul simultan di Payment Gateway, Settlement, dan Mutasi Bank digabungkan menjadi 1 entri kanonikal resmi.`,
+      ``,
+      `### 💰 Ringkasan Finansial Sah (Reconciled Bookkeeping)`,
       `| Indikator Finansial | Nilai Nominal | Keterangan |`,
       `| :--- | :--- | :--- |`,
-      `| **Total Pemasukan / Penjualan** | \`${this.formatRupiah(totalIncome)}\` | Transaksi kredit & order marketplace |`,
-      `| **Total Settlement Masuk** | \`${this.formatRupiah(totalSettlement)}\` | Pencairan dana e-wallet / payment gateway |`,
-      `| **Total Pengeluaran / Biaya** | \`${this.formatRupiah(totalExpense)}\` | Debit mutasi bank & pembayaran vendor |`,
-      `| **Biaya Transaksi / MDR** | \`${this.formatRupiah(totalFee)}\` | Potongan merchant & gateway |`,
-      `| **Net Pemasukan Bersih** | **${this.formatRupiah(netRevenue)}** | Saldo bersih setelah rekonsiliasi |`,
+      `| **Total Omset Bruto (Gross)** | \`${this.formatRupiah(totalIncome)}\` | Transaksi penjualan kanonikal terekonsiliasi |`,
+      `| **Total Biaya / MDR Gateway** | \`${this.formatRupiah(totalFee)}\` | Biaya merchant & potongan gateway |`,
+      `| **Total Pengeluaran / Beban** | \`${this.formatRupiah(totalExpense)}\` | Beban operasional & tagihan terverifikasi |`,
+      `| **Net Kas Masuk Bersih** | **${this.formatRupiah(netRevenue)}** | Saldo kas riil setelah rekonsiliasi bebas duplikasi |`,
       ``,
-      `### 🏢 Distribusi Berdasarkan Sumber Data`,
-      `| Sumber Data | Jumlah Transaksi | Total Nominal |`,
-      `| :--- | :--- | :--- |`
+      `### 📋 Buku Kas Kanonikal Hasil Rekonsiliasi (${reconciledEntries.length} Entri Unik)`,
+      `| Referensi Kanonikal | Sumber Bukti Terkorelasi | Bruto | Potongan Fee | Kas Bersih | Status |`,
+      `| :--- | :--- | :--- | :--- | :--- | :--- |`
     ]
 
-    for (const sb of sourceBreakdown) {
-      markdownLines.push(`| **${sb.source}** | ${sb.transactionCount} transaksi | \`${this.formatRupiah(sb.totalAmount)}\` |`)
+    for (const entry of reconciledEntries) {
+      markdownLines.push(
+        `| \`${entry.canonicalReference}\` | ${entry.evidenceSources.join(' + ')} | ${this.formatRupiah(entry.grossAmount)} | ${this.formatRupiah(entry.totalFee)} | **${this.formatRupiah(entry.netAmount)}** | \`${entry.status}\` |`
+      )
     }
 
     markdownLines.push(
       ``,
-      `### 📝 Detail Transaksi Terstruktur (Extracted Ledger)`,
-      `| Tanggal | Sumber | Tipe | Nominal | Referensi | Pengirim / Merchant |`,
+      `### 🔍 Jejak Audit Bukti Mentah (Raw Evidence Trail)`,
+      `| Tanggal | Sumber | Nominal Mentah | Referensi | Status Siklus | Duplikasi Dari |`,
       `| :--- | :--- | :--- | :--- | :--- | :--- |`
     )
 
     for (const tx of transactions) {
       markdownLines.push(
-        `| ${tx.transactionDate} | \`${tx.source}\` | \`${tx.type}\` | **${this.formatRupiah(tx.amount)}** | \`${tx.referenceNumber}\` | ${tx.senderOrMerchantName || '-'} |`
+        `| ${tx.transactionDate} | \`${tx.source}\` | ${this.formatRupiah(tx.amount)} | \`${tx.referenceNumber}\` | \`${tx.status}\` | ${tx.duplicateOfId ? `Lanjutan dari \`${tx.duplicateOfId}\`` : 'Entri Primer'} |`
       )
     }
 
     markdownLines.push(
       ``,
       `---`,
-      `*Laporan ini dihasilkan secara otomatis oleh SATRIA Email Intelligence Engine (Layer 1 Filter → Layer 2 Classifier → Layer 3 Structured Extraction).*`
+      `*Laporan akuntansi ini diproses dengan integritas tinggi oleh SATRIA Accounting & Reconciliation Engine.*`
     )
 
     const markdownDeliverable = markdownLines.join('\n')
@@ -123,7 +142,9 @@ export class EmailReportAggregator {
       totalEmailsScanned: scannedCount,
       totalRelevantEmails: transactions.length,
       totalIgnoredEmails: ignoredCount,
-      totalTransactions: transactions.length,
+      totalRawEvidence: transactions.length,
+      totalReconciledUniqueTransactions: reconciledEntries.length,
+      totalDuplicatesMerged: duplicatesMerged,
       summary: {
         totalIncome,
         totalExpense,
@@ -133,6 +154,7 @@ export class EmailReportAggregator {
         currency: 'IDR'
       },
       sourceBreakdown,
+      reconciledEntries,
       transactions,
       markdownDeliverable
     }

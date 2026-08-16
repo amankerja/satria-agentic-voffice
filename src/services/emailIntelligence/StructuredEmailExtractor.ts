@@ -77,7 +77,9 @@ export class StructuredEmailExtractor {
 
     // 4. Type classification
     if (classification.category === 'FINANCE') {
-      if (/debet|keluar|transfer ke|pembayaran/i.test(fullText)) {
+      if (/kredit|masuk|transfer masuk|terima|deposit/i.test(fullText)) {
+        type = 'INCOME'
+      } else if (/debet|keluar|transfer ke|tagihan|biaya/i.test(fullText)) {
         type = 'EXPENSE'
       } else {
         type = 'INCOME'
