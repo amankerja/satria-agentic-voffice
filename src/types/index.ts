@@ -631,6 +631,68 @@ export interface DepartmentBudgetConfig {
 }
 
 // ==========================================
+// PHASE 4.4 — DEPARTMENT BUDGET GUARD & CAP ENFORCEMENT
+// ==========================================
+
+export type BudgetEnforcementAction = 'ALLOW' | 'WARNING' | 'BLOCK'
+
+export interface BudgetQuotaCheckResult {
+  allowed: boolean
+  action: BudgetEnforcementAction
+  departmentId: string
+  departmentName: string
+  monthlyBudgetUsd: number
+  currentSpendUsd: number
+  burnPercentage: number
+  message: string
+}
+
+// ==========================================
+// PHASE 4.5 — AGENT EVALUATION LAB & BENCHMARK HUB
+// ==========================================
+
+export type BenchmarkSuiteType =
+  | 'CODING'
+  | 'REASONING'
+  | 'EXTRACTION'
+  | 'LATENCY'
+  | 'COST'
+
+export interface AgentBenchmarkResult {
+  id: string
+  workspaceId: string
+  employeeId: string
+  employeeName: string
+  employeeRole: string
+  suiteType: BenchmarkSuiteType
+  score: number           // 0 - 100
+  accuracyRate: number    // 0.0 - 1.0
+  tokensConsumed: number
+  latencyMs: number
+  costUsd: number
+  details: string
+  runAt: string
+}
+
+export interface AgentEvaluationLeaderboardItem {
+  employeeId: string
+  employeeName: string
+  employeeRole: string
+  employeeAvatar: string
+  departmentName: string
+  compositeScore: number
+  codingScore: number
+  reasoningScore: number
+  extractionScore: number
+  latencyScore: number
+  costScore: number
+  tierBadge: 'S' | 'A' | 'B' | 'C'
+  rank: number
+  benchmarkCount: number
+  lastEvaluatedAt: string
+}
+
+// ==========================================
 // RECURRING SCHEDULE & ACTIVE WORK READ MODEL
 // ==========================================
 

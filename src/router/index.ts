@@ -67,6 +67,11 @@ const routes = [
     component: () => import('../pages/memory/MemoryHubPage.vue')
   },
   {
+    path: '/evaluation',
+    name: 'EvaluationLab',
+    component: () => import('../pages/workforce/EvaluationLabPage.vue')
+  },
+  {
     path: '/workers',
     redirect: '/workforce/employees'
   },
