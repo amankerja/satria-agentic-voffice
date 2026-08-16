@@ -457,6 +457,22 @@
               {{ agentRunStore.runs.length }}
             </span>
           </button>
+
+          <button
+            @click="activeLedgerTab = 'router'"
+            :class="[
+              'pb-3 text-xs font-bold transition flex items-center gap-2 border-b-2',
+              activeLedgerTab === 'router'
+                ? 'border-primary text-primary'
+                : 'border-transparent text-muted hover:text-on-surface'
+            ]"
+          >
+            <Boxes class="w-4 h-4" />
+            Dynamic Model Router & Department Caps
+            <span class="px-1.5 py-0.5 rounded-full text-[10px] font-mono bg-primary/20 text-primary font-bold">
+              {{ governanceStore.modelRouterPolicy }}
+            </span>
+          </button>
         </div>
 
         <div class="hidden sm:flex items-center text-xs font-mono text-muted pb-3">
@@ -684,6 +700,165 @@
           </table>
         </div>
       </div>
+
+      <!-- Tab 4: Dynamic Model Router & Department Caps -->
+      <div v-if="activeLedgerTab === 'router'" class="p-5 space-y-6">
+        <!-- 1. Optimization Policy Selector -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-on-surface flex items-center gap-2">
+                <Boxes class="w-4 h-4 text-primary" />
+                Multi-Model Optimization Policy
+              </h3>
+              <p class="text-xs text-muted mt-0.5">
+                Pilih strategi routing runtime otomatis untuk menyeimbangkan performa, akurasi penalaran, dan biaya token API.
+              </p>
+            </div>
+            <UiBadge variant="info" size="sm" class="font-mono">
+              ACTIVE: {{ governanceStore.modelRouterPolicy }}
+            </UiBadge>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div
+              v-for="pol in routerPolicies"
+              :key="pol.id"
+              @click="governanceStore.setModelRouterPolicy(pol.id)"
+              :class="[
+                'p-3.5 rounded-xl border transition cursor-pointer flex flex-col justify-between space-y-2',
+                governanceStore.modelRouterPolicy === pol.id
+                  ? 'border-primary bg-primary/5 ring-1 ring-primary/40'
+                  : 'border-outline-variant bg-surface-container hover:border-outline'
+              ]"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-on-surface font-mono">{{ pol.label }}</span>
+                <component :is="pol.icon" class="w-4 h-4" :class="pol.colorClass" />
+              </div>
+              <p class="text-[11px] text-muted leading-relaxed">{{ pol.description }}</p>
+              <div class="text-[10px] font-mono font-bold" :class="pol.colorClass">{{ pol.targetModels }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Department Spending Budgets & Hard Cap Enforcer -->
+        <div class="space-y-3 pt-2 border-t border-outline-variant">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-sm font-bold text-on-surface flex items-center gap-2">
+                <Building2 class="w-4 h-4 text-secondary" />
+                Department Cost Budgets & Hard Cap Governance
+              </h3>
+              <p class="text-xs text-muted mt-0.5">
+                Alokasi batas pengeluaran bulanan per departemen untuk mencegah pemborosan token tidak terkontrol.
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <input
+                id="hardCapToggle"
+                v-model="governanceStore.hardCapEnabled"
+                type="checkbox"
+                class="rounded bg-surface-container text-primary focus:ring-0"
+              />
+              <label for="hardCapToggle" class="text-xs font-mono text-on-surface">Hard Cap Enforcer (Pause on Cap)</label>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div
+              v-for="dept in departmentBudgetsList"
+              :key="dept.id"
+              class="p-3.5 rounded-xl bg-surface-container border border-outline-variant space-y-2"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-on-surface">{{ dept.name }}</span>
+                <span class="text-[10px] font-mono text-muted">{{ dept.id }}</span>
+              </div>
+              <div class="flex items-center justify-between text-xs font-mono">
+                <span class="text-muted">Alokasi Bulanan:</span>
+                <div class="flex items-center gap-1">
+                  <span class="text-muted">$</span>
+                  <input
+                    type="number"
+                    :value="dept.budget"
+                    @input="(e: any) => governanceStore.setDepartmentBudget(dept.id, Number(e.target.value))"
+                    class="w-16 px-1.5 py-0.5 bg-surface-container-lowest border border-outline-variant rounded text-right text-xs font-mono text-primary focus:border-primary focus:outline-none"
+                  />
+                </div>
+              </div>
+              <div class="space-y-1">
+                <div class="flex justify-between text-[10px] font-mono text-muted">
+                  <span>Burn Rate: {{ dept.usedFormatted }}</span>
+                  <span>{{ dept.usedPercent }}%</span>
+                </div>
+                <UiProgress :value="dept.usedPercent" :color="dept.usedPercent > 80 ? '#f59e0b' : '#4edea3'" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Model Router Simulator -->
+        <div class="space-y-3 pt-2 border-t border-outline-variant">
+          <div class="flex items-center justify-between">
+            <h3 class="text-sm font-bold text-on-surface flex items-center gap-2">
+              <Sparkles class="w-4 h-4 text-purple-400" />
+              Interactive Model Routing Simulator
+            </h3>
+            <span class="text-[10px] font-mono text-muted">Uji keputusan model router sebelum dispatch</span>
+          </div>
+
+          <div class="p-4 rounded-xl bg-surface-container border border-outline-variant space-y-3">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div class="md:col-span-2">
+                <label class="block text-[10px] font-mono text-muted uppercase mb-1">Judul Task / Instruksi</label>
+                <input
+                  v-model="simTaskTitle"
+                  type="text"
+                  placeholder="Contoh: Fix JWT concurrency mutex in auth controller with unit tests"
+                  class="w-full px-3 py-1.5 rounded-lg bg-surface-container-lowest border border-outline-variant text-xs text-on-surface font-mono focus:border-primary focus:outline-none"
+                  @keyup.enter="runSimRoute"
+                />
+              </div>
+              <div>
+                <label class="block text-[10px] font-mono text-muted uppercase mb-1">Execution Mode</label>
+                <select
+                  v-model="simTaskMode"
+                  class="w-full px-3 py-1.5 rounded-lg bg-surface-container-lowest border border-outline-variant text-xs text-on-surface font-mono focus:border-primary focus:outline-none"
+                >
+                  <option value="ENGINEERING_EXECUTION">ENGINEERING_EXECUTION (Coding / Git)</option>
+                  <option value="EMAIL_INTELLIGENCE">EMAIL_INTELLIGENCE (Data / Mail)</option>
+                  <option value="CROSS_SYSTEM">CROSS_SYSTEM (Multi-App Orchestration)</option>
+                  <option value="STANDARD_EXECUTION">STANDARD_EXECUTION (General)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Decision Result Banner -->
+            <div v-if="simDecision" class="p-3 rounded-lg bg-surface-container-lowest border border-purple-500/30 space-y-2 text-xs font-mono">
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-outline-variant/60 pb-2">
+                <div class="flex items-center gap-2">
+                  <span class="px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20 font-bold">
+                    {{ simDecision.selectedModel }}
+                  </span>
+                  <span class="text-muted">Provider: {{ simDecision.selectedProvider }}</span>
+                  <span class="text-secondary">Category: {{ simDecision.taskCategory }}</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <span class="text-emerald-400 font-bold">Est Cost: ${{ simDecision.estimatedCostPer1kTokens }}/1k tokens</span>
+                  <span class="text-amber-400">Est Latency: ~{{ simDecision.estimatedLatencyMs }}ms</span>
+                </div>
+              </div>
+              <p class="text-[11px] text-on-surface-variant font-sans leading-relaxed">
+                {{ simDecision.reason }}
+              </p>
+              <div v-if="simDecision.fallbackModel" class="text-[10px] text-muted">
+                Fallback Model: <span class="text-on-surface">{{ simDecision.fallbackModel }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- Budget Cap Configuration Modal -->
@@ -748,7 +923,10 @@ import {
   Users,
   Cpu,
   Sliders,
-  Download
+  Download,
+  Boxes,
+  Sparkles,
+  Zap
 } from '@lucide/vue'
 import UiButton from '../../components/ui/UiButton.vue'
 import UiBadge from '../../components/ui/UiBadge.vue'
@@ -758,17 +936,58 @@ import UiModal from '../../components/ui/UiModal.vue'
 import { useGovernanceStore } from '../../stores/governance'
 import { useDepartmentStore } from '../../stores/department'
 import { useAgentRunStore } from '../../stores/agentRun'
+import { useEmployeeStore } from '../../stores/employee'
 import { useToast } from '../../composables/useToast'
+import type { ModelOptimizationPolicy, ModelRoutingDecision, SatriaExecutionMode } from '../../types'
 
 const governanceStore = useGovernanceStore()
 const departmentStore = useDepartmentStore()
 const agentRunStore = useAgentRunStore()
+const employeeStore = useEmployeeStore()
 const toast = useToast()
 
 const timeRanges = ['Today', 'Last 7 Days', 'Last 30 Days', 'This Month', 'All Time'] as const
-const activeLedgerTab = ref<'employees' | 'models' | 'audit'>('employees')
+const activeLedgerTab = ref<'employees' | 'models' | 'audit' | 'router'>('employees')
 const showBudgetModal = ref(false)
 const tempBudgetCap = ref(governanceStore.budgetCapUsd)
+
+const simTaskTitle = ref('Fix JWT concurrency mutex in auth controller with unit tests')
+const simTaskMode = ref<SatriaExecutionMode>('ENGINEERING_EXECUTION')
+
+const routerPolicies = [
+  {
+    id: 'BALANCED' as ModelOptimizationPolicy,
+    label: 'Balanced Policy (Default)',
+    icon: Boxes,
+    colorClass: 'text-primary',
+    description: 'Routing cerdas otomatis: Claude 3.5 untuk coding, GPT-4o-mini untuk ekstraksi data, Hermes untuk filter.',
+    targetModels: 'Claude 3.5 Sonnet / GPT-4o-mini'
+  },
+  {
+    id: 'COST_OPTIMIZED' as ModelOptimizationPolicy,
+    label: 'Cost-Optimized Policy',
+    icon: Coins,
+    colorClass: 'text-emerald-400',
+    description: 'Prioritas efisiensi biaya maksimal. Memangkas biaya token hingga 90% menggunakan model ringan.',
+    targetModels: 'GPT-4o-mini / Hermes-3 8B'
+  },
+  {
+    id: 'QUALITY_FIRST' as ModelOptimizationPolicy,
+    label: 'Quality-First Policy',
+    icon: Sparkles,
+    colorClass: 'text-purple-400',
+    description: 'Mengutamakan akurasi penalaran frontier model untuk pekerjaan zero-defect critical path.',
+    targetModels: 'Claude 3.5 Sonnet / GPT-4o'
+  },
+  {
+    id: 'LOW_LATENCY' as ModelOptimizationPolicy,
+    label: 'Low-Latency Policy',
+    icon: Zap,
+    colorClass: 'text-cyan-400',
+    description: 'Optimal untuk workflow interaktif sub-300ms SLA dan asistensi real-time.',
+    targetModels: 'Claude 3 Haiku / GPT-4o-mini'
+  }
+]
 
 onMounted(async () => {
   await governanceStore.loadAllData()
@@ -781,6 +1000,40 @@ const availableModelOptions = computed(() => {
     if (r.telemetry?.model) models.add(r.telemetry.model)
   }
   return Array.from(models)
+})
+
+const departmentBudgetsList = computed(() => {
+  const depts = [
+    { id: 'dept-eng', name: 'Engineering & QA' },
+    { id: 'dept-side-hustle', name: 'Side Hustle Operations' },
+    { id: 'dept-trainer', name: 'Workforce Trainer & Benchmarks' }
+  ]
+
+  return depts.map((d) => {
+    const budget = governanceStore.departmentBudgets[d.id] || 20.0
+    // Estimate used from runs matching department employees
+    const deptEmployeeIds = new Set(
+      employeeStore.employees.filter((e) => e.departmentId === d.id).map((e) => e.id)
+    )
+    const deptRuns = agentRunStore.runs.filter((r) => deptEmployeeIds.has(r.employeeId))
+    const used = deptRuns.reduce((sum, r) => sum + (r.telemetry?.estimatedCostUsd || 0.005), 0)
+    const usedPercent = Math.min(100, Math.round((used / budget) * 100))
+    return {
+      id: d.id,
+      name: d.name,
+      budget,
+      used,
+      usedFormatted: `$${used.toFixed(3)}`,
+      usedPercent
+    }
+  })
+})
+
+const simDecision = computed<ModelRoutingDecision>(() => {
+  return governanceStore.routeModelForTask({
+    title: simTaskTitle.value,
+    executionMode: simTaskMode.value
+  })
 })
 
 const onDepartmentChange = (e: Event) => {
@@ -797,6 +1050,10 @@ const saveBudgetCap = () => {
   governanceStore.setBudgetCap(tempBudgetCap.value)
   showBudgetModal.value = false
   toast.show('Budget Cap Updated', `Monthly workforce budget cap configured to $${tempBudgetCap.value.toFixed(2)} USD.`, 'success')
+}
+
+const runSimRoute = () => {
+  // Triggers reactivity
 }
 
 const exportGovernanceReport = () => {

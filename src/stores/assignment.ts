@@ -1,7 +1,16 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { TaskAssignment, AssignmentStatus, Employee, SkillMatchResult } from '../types'
+import type {
+  TaskAssignment,
+  AssignmentStatus,
+  Employee,
+  SkillMatchResult,
+  Task,
+  AgentRun,
+  CapabilityMatchReport
+} from '../types'
 import { MockAssignmentRepository } from '../repositories'
+import { CapabilityMatcherEngine } from '../services/workforce/CapabilityMatcherEngine'
 
 export const useAssignmentStore = defineStore('assignment', () => {
   const assignmentRepo = new MockAssignmentRepository()
@@ -120,6 +129,22 @@ export const useAssignmentStore = defineStore('assignment', () => {
     }
   }
 
+  /**
+   * Evaluates all employees against task requirements using Capability Matcher 2.0 (Skill, Performance, Availability, Cost, Risk)
+   */
+  function evaluateCapability2(
+    task: Partial<Task>,
+    employees: Employee[],
+    historicalRuns: AgentRun[] = []
+  ): CapabilityMatchReport {
+    return CapabilityMatcherEngine.evaluateCandidates(
+      task,
+      employees,
+      historicalRuns,
+      assignments.value
+    )
+  }
+
   return {
     assignments,
     currentAssignment,
@@ -133,6 +158,7 @@ export const useAssignmentStore = defineStore('assignment', () => {
     createAssignment,
     updateStatus,
     cancelAssignment,
-    calculateSkillMatch
+    calculateSkillMatch,
+    evaluateCapability2
   }
 })

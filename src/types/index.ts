@@ -563,6 +563,74 @@ export interface HierarchicalRecallContext {
 }
 
 // ==========================================
+// PHASE 4.2 — SKILL & CAPABILITY MATCHING 2.0
+// ==========================================
+
+export interface CandidateAgentRanking {
+  employeeId: string
+  employeeName: string
+  employeeRole: string
+  employeeAvatar: string
+  departmentName: string
+  capabilityScore: number        // 0 - 100
+  skillMatchPercentage: number   // 0 - 100
+  performanceScore: number       // 0 - 100
+  availabilityScore: number      // 0 - 100
+  costEfficiencyScore: number    // 0 - 100
+  riskPenalty: number            // 0 - 100
+  matchedSkills: string[]
+  missingSkills: string[]
+  workState: EmployeeWorkState
+  recommendedReason: string
+  isBestMatch: boolean
+}
+
+export interface CapabilityMatchReport {
+  taskId: string
+  taskTitle: string
+  requiredSkillIds: string[]
+  bestCandidate?: CandidateAgentRanking
+  rankings: CandidateAgentRanking[]
+  evaluatedAt: string
+}
+
+// ==========================================
+// PHASE 4.3 — DYNAMIC MULTI-MODEL ROUTER & BUDGETS
+// ==========================================
+
+export type RoutingTaskCategory =
+  | 'SIMPLE_CLASSIFICATION'
+  | 'FAST_EXTRACTION'
+  | 'CODING_ENGINEERING'
+  | 'DEEP_REASONING_PLANNING'
+  | 'GENERAL_AGENTIC'
+
+export type ModelOptimizationPolicy =
+  | 'BALANCED'
+  | 'COST_OPTIMIZED'
+  | 'QUALITY_FIRST'
+  | 'LOW_LATENCY'
+
+export interface ModelRoutingDecision {
+  selectedModel: string
+  selectedProvider: string
+  taskCategory: RoutingTaskCategory
+  policy: ModelOptimizationPolicy
+  estimatedCostPer1kTokens: number
+  estimatedLatencyMs: number
+  reason: string
+  fallbackModel?: string
+}
+
+export interface DepartmentBudgetConfig {
+  workspaceId: string
+  monthlyWorkspaceBudgetUsd: number
+  departmentBudgets: Record<string, number>
+  hardCapEnabled: boolean
+  updatedAt: string
+}
+
+// ==========================================
 // RECURRING SCHEDULE & ACTIVE WORK READ MODEL
 // ==========================================
 

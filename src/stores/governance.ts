@@ -9,6 +9,13 @@ import {
   type GovernanceTimeFilter,
   type GovernanceDashboardSummary
 } from '../runtime/governance/GovernanceAggregator'
+import { ModelRouter } from '../runtime/router/ModelRouter'
+import type {
+  ModelOptimizationPolicy,
+  ModelRoutingDecision,
+  Task
+} from '../types'
+import type { AgentRunInput } from '../runtime/types'
 
 export const useGovernanceStore = defineStore('governance', () => {
   const agentRunStore = useAgentRunStore()
@@ -20,6 +27,13 @@ export const useGovernanceStore = defineStore('governance', () => {
   const selectedDepartmentId = ref<string>('all')
   const selectedModel = ref<string>('all')
   const budgetCapUsd = ref<number>(50.0) // default monthly budget cap in USD
+  const hardCapEnabled = ref<boolean>(true)
+  const modelRouterPolicy = ref<ModelOptimizationPolicy>('BALANCED')
+  const departmentBudgets = ref<Record<string, number>>({
+    'dept-eng': 30.0,
+    'dept-side-hustle': 15.0,
+    'dept-trainer': 10.0
+  })
   const loading = ref<boolean>(false)
 
   const filter = computed<GovernanceTimeFilter>(() => ({
@@ -73,11 +87,31 @@ export const useGovernanceStore = defineStore('governance', () => {
     }
   }
 
+  function setModelRouterPolicy(policy: ModelOptimizationPolicy) {
+    modelRouterPolicy.value = policy
+  }
+
+  function setDepartmentBudget(deptId: string, amountUsd: number) {
+    departmentBudgets.value[deptId] = Math.max(0, amountUsd)
+  }
+
+  function routeModelForTask(
+    task?: Partial<Task>,
+    runInput?: Partial<AgentRunInput>,
+    overridePolicy?: ModelOptimizationPolicy
+  ): ModelRoutingDecision {
+    const policy = overridePolicy || modelRouterPolicy.value
+    return ModelRouter.routeTask(task, runInput, policy)
+  }
+
   return {
     activeTimeRange,
     selectedDepartmentId,
     selectedModel,
     budgetCapUsd,
+    hardCapEnabled,
+    modelRouterPolicy,
+    departmentBudgets,
     loading,
     filter,
     summary,
@@ -85,6 +119,9 @@ export const useGovernanceStore = defineStore('governance', () => {
     setTimeRange,
     setDepartmentFilter,
     setModelFilter,
-    setBudgetCap
+    setBudgetCap,
+    setModelRouterPolicy,
+    setDepartmentBudget,
+    routeModelForTask
   }
 })
