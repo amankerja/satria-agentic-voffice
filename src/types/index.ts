@@ -501,19 +501,23 @@ export interface SkillMatchResult {
 }
 
 // ==========================================
-// PHASE 3.11 — AGENT MEMORY SUBSYSTEM TYPES
+// PHASE 4.1 — HIERARCHICAL AGENT MEMORY SUBSYSTEM
 // ==========================================
 
-export type MemoryType = 'episodic' | 'semantic' | 'procedural' | 'feedback'
+export type MemoryHierarchyTier = 'RUN' | 'TASK' | 'PROJECT' | 'EMPLOYEE' | 'WORKSPACE'
+export type MemoryType = 'episodic' | 'semantic' | 'procedural' | 'feedback' | 'architecture' | 'policy'
 export type MemoryScope = 'global' | 'project' | 'employee'
 
 export interface AgentMemoryItem {
   id: string
   workspaceId: string
+  tier: MemoryHierarchyTier     // RUN -> TASK -> PROJECT -> EMPLOYEE -> WORKSPACE
   employeeId?: string
   employeeName?: string
   projectId?: string
   projectName?: string
+  taskId?: string
+  taskTitle?: string
   runId?: string
   type: MemoryType
   scope: MemoryScope
@@ -525,6 +529,9 @@ export interface AgentMemoryItem {
   source: 'autonomous_run' | 'reviewer_feedback' | 'manual_entry' | 'system_rule'
   accessCount: number
   lastAccessedAt?: string
+  pinned?: boolean            // Pinned memories never decay
+  decayFactor?: number        // Optional decay rate
+  relevanceScore?: number     // Computed dynamically during recall
   createdAt: string
   updatedAt: string
 }
@@ -533,11 +540,26 @@ export interface MemoryRecallQuery {
   workspaceId: string
   employeeId?: string
   projectId?: string
+  taskId?: string
+  runId?: string
   queryText?: string
   tags?: string[]
   types?: MemoryType[]
+  tiers?: MemoryHierarchyTier[]
   limit?: number
   minConfidence?: number
+  maxTokenBudget?: number
+}
+
+export interface HierarchicalRecallContext {
+  workspaceKnowledge: AgentMemoryItem[]
+  employeeExperience: AgentMemoryItem[]
+  projectMemory: AgentMemoryItem[]
+  taskMemory: AgentMemoryItem[]
+  runMemory: AgentMemoryItem[]
+  totalItemsRecalled: number
+  totalTokenEstimate: number
+  injectedPromptSection: string
 }
 
 // ==========================================

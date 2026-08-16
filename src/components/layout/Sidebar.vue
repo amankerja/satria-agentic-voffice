@@ -164,7 +164,8 @@ import {
   ShieldCheck,
   Sparkles,
   Wrench,
-  Palette
+  Palette,
+  Brain
 } from '@lucide/vue'
 import WorkspaceSwitcher from './WorkspaceSwitcher.vue'
 import { useAgentRunStore } from '../../stores/agentRun'
@@ -214,6 +215,7 @@ const primaryMenu = [
 
 const advancedMenu = [
   { label: 'Agent Runs', path: '/runs', icon: Terminal },
+  { label: 'Agent Memory', path: '/memory', icon: Brain },
   { label: 'Schedules', path: '/schedules', icon: Clock },
   { label: 'Files', path: '/files', icon: FolderOpen },
   { label: 'Reviews & Quality', path: '/reviews', icon: ClipboardCheck },

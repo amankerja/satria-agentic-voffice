@@ -1,18 +1,29 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import type { AgentMemoryItem, MemoryRecallQuery, MemoryScope, MemoryType, AgentRun } from '../types'
+import type {
+  AgentMemoryItem,
+  MemoryRecallQuery,
+  MemoryScope,
+  MemoryType,
+  AgentRun,
+  MemoryHierarchyTier,
+  HierarchicalRecallContext
+} from '../types'
 import { MockMemoryRepository } from '../repositories'
+import { HierarchicalMemoryService } from '../services/memory/HierarchicalMemoryService'
 
 export const useMemoryStore = defineStore('memory', () => {
   const repo = new MockMemoryRepository()
   const memories = ref<AgentMemoryItem[]>([])
   const loading = ref<boolean>(false)
+  const selectedTier = ref<MemoryHierarchyTier | 'All'>('All')
   const selectedScope = ref<MemoryScope | 'All'>('All')
   const selectedType = ref<MemoryType | 'All'>('All')
   const searchQuery = ref<string>('')
 
   const filteredMemories = computed(() => {
     return memories.value.filter((m) => {
+      const matchTier = selectedTier.value === 'All' || m.tier === selectedTier.value
       const matchScope = selectedScope.value === 'All' || m.scope === selectedScope.value
       const matchType = selectedType.value === 'All' || m.type === selectedType.value
       const q = searchQuery.value.trim().toLowerCase()
@@ -20,20 +31,24 @@ export const useMemoryStore = defineStore('memory', () => {
         q === '' ||
         m.title.toLowerCase().includes(q) ||
         m.content.toLowerCase().includes(q) ||
-        m.tags.some((t) => t.toLowerCase().includes(q)) ||
+        (m.tags && m.tags.some((t) => t.toLowerCase().includes(q))) ||
         (m.employeeName && m.employeeName.toLowerCase().includes(q)) ||
         (m.projectName && m.projectName.toLowerCase().includes(q))
 
-      return matchScope && matchType && matchSearch
+      return matchTier && matchScope && matchType && matchSearch
     })
   })
 
   function getMemoriesByEmployee(employeeId: string): AgentMemoryItem[] {
-    return memories.value.filter((m) => m.employeeId === employeeId || m.scope === 'global')
+    return memories.value.filter((m) => m.employeeId === employeeId || m.scope === 'global' || m.tier === 'WORKSPACE')
   }
 
   function getMemoriesByProject(projectId: string): AgentMemoryItem[] {
-    return memories.value.filter((m) => m.projectId === projectId || m.scope === 'global')
+    return memories.value.filter((m) => m.projectId === projectId || m.scope === 'global' || m.tier === 'WORKSPACE')
+  }
+
+  function getMemoriesByTier(tier: MemoryHierarchyTier): AgentMemoryItem[] {
+    return memories.value.filter((m) => m.tier === tier)
   }
 
   async function fetchMemories(workspaceId: string = 'ws-dev') {
@@ -50,7 +65,6 @@ export const useMemoryStore = defineStore('memory', () => {
     loading.value = true
     try {
       const list = await repo.getByEmployee(employeeId)
-      // Merge or update local memories
       for (const item of list) {
         if (!memories.value.some((m) => m.id === item.id)) {
           memories.value.push(item)
@@ -66,8 +80,14 @@ export const useMemoryStore = defineStore('memory', () => {
     return await repo.recall(query)
   }
 
+  async function recallHierarchical(query: MemoryRecallQuery): Promise<HierarchicalRecallContext> {
+    return await HierarchicalMemoryService.recallHierarchical(query)
+  }
+
   async function createMemory(
-    item: Omit<AgentMemoryItem, 'id' | 'createdAt' | 'updatedAt' | 'accessCount'>
+    item: Omit<AgentMemoryItem, 'id' | 'createdAt' | 'updatedAt' | 'accessCount' | 'tier'> & {
+      tier?: MemoryHierarchyTier
+    }
   ): Promise<AgentMemoryItem> {
     const created = await repo.create(item)
     memories.value.unshift(created)
@@ -120,11 +140,14 @@ export const useMemoryStore = defineStore('memory', () => {
 
     return await createMemory({
       workspaceId: 'ws-dev',
+      tier: 'EMPLOYEE',
+      scope: 'employee',
       employeeId: run.employeeId,
       employeeName: run.employeeName,
+      taskId: run.taskId,
+      taskTitle: run.taskTitle,
       runId: run.id,
       type: memoryType,
-      scope: 'employee',
       title,
       content,
       tags,
@@ -137,15 +160,18 @@ export const useMemoryStore = defineStore('memory', () => {
   return {
     memories,
     loading,
+    selectedTier,
     selectedScope,
     selectedType,
     searchQuery,
     filteredMemories,
     getMemoriesByEmployee,
     getMemoriesByProject,
+    getMemoriesByTier,
     fetchMemories,
     fetchMemoriesByEmployee,
     recallMemories,
+    recallHierarchical,
     createMemory,
     updateMemory,
     deleteMemory,

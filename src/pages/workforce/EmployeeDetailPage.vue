@@ -907,6 +907,7 @@ const confirmAddMemory = async () => {
 
   await memoryStore.createMemory({
     workspaceId: 'ws-dev',
+    tier: newMemoryForm.value.scope === 'global' ? 'WORKSPACE' : 'EMPLOYEE',
     employeeId: newMemoryForm.value.scope === 'employee' ? empId.value : undefined,
     employeeName: newMemoryForm.value.scope === 'employee' ? employee.value?.name : undefined,
     type: newMemoryForm.value.type,

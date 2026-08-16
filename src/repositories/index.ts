@@ -27,6 +27,7 @@ import type {
   ReviewDecision,
   AgentMemoryItem,
   MemoryRecallQuery,
+  MemoryHierarchyTier,
   Schedule,
   CostEntry,
   AuditLogEntry,
@@ -839,10 +840,15 @@ export class MemoryRepository {
     return all.filter((m) => m.projectId === projectId || m.scope === 'global')
   }
 
-  async create(memoryData: Omit<AgentMemoryItem, 'id' | 'createdAt' | 'updatedAt' | 'accessCount'>): Promise<AgentMemoryItem> {
+  async create(memoryData: Omit<AgentMemoryItem, 'id' | 'createdAt' | 'updatedAt' | 'accessCount' | 'tier'> & { tier?: MemoryHierarchyTier }): Promise<AgentMemoryItem> {
     const now = new Date().toISOString()
+    const inferredTier: MemoryHierarchyTier =
+      memoryData.tier ||
+      (memoryData.scope === 'global' ? 'WORKSPACE' : memoryData.scope === 'project' ? 'PROJECT' : 'EMPLOYEE')
+
     const newMemory: AgentMemoryItem = {
       ...memoryData,
+      tier: inferredTier,
       id: `mem-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
       accessCount: 0,
       createdAt: now,

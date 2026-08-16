@@ -582,10 +582,13 @@ export const useAgentRunStore = defineStore('agentRun', () => {
         try {
           await memoryRepo.create({
             workspaceId: 'ws-dev',
+            tier: 'EMPLOYEE',
             employeeId: targetRun.employeeId,
             employeeName: targetRun.employeeName,
             projectId: task?.projectId,
             projectName: project?.name,
+            taskId: targetRun.taskId,
+            taskTitle: targetRun.taskTitle,
             runId: targetRun.id,
             type: 'episodic',
             scope: 'employee',
@@ -630,10 +633,13 @@ export const useAgentRunStore = defineStore('agentRun', () => {
         try {
           await memoryRepo.create({
             workspaceId: 'ws-dev',
+            tier: 'EMPLOYEE',
             employeeId: targetRun.employeeId,
             employeeName: targetRun.employeeName,
             projectId: task?.projectId,
             projectName: project?.name,
+            taskId: targetRun.taskId,
+            taskTitle: targetRun.taskTitle,
             runId: targetRun.id,
             type: 'feedback',
             scope: 'employee',
@@ -814,9 +820,12 @@ export const useAgentRunStore = defineStore('agentRun', () => {
         const previousTask = await taskRepo.getById(previousRun.taskId)
         await memoryRepo.create({
           workspaceId: 'ws-dev',
+          tier: 'EMPLOYEE',
           employeeId: previousRun.employeeId,
           employeeName: previousRun.employeeName,
           projectId: previousTask?.projectId,
+          taskId: previousRun.taskId,
+          taskTitle: previousRun.taskTitle,
           runId: previousRun.id,
           type: 'feedback',
           scope: 'employee',

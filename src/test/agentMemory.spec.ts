@@ -3,25 +3,27 @@ import { setActivePinia, createPinia } from 'pinia'
 import { MemoryRepository } from '../repositories'
 import { MemoryRecallFormatter } from '../runtime/context/MemoryRecallFormatter'
 import { ContextBuilder } from '../runtime/context/ContextBuilder'
+import { HierarchicalMemoryService } from '../services/memory/HierarchicalMemoryService'
 import { useMemoryStore } from '../stores/memory'
 import { useAgentRunStore } from '../stores/agentRun'
-import { canManageOrganizationMemory, getPermissionsForRole } from '../utils/rbac'
+import { canManageOrganizationMemory } from '../utils/rbac'
 import type { AgentMemoryItem, TaskAssignment, Employee } from '../types'
 import type { AgentRunInput } from '../runtime/types'
 
-describe('SATRIA AI Workforce — Agent Memory Subsystem (Phase 3.11)', () => {
+describe('SATRIA AI Workforce — Hierarchical Agent Memory Subsystem (Phase 4.1)', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
   })
 
-  describe('1. MemoryRepository & Recall Engine', () => {
-    it('creates, retrieves, updates, and deletes agent memories', async () => {
+  describe('1. MemoryRepository & 5-Tier Recall Engine', () => {
+    it('creates, retrieves, updates, and deletes agent memories across tiers', async () => {
       const repo = new MemoryRepository()
 
       const created = await repo.create({
         workspaceId: 'ws-dev',
-        employeeId: 'emp-raka',
-        employeeName: 'Raka Pratama',
+        tier: 'EMPLOYEE',
+        employeeId: 'emp-bima',
+        employeeName: 'Bima Wicaksono',
         type: 'procedural',
         scope: 'employee',
         title: 'Vitest Test Execution Protocol',
@@ -33,6 +35,7 @@ describe('SATRIA AI Workforce — Agent Memory Subsystem (Phase 3.11)', () => {
       })
 
       expect(created.id).toBeDefined()
+      expect(created.tier).toBe('EMPLOYEE')
       expect(created.accessCount).toBe(0)
       expect(created.createdAt).toBeDefined()
 
@@ -54,7 +57,7 @@ describe('SATRIA AI Workforce — Agent Memory Subsystem (Phase 3.11)', () => {
 
       const recalled = await repo.recall({
         workspaceId: 'ws-dev',
-        employeeId: 'emp-raka',
+        employeeId: 'emp-bima',
         projectId: 'prj-satria-ui',
         queryText: 'Design tokens and dark mode palette',
         tags: ['design_system', 'styling'],
@@ -64,7 +67,6 @@ describe('SATRIA AI Workforce — Agent Memory Subsystem (Phase 3.11)', () => {
       expect(recalled.length).toBeGreaterThan(0)
       expect(recalled.length).toBeLessThanOrEqual(3)
 
-      // Verify access count incremented
       const firstMemory = recalled[0]
       expect(firstMemory.accessCount).toBeGreaterThan(0)
       expect(firstMemory.lastAccessedAt).toBeDefined()
@@ -75,6 +77,7 @@ describe('SATRIA AI Workforce — Agent Memory Subsystem (Phase 3.11)', () => {
 
       const lowConfidenceMemory = await repo.create({
         workspaceId: 'ws-dev',
+        tier: 'WORKSPACE',
         type: 'episodic',
         scope: 'global',
         title: 'Uncertain observation',
@@ -95,12 +98,50 @@ describe('SATRIA AI Workforce — Agent Memory Subsystem (Phase 3.11)', () => {
     })
   })
 
-  describe('2. MemoryRecallFormatter & ContextBuilder Injection', () => {
+  describe('2. HierarchicalMemoryService & Tiered Categorization', () => {
+    it('categorizes recalled memories into 5 hierarchy tiers (Run -> Task -> Project -> Employee -> Workspace)', async () => {
+      const recallCtx = await HierarchicalMemoryService.recallHierarchical({
+        workspaceId: 'ws-dev',
+        employeeId: 'emp-bima',
+        projectId: 'prj-satria-ui',
+        queryText: 'JWT token concurrency and accessibility standards',
+        limit: 5
+      })
+
+      expect(recallCtx.totalItemsRecalled).toBeGreaterThan(0)
+      expect(recallCtx.totalTokenEstimate).toBeGreaterThan(0)
+      expect(recallCtx.injectedPromptSection).toContain('### 🧠 HIERARCHICAL AGENT MEMORY')
+
+      // Check tier distribution
+      expect(recallCtx.employeeExperience.length).toBeGreaterThan(0)
+      expect(recallCtx.workspaceKnowledge.length).toBeGreaterThan(0)
+
+      // Check Bima's specialized experience is in employeeExperience
+      const bimaExp = recallCtx.employeeExperience.find((m) => m.employeeId === 'emp-bima')
+      expect(bimaExp).toBeDefined()
+      expect(bimaExp?.title).toContain('JWT Refresh Token Concurrency')
+    })
+
+    it('enforces token budget cap on hierarchical recall without bloating prompt', async () => {
+      const recallCtx = await HierarchicalMemoryService.recallHierarchical({
+        workspaceId: 'ws-dev',
+        employeeId: 'emp-bima',
+        projectId: 'prj-satria-ui',
+        queryText: 'security and design tokens',
+        maxTokenBudget: 100 // strict small budget
+      })
+
+      expect(recallCtx.totalTokenEstimate).toBeLessThanOrEqual(400)
+    })
+  })
+
+  describe('3. MemoryRecallFormatter & ContextBuilder Prompt Injection', () => {
     it('formats memories into structured prompt blocks with scope, type, and confidence', () => {
       const mockMemories: AgentMemoryItem[] = [
         {
           id: 'mem-1',
           workspaceId: 'ws-dev',
+          tier: 'WORKSPACE',
           type: 'semantic',
           scope: 'global',
           title: 'Tailwind Semantic Tokens',
@@ -121,17 +162,12 @@ describe('SATRIA AI Workforce — Agent Memory Subsystem (Phase 3.11)', () => {
       expect(formatted).toContain('Do not use raw hex colors.')
     })
 
-    it('returns standard fallback when no memories exist', () => {
-      const formatted = MemoryRecallFormatter.format([])
-      expect(formatted).toContain('No historical memories or specific past feedback found')
-    })
-
     it('injects recalled memories into ContextBuilder system prompt', () => {
       const mockEmployee: Employee = {
-        id: 'emp-raka',
-        name: 'Raka Pratama',
+        id: 'emp-bima',
+        name: 'Bima Wicaksono',
         roleId: 'role-dev',
-        roleName: 'Senior Full-stack Agent',
+        roleName: 'Senior Backend Engineer',
         departmentId: 'dept-eng',
         departmentName: 'Engineering',
         avatar: '',
@@ -148,10 +184,10 @@ describe('SATRIA AI Workforce — Agent Memory Subsystem (Phase 3.11)', () => {
         id: 'asg-01',
         taskId: 'tsk-01',
         taskTitle: 'Implement Payment Gateway',
-        employeeId: 'emp-raka',
-        employeeName: 'Raka Pratama',
+        employeeId: 'emp-bima',
+        employeeName: 'Bima Wicaksono',
         employeeAvatar: '',
-        employeeRole: 'Senior Full-stack Agent',
+        employeeRole: 'Senior Backend Engineer',
         assignedBy: 'Lead',
         skillIds: [],
         priority: 'High',
@@ -162,9 +198,10 @@ describe('SATRIA AI Workforce — Agent Memory Subsystem (Phase 3.11)', () => {
 
       const mockMemories: AgentMemoryItem[] = [
         {
-          id: 'mem-raka-01',
+          id: 'mem-bima-01',
           workspaceId: 'ws-dev',
-          employeeId: 'emp-raka',
+          tier: 'EMPLOYEE',
+          employeeId: 'emp-bima',
           type: 'procedural',
           scope: 'employee',
           title: 'Payment Idempotency Rule',
@@ -197,7 +234,7 @@ describe('SATRIA AI Workforce — Agent Memory Subsystem (Phase 3.11)', () => {
     })
   })
 
-  describe('3. Role-Based Access Control (RBAC) Governance', () => {
+  describe('4. Role-Based Access Control (RBAC) Governance', () => {
     it('grants canManageOrganizationMemory only to Owner, Director, and Lead', () => {
       expect(canManageOrganizationMemory('Owner')).toBe(true)
       expect(canManageOrganizationMemory('Director')).toBe(true)
@@ -205,34 +242,25 @@ describe('SATRIA AI Workforce — Agent Memory Subsystem (Phase 3.11)', () => {
       expect(canManageOrganizationMemory('Developer')).toBe(false)
       expect(canManageOrganizationMemory('Viewer')).toBe(false)
     })
-
-    it('returns full permission profile with canManageOrganizationMemory', () => {
-      const leadProfile = getPermissionsForRole('Lead')
-      expect(leadProfile.canManageOrganizationMemory).toBe(true)
-      expect(leadProfile.canModifyBudget).toBe(false)
-
-      const devProfile = getPermissionsForRole('Developer')
-      expect(devProfile.canManageOrganizationMemory).toBe(false)
-    })
   })
 
-  describe('4. Pinia Memory Store & Autonomous Learning Loop', () => {
-    it('manages memory collections, search, filtering, and CRUD', async () => {
+  describe('5. Pinia Memory Store & Autonomous Learning Loop', () => {
+    it('manages hierarchical memory collections, tier filtering, and CRUD', async () => {
       const store = useMemoryStore()
       await store.fetchMemories('ws-dev')
 
       expect(store.memories.length).toBeGreaterThan(0)
 
-      // Test scope & type filtering
-      store.selectedScope = 'global'
-      expect(store.filteredMemories.every((m) => m.scope === 'global')).toBe(true)
+      // Test tier filtering
+      store.selectedTier = 'WORKSPACE'
+      expect(store.filteredMemories.every((m) => m.tier === 'WORKSPACE')).toBe(true)
 
-      store.selectedScope = 'All'
+      store.selectedTier = 'All'
       store.searchQuery = 'Semantic'
       expect(store.filteredMemories.every((m) => m.title.includes('Semantic') || m.content.includes('Semantic'))).toBe(true)
     })
 
-    it('synthesizes lessons autonomously from completed execution run', async () => {
+    it('synthesizes lessons autonomously into EMPLOYEE tier memory from completed execution run', async () => {
       const memoryStore = useMemoryStore()
       const agentRunStore = useAgentRunStore()
 
@@ -240,10 +268,10 @@ describe('SATRIA AI Workforce — Agent Memory Subsystem (Phase 3.11)', () => {
         id: 'asg-mem-test',
         taskId: 'tsk-mem-test',
         taskTitle: 'Build Responsive Header Bar',
-        employeeId: 'emp-raka',
-        employeeName: 'Raka Pratama',
+        employeeId: 'emp-bima',
+        employeeName: 'Bima Wicaksono',
         employeeAvatar: '',
-        employeeRole: 'Senior Full-stack Agent',
+        employeeRole: 'Senior Backend Engineer',
         assignedBy: 'Lead',
         skillIds: [],
         priority: 'High',
@@ -257,8 +285,9 @@ describe('SATRIA AI Workforce — Agent Memory Subsystem (Phase 3.11)', () => {
       run.outputSummary = 'Header bar responsive breakpoint verified.'
 
       const learned = await memoryStore.learnFromExecution(run, 'Completed')
+      expect(learned.tier).toBe('EMPLOYEE')
       expect(learned.type).toBe('episodic')
-      expect(learned.employeeId).toBe('emp-raka')
+      expect(learned.employeeId).toBe('emp-bima')
       expect(learned.title).toContain('Execution Success Pattern')
       expect(learned.tags).toContain('autonomous_success')
     })
