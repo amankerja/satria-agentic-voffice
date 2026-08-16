@@ -967,9 +967,15 @@ export type IntegrationProviderType = 'github' | 'gmail' | 'google_drive' | 'sla
 export type IntegrationAuthType = 'oauth2' | 'github_app' | 'api_key' | 'webhook'
 export type IntegrationConnectionStatus = 'Connected' | 'Degraded' | 'Expired' | 'Revoked' | 'Error' | 'Disconnected'
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
-export type ToolEffect = 'ALLOW' | 'APPROVAL_REQUIRED' | 'DENY'
+export type ToolEffect = 'ALLOW' | 'APPROVAL_REQUIRED' | 'DENY' | 'BOUNDARY_DENIED'
 export type IntegrationApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'CANCELLED'
 export type ToolExecutionStatus = 'REQUESTED' | 'VALIDATING' | 'WAITING_APPROVAL' | 'EXECUTING' | 'COMPLETED' | 'FAILED' | 'REJECTED'
+
+export type AuditRejectionCategory =
+  | 'PERMISSION_DENIED'
+  | 'POLICY_DENIED'
+  | 'BOUNDARY_VIOLATION'
+  | 'APPROVAL_REJECTED'
 
 export type SatriaExecutionMode =
   | 'TASK_EXECUTION'
@@ -1229,7 +1235,13 @@ export interface IntegrationAuditEvent {
   provider: IntegrationProviderType
   toolName: string
   action: string
-  status: 'SUCCESS' | 'FAILURE' | 'DENIED' | 'APPROVED' | 'REJECTED'
+  status: 'SUCCESS' | 'FAILURE' | 'DENIED' | 'BOUNDARY_DENIED' | 'APPROVED' | 'REJECTED'
+  rejectionCategory?: AuditRejectionCategory
+  taskContext?: {
+    taskId?: string
+    executionMode?: SatriaExecutionMode
+    allowedIntegrations?: string[]
+  }
   riskLevel: RiskLevel
   details?: Record<string, any>
   evidence?: ToolEvidence[]

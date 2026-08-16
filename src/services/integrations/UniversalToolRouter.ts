@@ -78,7 +78,13 @@ export class UniversalToolRouter {
           provider: connection.providerId,
           toolName: request.toolName,
           action: request.action,
-          status: 'DENIED',
+          status: 'BOUNDARY_DENIED',
+          rejectionCategory: 'BOUNDARY_VIOLATION',
+          taskContext: {
+            taskId: options?.taskContext?.id,
+            executionMode: boundaryCheck.executionMode,
+            allowedIntegrations: options?.taskContext?.allowedIntegrations || TaskBoundaryGuard.getDefaultAllowedIntegrations(boundaryCheck.executionMode)
+          },
           riskLevel: 'HIGH',
           details: { reason: boundaryCheck.reason }
         }
@@ -132,6 +138,7 @@ export class UniversalToolRouter {
         toolName: request.toolName,
         action: request.action,
         status: 'DENIED',
+        rejectionCategory: 'PERMISSION_DENIED',
         riskLevel: permEval.riskLevel,
         details: { reason: execFail.errorMessage }
       }
@@ -207,6 +214,7 @@ export class UniversalToolRouter {
             toolName: request.toolName,
             action: request.action,
             status: 'REJECTED',
+            rejectionCategory: 'APPROVAL_REJECTED',
             riskLevel: permEval.riskLevel,
             details: { reason: 'Persetujuan ditolak' }
           }

@@ -397,7 +397,9 @@ describe('Phase 7 — Enterprise Integrations (GitHub & Email), Tool Control & C
 
       expect(routerRes.result.success).toBe(false)
       expect(routerRes.result.error?.code).toBe('BOUNDARY_VIOLATION')
-      expect(routerRes.auditEvent.status).toBe('DENIED')
+      expect(routerRes.auditEvent.status).toBe('BOUNDARY_DENIED')
+      expect(routerRes.auditEvent.rejectionCategory).toBe('BOUNDARY_VIOLATION')
+      expect(routerRes.auditEvent.taskContext?.executionMode).toBe('ENGINEERING_EXECUTION')
     })
 
     it('blocks Email Intelligence task from accessing GitHub tools', () => {
