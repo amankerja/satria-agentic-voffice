@@ -960,9 +960,90 @@ export type IntegrationProviderType = 'github' | 'gmail' | 'google_drive' | 'sla
 export type IntegrationAuthType = 'oauth2' | 'github_app' | 'api_key' | 'webhook'
 export type IntegrationConnectionStatus = 'Connected' | 'Degraded' | 'Expired' | 'Revoked' | 'Error' | 'Disconnected'
 export type RiskLevel = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
-export type ToolEffect = 'ALLOW' | 'DENY' | 'APPROVAL_REQUIRED'
+export type ToolEffect = 'ALLOW' | 'APPROVAL_REQUIRED' | 'DENY'
 export type IntegrationApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'CANCELLED'
 export type ToolExecutionStatus = 'REQUESTED' | 'VALIDATING' | 'WAITING_APPROVAL' | 'EXECUTING' | 'COMPLETED' | 'FAILED' | 'REJECTED'
+
+export type SatriaExecutionMode =
+  | 'TASK_EXECUTION'
+  | 'EMAIL_INTELLIGENCE'
+  | 'ENGINEERING_EXECUTION'
+  | 'CROSS_SYSTEM'
+
+// Email Intelligence 3-Layer Types
+export type EmailCategory =
+  | 'FINANCE'
+  | 'PAYMENT'
+  | 'SALES'
+  | 'CUSTOMER'
+  | 'OPERATIONS'
+  | 'REPORT'
+  | 'OTHER'
+
+export interface EmailFilterRule {
+  id: string
+  name: string
+  enabled: boolean
+  senderDomainPattern?: string // e.g. '*.bank.co.id', '*shopee.co.id*'
+  senderAddressPattern?: string // e.g. 'notification@bank...', 'no-reply@shopee...'
+  subjectKeywords?: string[] // e.g. ['mutasi', 'transaksi', 'saldo', 'settlement']
+  bodyKeywords?: string[] // e.g. ['pembayaran', 'berhasil', 'rekening']
+  hasAttachment?: boolean
+  targetCategory: EmailCategory
+  targetSource: string // e.g. 'BANK', 'SHOPEEPAY', 'MIDTRANS', 'MARKETPLACE'
+  priority: number
+}
+
+export interface StructuredEmailTransaction {
+  id: string
+  messageId: string
+  ruleId?: string
+  category: EmailCategory
+  source: string // 'BANK' | 'SHOPEEPAY' | 'MIDTRANS' | 'ECOMMERCE' | 'VENDOR'
+  sender: string
+  subject: string
+  receivedAt: string
+  transactionDate: string
+  amount: number
+  fee?: number
+  netAmount?: number
+  currency: string
+  type: 'INCOME' | 'EXPENSE' | 'SETTLEMENT' | 'TRANSFER' | 'INVOICE'
+  referenceNumber: string
+  senderOrMerchantName?: string
+  rawSnippet: string
+  status: 'EXTRACTED' | 'RECONCILED' | 'FLAGGED'
+}
+
+export interface EmailIntelligenceReport {
+  id: string
+  title: string
+  category: EmailCategory
+  generatedAt: string
+  period: {
+    startDate: string
+    endDate: string
+  }
+  totalEmailsScanned: number
+  totalRelevantEmails: number
+  totalIgnoredEmails: number
+  totalTransactions: number
+  summary: {
+    totalIncome: number
+    totalExpense: number
+    totalSettlement: number
+    totalFee: number
+    netRevenue: number
+    currency: string
+  }
+  sourceBreakdown: {
+    source: string
+    transactionCount: number
+    totalAmount: number
+  }[]
+  transactions: StructuredEmailTransaction[]
+  markdownDeliverable: string
+}
 
 export interface IntegrationCapability {
   id: string

@@ -142,17 +142,37 @@
       </div>
     </div>
 
-    <!-- TAB 2: CROSS-SYSTEM AGENTIC STUDIO -->
+    <!-- TAB 2: EMAIL INTELLIGENCE (MODE 2) -->
+    <div v-else-if="activeTab === 'email_intel'">
+      <EmailIntelligenceTab />
+    </div>
+
+    <!-- TAB 3: ENGINEERING STUDIO (MODE 3) -->
+    <div v-else-if="activeTab === 'engineering'">
+      <EngineeringStudioTab />
+    </div>
+
+    <!-- TAB 4: CROSS-SYSTEM AGENTIC STUDIO (MODE 4) -->
     <div v-else-if="activeTab === 'cross_system'">
       <CrossSystemStudioTab />
     </div>
 
-    <!-- TAB 3: TOOL PERMISSION MATRIX -->
+    <!-- TAB 5: TOOL CATALOG -->
+    <div v-else-if="activeTab === 'catalog'">
+      <ToolCatalogTab />
+    </div>
+
+    <!-- TAB 6: CREDENTIAL VAULT -->
+    <div v-else-if="activeTab === 'vault'">
+      <CredentialVaultTab />
+    </div>
+
+    <!-- TAB 7: TOOL PERMISSION MATRIX -->
     <div v-else-if="activeTab === 'permissions'">
       <ToolPermissionMatrixTab :permissions="integrationStore.permissions" />
     </div>
 
-    <!-- TAB 4: APPROVAL GATE CENTER -->
+    <!-- TAB 8: APPROVAL GATE CENTER -->
     <div v-else-if="activeTab === 'approvals'" class="space-y-4">
       <div class="flex items-center justify-between">
         <div>
@@ -213,17 +233,7 @@
       </div>
     </div>
 
-    <!-- TAB 5: TOOL CATALOG -->
-    <div v-else-if="activeTab === 'catalog'">
-      <ToolCatalogTab />
-    </div>
-
-    <!-- TAB 6: CREDENTIAL VAULT -->
-    <div v-else-if="activeTab === 'vault'">
-      <CredentialVaultTab />
-    </div>
-
-    <!-- TAB 7: SECURITY AUDIT & TELEMETRY -->
+    <!-- TAB 9: SECURITY AUDIT & TELEMETRY -->
     <div v-else-if="activeTab === 'audit'">
       <IntegrationAuditTab :audit-events="integrationStore.auditEvents" />
     </div>
@@ -252,6 +262,8 @@ import { useIntegrationStore } from '../../stores/integration'
 import ConnectIntegrationModal from '../../components/integrations/ConnectIntegrationModal.vue'
 import ToolApprovalModal from '../../components/integrations/ToolApprovalModal.vue'
 import CrossSystemStudioTab from '../../components/integrations/CrossSystemStudioTab.vue'
+import EngineeringStudioTab from '../../components/integrations/EngineeringStudioTab.vue'
+import EmailIntelligenceTab from '../../components/integrations/EmailIntelligenceTab.vue'
 import ToolPermissionMatrixTab from '../../components/integrations/ToolPermissionMatrixTab.vue'
 import ToolCatalogTab from '../../components/integrations/ToolCatalogTab.vue'
 import CredentialVaultTab from '../../components/integrations/CredentialVaultTab.vue'
@@ -259,14 +271,16 @@ import IntegrationAuditTab from '../../components/integrations/IntegrationAuditT
 
 const integrationStore = useIntegrationStore()
 
-const activeTab = ref<'services' | 'cross_system' | 'catalog' | 'permissions' | 'approvals' | 'vault' | 'audit'>('services')
+const activeTab = ref<'services' | 'email_intel' | 'engineering' | 'cross_system' | 'catalog' | 'permissions' | 'approvals' | 'vault' | 'audit'>('email_intel')
 const showConnectModal = ref(false)
 const showApprovalModal = ref(false)
 const selectedApproval = ref<IntegrationApprovalRequest | null>(null)
 
 const tabOptions = computed(() => [
+  { id: 'email_intel' as const, label: 'Email Intelligence (3-Layer)', badge: 'Mode 2' },
+  { id: 'engineering' as const, label: 'Engineering Hub (GitHub)', badge: 'Mode 3' },
+  { id: 'cross_system' as const, label: 'Cross-System Studio', badge: 'Mode 4' },
   { id: 'services' as const, label: 'Layanan Terhubung', badge: integrationStore.connectedCount.toString() },
-  { id: 'cross_system' as const, label: 'Cross-System Studio' },
   { id: 'catalog' as const, label: 'Katalog Tool' },
   { id: 'permissions' as const, label: 'Matriks Izin Tool', badge: integrationStore.permissions.length.toString() },
   { id: 'approvals' as const, label: 'Approval Gate Center', badge: integrationStore.pendingApprovalsCount.toString() },
