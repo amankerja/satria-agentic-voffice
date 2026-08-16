@@ -166,7 +166,8 @@ import {
   Wrench,
   Palette,
   Brain,
-  FlaskConical
+  FlaskConical,
+  GitBranch
 } from '@lucide/vue'
 import WorkspaceSwitcher from './WorkspaceSwitcher.vue'
 import { useAgentRunStore } from '../../stores/agentRun'
@@ -215,6 +216,7 @@ const primaryMenu = [
 ]
 
 const advancedMenu = [
+  { label: 'Workflows', path: '/workflows', icon: GitBranch },
   { label: 'Agent Runs', path: '/runs', icon: Terminal },
   { label: 'Agent Memory', path: '/memory', icon: Brain },
   { label: 'Evaluation Lab', path: '/evaluation', icon: FlaskConical },

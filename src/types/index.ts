@@ -693,6 +693,96 @@ export interface AgentEvaluationLeaderboardItem {
 }
 
 // ==========================================
+// PHASE 5 — VISUAL WORKFLOW BUILDER & DAG ENGINE
+// ==========================================
+
+export type WorkflowNodeType =
+  | 'TRIGGER'
+  | 'CLASSIFIER'
+  | 'AGENT_TASK'
+  | 'CONDITION'
+  | 'APPROVAL'
+  | 'INTEGRATION_ACTION'
+  | 'OUTPUT'
+
+export interface WorkflowNode {
+  id: string
+  type: WorkflowNodeType
+  label: string
+  position: { x: number; y: number }
+  config: {
+    triggerType?: 'EMAIL_RECEIVED' | 'GITHUB_EVENT' | 'SCHEDULE_CRON' | 'MANUAL'
+    classifierRules?: { category: string; keywords: string[] }[]
+    assignedEmployeeId?: string
+    assignedEmployeeName?: string
+    taskTitleTemplate?: string
+    taskInstructions?: string
+    conditionExpression?: string
+    approvalPrompt?: string
+    integrationAction?: 'GITHUB_CREATE_ISSUE' | 'GITHUB_CREATE_PR' | 'EMAIL_SEND_RECAP' | 'WRITE_FILE'
+    [key: string]: any
+  }
+}
+
+export interface WorkflowEdge {
+  id: string
+  source: string
+  target: string
+  label?: string
+  conditionBranch?: 'true' | 'false' | string
+}
+
+export interface WorkflowDefinition {
+  id: string
+  workspaceId: string
+  name: string
+  description: string
+  category: 'ENGINEERING' | 'FINANCE' | 'OPERATIONS' | 'MARKETING' | 'CUSTOM'
+  nodes: WorkflowNode[]
+  edges: WorkflowEdge[]
+  enabled: boolean
+  createdAt: string
+  updatedAt: string
+}
+
+export type WorkflowNodeExecutionStatus =
+  | 'idle'
+  | 'running'
+  | 'completed'
+  | 'failed'
+  | 'waiting_approval'
+  | 'skipped'
+
+export interface WorkflowNodeExecution {
+  nodeId: string
+  nodeLabel: string
+  nodeType: WorkflowNodeType
+  status: WorkflowNodeExecutionStatus
+  startedAt?: string
+  completedAt?: string
+  output?: any
+  error?: string
+}
+
+export type WorkflowExecutionStatus =
+  | 'Running'
+  | 'Completed'
+  | 'Waiting_Approval'
+  | 'Failed'
+
+export interface WorkflowExecution {
+  id: string
+  workflowId: string
+  workflowName: string
+  status: WorkflowExecutionStatus
+  currentNodeId?: string
+  nodeExecutions: Record<string, WorkflowNodeExecution>
+  context: Record<string, any>
+  startedAt: string
+  completedAt?: string
+}
+
+// ==========================================
 // RECURRING SCHEDULE & ACTIVE WORK READ MODEL
 // ==========================================
 

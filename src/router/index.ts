@@ -72,6 +72,11 @@ const routes = [
     component: () => import('../pages/workforce/EvaluationLabPage.vue')
   },
   {
+    path: '/workflows',
+    name: 'WorkflowBuilder',
+    component: () => import('../pages/workflow/WorkflowBuilderPage.vue')
+  },
+  {
     path: '/workers',
     redirect: '/workforce/employees'
   },
