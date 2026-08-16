@@ -77,6 +77,11 @@ const routes = [
     component: () => import('../pages/workflow/WorkflowBuilderPage.vue')
   },
   {
+    path: '/delegation',
+    name: 'DelegationHub',
+    component: () => import('../pages/workforce/DelegationHubPage.vue')
+  },
+  {
     path: '/workers',
     redirect: '/workforce/employees'
   },

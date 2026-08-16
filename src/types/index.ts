@@ -783,6 +783,69 @@ export interface WorkflowExecution {
 }
 
 // ==========================================
+// PHASE 6 — MULTI-AGENT DELEGATION & ACL SUBSYSTEM
+// ==========================================
+
+export type AgentRoleLevel = 'SUPERVISOR' | 'SPECIALIST' | 'WORKER'
+
+export interface AgentAclPolicy {
+  employeeId: string
+  roleLevel: AgentRoleLevel
+  canDelegate: boolean
+  maxDelegationDepth: number
+  allowedDelegateeRoleIds: string[]
+  maxSubTaskBudgetUsd: number
+  inheritedToolWhiteList: string[]
+}
+
+export type DelegatedSubTaskStatus =
+  | 'Pending'
+  | 'In Progress'
+  | 'Completed'
+  | 'Failed'
+  | 'Rejected_By_Acl'
+
+export interface DelegatedSubTask {
+  id: string
+  parentTaskId: string
+  parentRunId: string
+  delegatorEmployeeId: string
+  delegatorName: string
+  delegateeEmployeeId: string
+  delegateeName: string
+  delegateeRole: string
+  title: string
+  instructions: string
+  budgetUsd: number
+  status: DelegatedSubTaskStatus
+  depth: number
+  resultPayload?: any
+  error?: string
+  createdAt: string
+  completedAt?: string
+}
+
+export type DelegationPlanStatus =
+  | 'Planning'
+  | 'Executing'
+  | 'Aggregating'
+  | 'Completed'
+  | 'Failed'
+
+export interface DelegationPlan {
+  planId: string
+  parentTaskId: string
+  supervisorId: string
+  supervisorName: string
+  goal: string
+  subTasks: DelegatedSubTask[]
+  overallStatus: DelegationPlanStatus
+  aggregatedResult?: string
+  createdAt: string
+  completedAt?: string
+}
+
+// ==========================================
 // RECURRING SCHEDULE & ACTIVE WORK READ MODEL
 // ==========================================
 
