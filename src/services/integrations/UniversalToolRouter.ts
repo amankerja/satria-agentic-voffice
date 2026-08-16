@@ -3,12 +3,14 @@ import type {
   ToolRequest,
   ToolExecution,
   IntegrationApprovalRequest,
-  IntegrationAuditEvent
+  IntegrationAuditEvent,
+  Task
 } from '../../types'
 import type { IIntegrationAdapter, ToolResult } from './types'
 import { GitHubAdapter } from './GitHubAdapter'
 import { GmailAdapter } from './GmailAdapter'
 import { PermissionEngine } from './PermissionEngine'
+import { TaskBoundaryGuard } from './TaskBoundaryGuard'
 
 export class UniversalToolRouter {
   private static adapters: Map<string, IIntegrationAdapter> = new Map<string, IIntegrationAdapter>([
@@ -28,6 +30,7 @@ export class UniversalToolRouter {
     request: ToolRequest,
     connection: IntegrationConnection,
     options?: {
+      taskContext?: Partial<Task>
       onApprovalRequired?: (approval: IntegrationApprovalRequest) => Promise<boolean>
       bypassApproval?: boolean
     }
@@ -39,6 +42,64 @@ export class UniversalToolRouter {
   }> {
     const startedAt = new Date().toISOString()
     const inputHash = `hash_${Math.random().toString(36).substr(2, 9)}`
+
+    // 0. Task Boundary & Explicit Workflow Mode Guard
+    if (options?.taskContext) {
+      const boundaryCheck = TaskBoundaryGuard.assertToolAccess(
+        options.taskContext,
+        connection.providerId,
+        request.toolName
+      )
+
+      if (!boundaryCheck.allowed) {
+        const execFail: ToolExecution = {
+          id: `exec-${Date.now()}`,
+          runId: request.runId,
+          taskId: request.taskId,
+          agentId: request.agentId,
+          agentName: request.agentName,
+          connectionId: connection.id,
+          toolName: request.toolName,
+          action: request.action,
+          inputHash,
+          status: 'FAILED',
+          errorCode: 'BOUNDARY_VIOLATION',
+          errorMessage: boundaryCheck.reason,
+          startedAt,
+          completedAt: new Date().toISOString()
+        }
+
+        const auditDenied: IntegrationAuditEvent = {
+          id: `aud-${Date.now()}`,
+          timestamp: new Date().toISOString(),
+          actorId: request.agentId,
+          actorName: request.agentName || request.agentId,
+          connectionId: connection.id,
+          provider: connection.providerId,
+          toolName: request.toolName,
+          action: request.action,
+          status: 'DENIED',
+          riskLevel: 'HIGH',
+          details: { reason: boundaryCheck.reason }
+        }
+
+        return {
+          execution: execFail,
+          result: {
+            success: false,
+            provider: connection.providerId,
+            toolName: request.toolName,
+            action: request.action,
+            error: {
+              code: 'BOUNDARY_VIOLATION',
+              message: boundaryCheck.reason,
+              retryable: false
+            }
+          },
+          auditEvent: auditDenied
+        }
+      }
+    }
 
     // 1. Permission Evaluation Check
     const permEval = PermissionEngine.evaluate(request.agentId, request.toolName, request.action)

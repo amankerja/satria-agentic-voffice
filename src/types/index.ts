@@ -87,6 +87,8 @@ export interface Task {
   title: string
   description: string
   type?: TaskType
+  executionMode?: SatriaExecutionMode // 'TASK_EXECUTION' | 'EMAIL_INTELLIGENCE' | 'ENGINEERING_EXECUTION' | 'CROSS_SYSTEM'
+  allowedIntegrations?: IntegrationProviderType[] // Explicit whitelist of allowed integrations (e.g. ['github'] or ['gmail'])
   status: TaskStatus
   priority: TaskPriority
   assigneeId?: string
@@ -900,8 +902,13 @@ export interface WorkflowInstance {
   workflowTemplateId: string
   workflowTemplateName?: string
   projectId: string
+  type?: 'project' | 'one_time' | 'recurring_instance'
+  executionMode?: SatriaExecutionMode // 'TASK_EXECUTION' | 'EMAIL_INTELLIGENCE' | 'ENGINEERING_EXECUTION' | 'CROSS_SYSTEM'
+  allowedIntegrations?: IntegrationProviderType[] // Explicit whitelist of permitted integration providers (e.g. ['github'] or ['gmail'])
   projectName?: string
   scheduleId?: string
+  scheduleExecutionKey?: string
+  parentTaskId?: string
   contentItemId?: string
   dataReviewId?: string
   status: 'Pending' | 'Running' | 'Waiting' | 'Review' | 'Completed' | 'Failed' | 'Cancelled'

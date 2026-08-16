@@ -12,7 +12,8 @@ import { GoogleOAuthService } from '../services/integrations/GoogleOAuthService'
 import { ToolCatalog } from '../services/integrations/ToolCatalog'
 import { RecipientSecurityPolicy } from '../services/integrations/RecipientSecurityPolicy'
 import { IntegrationApprovalPolicy } from '../services/integrations/IntegrationApprovalPolicy'
-import type { IntegrationConnection } from '../types'
+import { TaskBoundaryGuard } from '../services/integrations/TaskBoundaryGuard'
+import type { IntegrationConnection, Task } from '../types'
 
 describe('Phase 7 — Enterprise Integrations (GitHub & Email), Tool Control & Cross-System Execution', () => {
   let mockGitHubConn: IntegrationConnection
@@ -349,6 +350,82 @@ describe('Phase 7 — Enterprise Integrations (GitHub & Email), Tool Control & C
       const emailSend = IntegrationApprovalPolicy.evaluateEmailAction('email.send', { to: 'client@clientcorp.com' })
       expect(emailSend.requiresApproval).toBe(true)
       expect(emailSend.riskLevel).toBe('HIGH')
+    })
+  })
+
+  describe('TaskBoundaryGuard & Explicit Workflow Mode Containment', () => {
+    it('blocks Engineering task from accessing email tools with BOUNDARY_VIOLATION', async () => {
+      const task: Partial<Task> = {
+        id: 'tsk-eng-test',
+        title: 'Fix Bug in satria-api',
+        executionMode: 'ENGINEERING_EXECUTION',
+        allowedIntegrations: ['github']
+      }
+
+      const check = TaskBoundaryGuard.assertToolAccess(task, 'gmail', 'email.send')
+      expect(check.allowed).toBe(false)
+      expect(check.reason).toContain('BOUNDARY_VIOLATION')
+
+      // Check router dispatch rejection
+      const mockEmailConn: IntegrationConnection = {
+        id: 'conn-gmail-boundary',
+        providerId: 'gmail',
+        workspaceId: 'ws-dev',
+        displayName: 'Gmail',
+        accountLabel: 'ops@satria.ai',
+        status: 'Connected',
+        scopes: ['send'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+
+      const routerRes = await UniversalToolRouter.executeTool(
+        {
+          id: 'req-boundary-test',
+          runId: 'run-1',
+          taskId: 'tsk-eng-test',
+          agentId: 'emp-bima',
+          toolName: 'email.send',
+          action: 'write',
+          arguments: { to: 'test@satria.ai', subject: 'hi' },
+          riskLevel: 'HIGH',
+          createdAt: new Date().toISOString()
+        },
+        mockEmailConn,
+        { taskContext: task }
+      )
+
+      expect(routerRes.result.success).toBe(false)
+      expect(routerRes.result.error?.code).toBe('BOUNDARY_VIOLATION')
+      expect(routerRes.auditEvent.status).toBe('DENIED')
+    })
+
+    it('blocks Email Intelligence task from accessing GitHub tools', () => {
+      const task: Partial<Task> = {
+        id: 'tsk-email-test',
+        title: 'Rekap Transaksi Bank',
+        executionMode: 'EMAIL_INTELLIGENCE',
+        allowedIntegrations: ['gmail']
+      }
+
+      const check = TaskBoundaryGuard.assertToolAccess(task, 'github', 'github.create_pull_request')
+      expect(check.allowed).toBe(false)
+      expect(check.reason).toContain('BOUNDARY_VIOLATION')
+    })
+
+    it('permits multi-system tools only when task is explicitly CROSS_SYSTEM', () => {
+      const taskCross: Partial<Task> = {
+        id: 'tsk-cross-test',
+        title: 'Ambil error email lalu buat issue GitHub',
+        executionMode: 'CROSS_SYSTEM',
+        allowedIntegrations: ['gmail', 'github']
+      }
+
+      const emailCheck = TaskBoundaryGuard.assertToolAccess(taskCross, 'gmail', 'email.search_messages')
+      const ghCheck = TaskBoundaryGuard.assertToolAccess(taskCross, 'github', 'github.create_pull_request')
+
+      expect(emailCheck.allowed).toBe(true)
+      expect(ghCheck.allowed).toBe(true)
     })
   })
 })
