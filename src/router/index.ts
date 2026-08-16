@@ -87,6 +87,11 @@ const routes = [
     component: () => import('../pages/webhooks/WebhookGatewayPage.vue')
   },
   {
+    path: '/incidents',
+    name: 'IncidentEscalation',
+    component: () => import('../pages/incidents/IncidentEscalationPage.vue')
+  },
+  {
     path: '/workers',
     redirect: '/workforce/employees'
   },

@@ -90,6 +90,26 @@
         <span>{{ isOnline ? 'Web Online' : 'Offline' }}</span>
       </div>
 
+      <!-- Live Collaborators Presence Stack (Phase 8) -->
+      <div class="hidden md:flex items-center -space-x-1.5 overflow-hidden pl-1">
+        <div
+          v-for="user in presenceStore.onlineUsers"
+          :key="user.userId"
+          class="relative group"
+          :title="`${user.userName} (${user.role}) - at ${user.currentRoute}`"
+        >
+          <div
+            class="w-6 h-6 rounded-full border border-surface-container-high bg-surface-container flex items-center justify-center text-[10px] font-bold text-surface-on shadow-sm"
+          >
+            {{ user.userName.substring(0, 2).toUpperCase() }}
+          </div>
+          <span
+            class="absolute bottom-0 right-0 w-1.5 h-1.5 rounded-full border border-surface-base"
+            :class="user.status === 'ONLINE' ? 'bg-primary' : 'bg-amber-400'"
+          />
+        </div>
+      </div>
+
       <!-- Quick New Button -->
       <UiButton
         size="sm"
@@ -134,9 +154,12 @@ import { useRoute } from 'vue-router'
 import { Search, Bell, ChevronRight, Plus, Download } from '@lucide/vue'
 import UiButton from '../ui/UiButton.vue'
 import { useNotificationStore } from '../../stores/notification'
+import { usePresenceStore } from '../../stores/presence'
 import { useNetwork } from '../../composables/useNetwork'
 import { usePwaInstall } from '../../composables/usePwaInstall'
 import { useHermesHealth } from '../../composables/useHermesHealth'
+
+const presenceStore = usePresenceStore()
 
 defineEmits(['openSearch', 'openQuickCreate'])
 

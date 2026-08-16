@@ -897,6 +897,76 @@ export interface SatriaInboundEvent {
 }
 
 // ==========================================
+// PHASE 8 — MULTI-USER PRESENCE & COLLABORATION
+// ==========================================
+
+export type UserPresenceStatus = 'ONLINE' | 'BUSY' | 'IDLE' | 'OFFLINE'
+
+export interface UserPresence {
+  userId: string
+  userName: string
+  userEmail: string
+  avatar: string
+  role: 'Owner' | 'Manager' | 'Engineer' | 'Guest'
+  currentRoute: string
+  currentTaskId?: string
+  status: UserPresenceStatus
+  lastActiveAt: string
+}
+
+export interface CollaborativeActivityEntry {
+  id: string
+  actorId: string
+  actorName: string
+  actorAvatar: string
+  action: string
+  entityType: 'TASK' | 'RUN' | 'WORKFLOW' | 'INTEGRATION' | 'GOVERNANCE' | 'INCIDENT'
+  entityId: string
+  entityTitle: string
+  timestamp: string
+}
+
+// ==========================================
+// PHASE 9 — ENTERPRISE SLA & INCIDENT ESCALATION
+// ==========================================
+
+export interface SlaPolicy {
+  priority: TaskPriority | 'P0' | 'P1' | 'P2' | 'P3'
+  maxExecutionTimeSeconds: number
+  maxAttempts: number
+  escalationTimeoutSeconds: number
+  escalationRecipients: string[]
+}
+
+export type IncidentSeverity =
+  | 'SEV-1_CRITICAL'
+  | 'SEV-2_HIGH'
+  | 'SEV-3_MEDIUM'
+  | 'SEV-4_LOW'
+
+export type IncidentStatus =
+  | 'OPEN'
+  | 'INVESTIGATING'
+  | 'MITIGATED'
+  | 'RESOLVED'
+
+export interface IncidentRecord {
+  id: string
+  title: string
+  severity: IncidentSeverity
+  status: IncidentStatus
+  sourceRunId?: string
+  sourceTaskId?: string
+  departmentId: string
+  triggeredRule: string
+  escalationLevel: number
+  summary: string
+  createdAt: string
+  resolvedAt?: string
+  resolvedBy?: string
+}
+
+// ==========================================
 // RECURRING SCHEDULE & ACTIVE WORK READ MODEL
 // ==========================================
 
