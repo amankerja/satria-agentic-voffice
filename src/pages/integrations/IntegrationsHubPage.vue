@@ -213,7 +213,17 @@
       </div>
     </div>
 
-    <!-- TAB 5: SECURITY AUDIT & TELEMETRY -->
+    <!-- TAB 5: TOOL CATALOG -->
+    <div v-else-if="activeTab === 'catalog'">
+      <ToolCatalogTab />
+    </div>
+
+    <!-- TAB 6: CREDENTIAL VAULT -->
+    <div v-else-if="activeTab === 'vault'">
+      <CredentialVaultTab />
+    </div>
+
+    <!-- TAB 7: SECURITY AUDIT & TELEMETRY -->
     <div v-else-if="activeTab === 'audit'">
       <IntegrationAuditTab :audit-events="integrationStore.auditEvents" />
     </div>
@@ -243,11 +253,13 @@ import ConnectIntegrationModal from '../../components/integrations/ConnectIntegr
 import ToolApprovalModal from '../../components/integrations/ToolApprovalModal.vue'
 import CrossSystemStudioTab from '../../components/integrations/CrossSystemStudioTab.vue'
 import ToolPermissionMatrixTab from '../../components/integrations/ToolPermissionMatrixTab.vue'
+import ToolCatalogTab from '../../components/integrations/ToolCatalogTab.vue'
+import CredentialVaultTab from '../../components/integrations/CredentialVaultTab.vue'
 import IntegrationAuditTab from '../../components/integrations/IntegrationAuditTab.vue'
 
 const integrationStore = useIntegrationStore()
 
-const activeTab = ref<'services' | 'cross_system' | 'permissions' | 'approvals' | 'audit'>('services')
+const activeTab = ref<'services' | 'cross_system' | 'catalog' | 'permissions' | 'approvals' | 'vault' | 'audit'>('services')
 const showConnectModal = ref(false)
 const showApprovalModal = ref(false)
 const selectedApproval = ref<IntegrationApprovalRequest | null>(null)
@@ -255,8 +267,10 @@ const selectedApproval = ref<IntegrationApprovalRequest | null>(null)
 const tabOptions = computed(() => [
   { id: 'services' as const, label: 'Layanan Terhubung', badge: integrationStore.connectedCount.toString() },
   { id: 'cross_system' as const, label: 'Cross-System Studio' },
+  { id: 'catalog' as const, label: 'Katalog Tool' },
   { id: 'permissions' as const, label: 'Matriks Izin Tool', badge: integrationStore.permissions.length.toString() },
   { id: 'approvals' as const, label: 'Approval Gate Center', badge: integrationStore.pendingApprovalsCount.toString() },
+  { id: 'vault' as const, label: 'Credential Vault' },
   { id: 'audit' as const, label: 'Audit Trail & Telemetry', badge: integrationStore.auditEvents.length.toString() }
 ])
 

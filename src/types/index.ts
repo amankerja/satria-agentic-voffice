@@ -996,6 +996,7 @@ export interface IntegrationConnection {
     allowedRecipientDomains?: string[]
     autoDraftEnabled?: boolean
     autoSendEnabled?: boolean
+    [key: string]: any
   }
   credentials?: {
     accessToken?: string

@@ -6,6 +6,12 @@ import { GitHubAdapter } from '../services/integrations/GitHubAdapter'
 import { GmailAdapter } from '../services/integrations/GmailAdapter'
 import { CrossSystemWorkflowEngine } from '../services/integrations/CrossSystemWorkflowEngine'
 import { useIntegrationStore } from '../stores/integration'
+import { CredentialVault } from '../services/integrations/CredentialVault'
+import { GitHubAuthService } from '../services/integrations/GitHubAuthService'
+import { GoogleOAuthService } from '../services/integrations/GoogleOAuthService'
+import { ToolCatalog } from '../services/integrations/ToolCatalog'
+import { RecipientSecurityPolicy } from '../services/integrations/RecipientSecurityPolicy'
+import { IntegrationApprovalPolicy } from '../services/integrations/IntegrationApprovalPolicy'
 import type { IntegrationConnection } from '../types'
 
 describe('Phase 7 — Enterprise Integrations (GitHub & Email), Tool Control & Cross-System Execution', () => {
@@ -249,6 +255,100 @@ describe('Phase 7 — Enterprise Integrations (GitHub & Email), Tool Control & C
 
       const health = await store.testConnectionHealth(ghConn!.id)
       expect(health.healthy).toBe(true)
+    })
+  })
+
+  describe('CredentialVault & Secret Masking', () => {
+    it('stores, masks, rotates, and revokes credentials with zero raw exposure', () => {
+      const rawSecret = 'ghs_live_super_secret_token_123456789'
+      const stored = CredentialVault.storeSecret('conn-test-vault', 'github', 'github_app_key', rawSecret)
+
+      expect(stored.maskedValue).toContain('****')
+      expect(stored.maskedValue.startsWith('ghs_')).toBe(true)
+      expect(stored.maskedValue.endsWith('6789')).toBe(true)
+
+      const decrypted = CredentialVault.getSecret('conn-test-vault')
+      expect(decrypted).toBe(rawSecret)
+
+      // Rotate
+      const rotated = CredentialVault.rotateSecret('conn-test-vault', 'ghs_rotated_token_99999999')
+      expect(rotated.maskedValue).toContain('****')
+      expect(CredentialVault.getSecret('conn-test-vault')).toBe('ghs_rotated_token_99999999')
+
+      // Revoke
+      const revoked = CredentialVault.revokeSecret('conn-test-vault')
+      expect(revoked).toBe(true)
+      expect(CredentialVault.getSecret('conn-test-vault')).toBeNull()
+    })
+  })
+
+  describe('GitHub App & Google OAuth Handshake Services', () => {
+    it('authenticates GitHub App and exchanges installation token', async () => {
+      const authRes = await GitHubAuthService.authenticateGitHubApp({
+        appId: '123456',
+        installationId: 'inst_9988'
+      })
+
+      expect(authRes.success).toBe(true)
+      expect(authRes.connection?.status).toBe('Connected')
+      expect(authRes.connection?.credentials?.accessToken).toContain('****')
+    })
+
+    it('generates Google OAuth URL and exchanges authorization code', async () => {
+      const urlInfo = GoogleOAuthService.getAuthorizationUrl('client_123', 'http://localhost/callback')
+      expect(urlInfo.url).toContain('accounts.google.com')
+      expect(urlInfo.state).toContain('google_state')
+
+      const exchangeRes = await GoogleOAuthService.exchangeAuthCode('code_test_123', 'ops@satria.workforce.ai')
+      expect(exchangeRes.success).toBe(true)
+      expect(exchangeRes.connection?.status).toBe('Connected')
+      expect(exchangeRes.connection?.accountLabel).toBe('ops@satria.workforce.ai')
+    })
+  })
+
+  describe('ToolCatalog Registry & Schemas', () => {
+    it('retrieves tools for GitHub and Gmail with valid schemas', () => {
+      const ghTools = ToolCatalog.getToolsByProvider('github')
+      expect(ghTools.length).toBeGreaterThanOrEqual(5)
+
+      const prTool = ToolCatalog.getToolDefinition('github.create_pull_request')
+      expect(prTool).toBeDefined()
+      expect(prTool?.riskLevel).toBe('HIGH')
+      expect(prTool?.defaultApprovalRequired).toBe(true)
+      expect(prTool?.parameters.some((p) => p.name === 'repo')).toBe(true)
+
+      const gmTools = ToolCatalog.getToolsByProvider('gmail')
+      expect(gmTools.length).toBeGreaterThanOrEqual(4)
+      const sendTool = ToolCatalog.getToolDefinition('email.send')
+      expect(sendTool?.riskLevel).toBe('HIGH')
+    })
+  })
+
+  describe('RecipientSecurityPolicy & IntegrationApprovalPolicy', () => {
+    it('allows whitelisted domains and flags external domains for approval', () => {
+      const internalRes = RecipientSecurityPolicy.evaluateRecipient('team@satria.workforce.ai')
+      expect(internalRes.allowed).toBe(true)
+      expect(internalRes.isExternal).toBe(false)
+      expect(internalRes.requiresApproval).toBe(false)
+
+      const externalAllowed = RecipientSecurityPolicy.evaluateRecipient('client@clientcorp.com')
+      expect(externalAllowed.allowed).toBe(true)
+      expect(externalAllowed.isExternal).toBe(true)
+      expect(externalAllowed.requiresApproval).toBe(true)
+
+      const disposableRes = RecipientSecurityPolicy.evaluateRecipient('spammer@tempmail.com')
+      expect(disposableRes.allowed).toBe(false)
+    })
+
+    it('enforces owner approval on protected branches and external emails', () => {
+      const ghPrMain = IntegrationApprovalPolicy.evaluateGitHubAction('github.create_pull_request', { base: 'main' })
+      expect(ghPrMain.requiresApproval).toBe(true)
+      expect(ghPrMain.riskLevel).toBe('HIGH')
+      expect(ghPrMain.approvalType).toBe('Owner')
+
+      const emailSend = IntegrationApprovalPolicy.evaluateEmailAction('email.send', { to: 'client@clientcorp.com' })
+      expect(emailSend.requiresApproval).toBe(true)
+      expect(emailSend.riskLevel).toBe('HIGH')
     })
   })
 })
